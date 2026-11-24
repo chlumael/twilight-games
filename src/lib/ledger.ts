@@ -109,6 +109,32 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string): Gro
   };
 }
 
+export interface TopHit {
+  pull: Pull;
+  /** Pulls it took, counting the top pull itself (e.g. 74). */
+  count: number;
+}
+
+/** Every top pull in a group with the number of pulls it took, oldest first. */
+export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
+  const base = rec.baseline[groupId] ?? emptyBaseline();
+  let since = base.pity;
+  const hits: TopHit[] = [];
+  for (const p of rec.pulls.filter((x) => x.group === groupId).sort(byTime)) {
+    since++;
+    if (p.top) {
+      hits.push({ pull: p, count: since });
+      since = 0;
+    }
+  }
+  return hits;
+}
+
+/** Most recent pulls of a group, oldest first (for the history strip). */
+export function recentPulls(rec: GameRecord, groupId: string, limit: number): Pull[] {
+  return rec.pulls.filter((x) => x.group === groupId).sort(byTime).slice(-limit);
+}
+
 /** Pulls affordable with the given currency, following the spend order. */
 export function availablePulls(currency: Record<string, number>, spend: SpendStep[]): number {
   return spend.reduce((sum, s) => sum + Math.floor((currency[s.key] ?? 0) / s.cost) * s.pulls, 0);

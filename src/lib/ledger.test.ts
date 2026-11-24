@@ -10,6 +10,7 @@ import {
   normalizeRecords,
   recordSession,
   setCurrency,
+  topHistory,
   undo,
 } from "./ledger";
 
@@ -96,6 +97,16 @@ describe("currency", () => {
     const u = undo(r);
     expect(u.records.games.genshin.currency).toMatchObject({ intertwined: 5, primogem: 1600 });
     expect(u.records.games.genshin.pulls).toHaveLength(0);
+  });
+});
+
+describe("history", () => {
+  it("counts pulls taken per top, including the baseline", () => {
+    let r = emptyRecords();
+    r.games.genshin.baseline["genshin-char"] = { ...emptyBaseline(), pity: 70 };
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map([[3, { name: "A", featured: false }]]), t(0));
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map([[9, { name: "B", featured: true }]]), t(1));
+    expect(topHistory(r.games.genshin, "genshin-char").map((h) => h.count)).toEqual([74, 16]);
   });
 });
 

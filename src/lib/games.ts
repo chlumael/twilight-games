@@ -72,7 +72,7 @@ export const GAMES: Record<GameId, GameDef> = {
     groups: [
       {
         id: "genshin-char",
-        name: "캐릭터 이벤트",
+        name: "캐릭터",
         hardPity: 90,
         softFrom: 74,
         carryOver: true,
@@ -82,7 +82,7 @@ export const GAMES: Record<GameId, GameDef> = {
       },
       {
         id: "genshin-weapon",
-        name: "무기 이벤트",
+        name: "무기",
         hardPity: 80,
         softFrom: 63,
         carryOver: true,

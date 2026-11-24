@@ -1,19 +1,21 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import GroupPanel from "./components/GroupPanel.svelte";
+  import PityRing from "./components/PityRing.svelte";
   import SettingsPanel from "./components/SettingsPanel.svelte";
   import TopForm from "./components/TopForm.svelte";
   import * as api from "./lib/api";
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recordSession, setCurrency, undo, type TopInfo,
+    normalizeRecords, recentPulls, recordSession, setCurrency, topHistory, undo, type TopInfo,
   } from "./lib/ledger";
+  import { themeStyle } from "./lib/themes";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
   const COLLAPSED = { w: 360, h: 44 };
-  const EXPANDED = { w: 360, h: 600 };
+  const EXPANDED = { w: 360, h: 620 };
 
   // $state.raw: ledger functions structuredClone these, which fails on deep proxies.
   let records = $state.raw<Records>(emptyRecords());
@@ -34,7 +36,8 @@
   const status = $derived(groupStatus(rec, game, groupId));
   const canPull = $derived(availablePulls(rec.currency, group.spend));
   const pending = $derived(GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0));
-  const recent = $derived(rec.pulls.filter((p) => p.group === groupId && p.top).slice(-5).reverse());
+  const recent = $derived(recentPulls(rec, groupId, 40));
+  const hits = $derived(topHistory(rec, groupId));
 
   function notify(msg: string) {
     toast = msg;
@@ -77,6 +80,12 @@
   $effect(() => {
     const size = collapsed ? COLLAPSED : EXPANDED;
     api.resizeWindow(size.w, size.h);
+  });
+
+  let bodyEl = $state<HTMLDivElement>();
+  $effect(() => {
+    game; groupId;
+    bodyEl?.scrollTo({ top: 0 });
   });
 
   function selectGame(value: string) {
@@ -182,13 +191,15 @@
   });
 </script>
 
-<main class:collapsed>
+<main class:collapsed style={themeStyle(game)}>
   {#if collapsed}
     <div class="line" data-tauri-drag-region ondblclick={() => (collapsed = false)} role="presentation">
-      <strong data-tauri-drag-region>{def.shortName}</strong>
-      <span data-tauri-drag-region>{group.name} {status.pity}{status.hardPity ? `/${status.hardPity}` : ""}</span>
+      <span class="stripe" data-tauri-drag-region></span>
+      <PityRing pity={status.pity} hard={status.hardPity} soft={status.softFrom} size={30} />
+      <strong class="gname" data-tauri-drag-region>{def.shortName}</strong>
+      <span class="muted" data-tauri-drag-region>{group.name}</span>
       {#if status.guaranteed}<span class="good" data-tauri-drag-region>확정</span>{/if}
-      <span data-tauri-drag-region>보유 {canPull}뽑</span>
+      <span class="have" data-tauri-drag-region>{canPull}<small>뽑</small></span>
       {#if pending}<span class="warn" data-tauri-drag-region>확인 {pending}</span>{/if}
       {#if clickThrough}<span class="muted" data-tauri-drag-region title="클릭 통과 중 (Ctrl+Alt+T)">⇣</span>{/if}
       <button class="icon expand" onclick={() => (collapsed = false)} aria-label="펼치기">▾</button>
@@ -208,7 +219,7 @@
       <button class="icon" onclick={() => { collapsed = true; view = "main"; }} aria-label="접기">▴</button>
     </header>
 
-    <div class="body">
+    <div class="body" bind:this={bodyEl}>
       {#if view === "settings"}
         <SettingsPanel
           {settings} {game} record={rec}
@@ -230,17 +241,18 @@
           {/each}
         </nav>
 
-        <GroupPanel {status} topLabel={def.topLabel} onBanner={setBanner} />
+        <GroupPanel {status} topLabel={def.topLabel} {recent} {hits} onBanner={setBanner} />
 
         <section class="currency">
           <div class="head">
-            <span>보유 재화</span>
-            <span class="accent">지금 {canPull}뽑 가능</span>
+            <span class="muted">보유 재화</span>
+            <span class="can"><b>{canPull}</b>뽑 가능</span>
           </div>
           <div class="grid">
-            {#each def.currencies as c (c.key)}
-              <label>
-                {c.label}
+            {#each def.currencies as c, i (c.key)}
+              <label class="cur">
+                <span class="glyph g{i % 3}"></span>
+                <span class="cname">{c.label}</span>
                 <input type="number" min="0" value={rec.currency[c.key] ?? 0}
                   onchange={(e) => editCurrency(c.key, (e.currentTarget as HTMLInputElement).value)} />
               </label>
@@ -261,21 +273,10 @@
             <button class="primary" onclick={() => pull(1)}>+1</button>
             <button class="primary" onclick={() => pull(10)}>+10</button>
             <button class="top-btn" onclick={() => (view = "top")}>★ {def.topLabel}</button>
-            <button onclick={doUndo} title="Ctrl+Alt+Z">되돌리기</button>
+            <button class="undo" onclick={doUndo} title="되돌리기 (Ctrl+Alt+Z)" aria-label="되돌리기">↶</button>
           </section>
         {/if}
 
-        {#if recent.length}
-          <section class="recent">
-            <span class="muted">최근 {def.topLabel}</span>
-            {#each recent as p (p.id)}
-              <div class="row">
-                <span class="top">{p.name ?? "이름 미입력"}</span>
-                <span class="muted">{p.featured === true ? "픽업" : p.featured === false ? "픽뚫" : ""} · {new Date(p.time).toLocaleDateString("ko-KR")}</span>
-              </div>
-            {/each}
-          </section>
-        {/if}
       {/if}
     </div>
   {/if}
@@ -285,31 +286,54 @@
 
 <style>
   main {
-    height: 100%; display: flex; flex-direction: column; background: var(--bg);
-    border: 1px solid var(--line); border-radius: 10px; overflow: hidden; position: relative;
+    height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden;
+    background: linear-gradient(180deg, var(--tint), transparent 40%), var(--bg);
+    border: 1px solid var(--line); border-radius: 12px;
   }
-  .line { height: 100%; display: flex; align-items: center; gap: 10px; padding: 0 6px 0 12px; white-space: nowrap; cursor: move; }
-  .line .expand { margin-left: auto; }
-  header { display: flex; align-items: center; gap: 4px; padding: 6px 6px 6px 8px; border-bottom: 1px solid var(--line); cursor: move; }
-  header select { max-width: 170px; }
+  .line { height: 100%; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 0; white-space: nowrap; cursor: move; }
+  .stripe { align-self: stretch; width: 4px; background: linear-gradient(180deg, var(--a1), var(--a2)); }
+  .line :global(.ring .center) { display: none; }
+  .line :global(circle) { stroke-width: 5; }
+  .gname { color: var(--a1); }
+  .have { font-weight: 700; margin-left: auto; }
+  .have small { font-size: 10px; color: var(--muted); margin-left: 1px; }
+  header {
+    display: flex; align-items: center; gap: 4px; padding: 7px 6px 7px 10px; cursor: move;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--a1) 22%, transparent), transparent 70%);
+    border-bottom: 1px solid color-mix(in srgb, var(--a1) 35%, transparent);
+  }
+  header select { max-width: 170px; font-weight: 700; color: var(--a1); background: rgba(0, 0, 0, 0.35); border-color: transparent; }
   .spacer { flex: 1; align-self: stretch; }
   .small { font-size: 11px; }
-  .body { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 12px; }
-  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
-  .tabs button.active { border-color: var(--accent); color: var(--accent); }
-  .currency .head { display: flex; justify-content: space-between; margin-bottom: 4px; }
-  .accent { color: var(--accent); font-weight: 600; }
+  .body { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .tabs { display: flex; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.3); border-radius: 9px; }
+  .tabs button { flex: 1; border: none; background: transparent; color: var(--muted); padding: 5px 4px; font-size: 12px; }
+  .tabs button.active { background: color-mix(in srgb, var(--a1) 22%, transparent); color: var(--a1); font-weight: 700; }
+  .currency { padding: 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+  .currency .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 12px; }
+  .can { color: var(--muted); }
+  .can b { font-size: 20px; color: var(--a1); margin-right: 2px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .grid label { display: flex; flex-direction: column; gap: 2px; }
-  .actions { display: grid; grid-template-columns: 1fr 1fr 1.4fr 1.2fr; gap: 6px; }
-  .actions button { padding: 8px 4px; }
-  .top-btn { color: var(--top); border-color: rgba(255, 211, 107, 0.4); }
-  .recent { display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
-  .recent .row { display: flex; justify-content: space-between; }
+  .cur { display: grid; grid-template-columns: 14px 1fr; grid-template-rows: auto auto; gap: 2px 6px; align-items: center; }
+  .cur input { grid-column: 1 / -1; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .cname { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .glyph { width: 10px; height: 10px; transform: rotate(45deg); border-radius: 2px; }
+  .glyph.g0 { background: var(--a1); }
+  .glyph.g1 { background: var(--a2); }
+  .glyph.g2 { background: transparent; border: 2px solid var(--a1); }
+  .actions { display: grid; grid-template-columns: 1fr 1fr 1.3fr 40px; gap: 6px; }
+  .actions button { padding: 10px 4px; font-weight: 700; border-radius: 9px; }
+  .actions button.primary {
+    color: #14110a; border: none;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--a1) 100%, white 10%), color-mix(in srgb, var(--a1) 75%, black 25%));
+  }
+  .top-btn { color: var(--top); border-color: color-mix(in srgb, var(--top) 50%, transparent); background: color-mix(in srgb, var(--top) 10%, transparent); }
+  .undo { color: var(--muted); font-size: 16px; }
   .review { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
   .toast {
-    position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); background: rgba(0, 0, 0, 0.8);
-    padding: 4px 10px; border-radius: 6px; font-size: 12px; white-space: nowrap;
+    position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85);
+    border: 1px solid color-mix(in srgb, var(--a1) 40%, transparent);
+    padding: 5px 12px; border-radius: 999px; font-size: 12px; white-space: nowrap;
   }
   main.collapsed .toast { display: none; }
 </style>

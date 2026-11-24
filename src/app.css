@@ -5,6 +5,7 @@
   --line: rgba(255, 255, 255, 0.12);
   --text: #f3eefc;
   --muted: #a99fbd;
+  --a1: #ffb86b; --a2: #b48cff; --glow: rgba(255, 211, 107, 0.5); --tint: transparent;
   --accent: #ffb86b;
   --good: #7ddc9a;
   --warn: #ff8a7a;
