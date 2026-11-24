@@ -1,0 +1,36 @@
+:root {
+  --bg-alpha: 0.88;
+  --bg: rgba(22, 18, 34, var(--bg-alpha));
+  --panel: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.12);
+  --text: #f3eefc;
+  --muted: #a99fbd;
+  --accent: #ffb86b;
+  --good: #7ddc9a;
+  --warn: #ff8a7a;
+  --top: #ffd36b;
+  font-family: "Pretendard", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; user-select: none; }
+#app { height: 100%; }
+button {
+  font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; padding: 4px 8px; cursor: pointer;
+}
+button:hover { background: rgba(255, 255, 255, 0.12); }
+button.primary { background: rgba(255, 184, 107, 0.2); border-color: rgba(255, 184, 107, 0.5); }
+button.icon { padding: 2px 6px; background: transparent; border-color: transparent; }
+input, select {
+  font: inherit; color: var(--text); background: rgba(0, 0, 0, 0.3); border: 1px solid var(--line);
+  border-radius: 5px; padding: 3px 6px; min-width: 0; user-select: text;
+}
+input[type="number"] { width: 100%; }
+label { color: var(--muted); font-size: 12px; }
+.muted { color: var(--muted); }
+.good { color: var(--good); }
+.warn { color: var(--warn); }
+.top { color: var(--top); }
