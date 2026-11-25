@@ -14,6 +14,8 @@ interface AndroidBridge {
   collapse(): void;
   closeOverlay(): void;
   saveFile(name: string, content: string): void;
+  /** Overlay only: data for the collapsed one-line bar. Older app versions lack it. */
+  updateSummary?(json: string): void;
 }
 const androidBridge = (window as unknown as { TwilightAndroid?: AndroidBridge }).TwilightAndroid;
 export const android = androidBridge ?? null;

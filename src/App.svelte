@@ -226,6 +226,25 @@
     }
   }
 
+  // Android overlay: keep the native collapsed bar (pity · 확정 · 가능 횟수) in sync.
+  $effect(() => {
+    if (api.androidMode !== "overlay" || !api.android?.updateSummary) return;
+    const v = skin.vars;
+    const hex = (rgb: string) => "#" + rgb.split(",").map((n) => Number(n).toString(16).padStart(2, "0")).join("");
+    api.android.updateSummary(JSON.stringify({
+      game: def.shortName,
+      group: group.name,
+      pity: status.pity,
+      hard: status.hardPity,
+      guaranteed: status.guaranteed === true,
+      canPull,
+      bg: hex(v["--bg-rgb"]),
+      text: v["--text"],
+      accent: v["--a2"],
+      top: v["--top"],
+    }));
+  });
+
   /** Re-read storage: another window (app ↔ overlay) may have saved meanwhile. */
   async function reloadFromStorage() {
     try {

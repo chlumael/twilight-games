@@ -57,6 +57,14 @@ class MainActivity : Activity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        // Records may have changed here; let the overlay bar catch up.
+        if (OverlayService.running) {
+            startService(Intent(this, OverlayService::class.java).setAction(OverlayService.ACTION_REFRESH))
+        }
+    }
+
     private fun startOverlay() {
         if (Settings.canDrawOverlays(this)) {
             launchOverlay()

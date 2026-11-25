@@ -8,7 +8,10 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
@@ -24,6 +27,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import org.json.JSONObject
 import kotlin.math.abs
 
 /**
@@ -32,7 +36,13 @@ import kotlin.math.abs
  */
 class OverlayService : Service() {
     private lateinit var wm: WindowManager
-    private lateinit var bubble: View
+    private lateinit var bubble: LinearLayout
+    private lateinit var arc: PityArc
+    private lateinit var tGame: TextView
+    private lateinit var tGroup: TextView
+    private lateinit var tSure: TextView
+    private lateinit var tPulls: TextView
+    private lateinit var bubbleIcon: ImageView
     private lateinit var panel: LinearLayout
     private lateinit var webView: WebView
     private lateinit var bubbleParams: WindowManager.LayoutParams
@@ -49,6 +59,12 @@ class OverlayService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        if (intent?.action == ACTION_REFRESH) {
+            // The app saved something: re-read storage so the bar is current.
+            if (created) WebSetup.reload(webView)
+            return START_STICKY
+        }
+        running = true
         startInForeground()
         if (!created) {
             created = true
@@ -99,20 +115,30 @@ class OverlayService : Service() {
     private fun createViews() {
         wm = getSystemService(WindowManager::class.java)
 
-        // --- bubble ---
-        val size = dp(54)
-        bubble = FrameLayout(this).apply {
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(Color.parseColor("#E6161222"))
-                setStroke(dp(2), Color.parseColor("#FFD3BC8E"))
-            }
-            addView(
-                ImageView(this@OverlayService).apply { setImageResource(R.mipmap.ic_launcher) },
-                FrameLayout.LayoutParams(dp(40), dp(40), Gravity.CENTER),
-            )
+        // --- collapsed bar: [pity arc] 게임 그룹 확정 N뽑 (filled from the web UI) ---
+        arc = PityArc()
+        bubbleIcon = ImageView(this).apply { setImageResource(R.mipmap.ic_launcher) }
+        tGame = barText(14f, bold = true)
+        tGroup = barText(12f)
+        tSure = barText(12f).apply { setTextColor(Color.parseColor("#FF4FCF7F")); text = "확정"; visibility = View.GONE }
+        tPulls = barText(14f, bold = true)
+        bubble = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(6), dp(4), dp(12), dp(4))
+            background = barBackground(Color.parseColor("#E6161222"), Color.parseColor("#FFD3BC8E"))
+            addView(bubbleIcon, LinearLayout.LayoutParams(dp(34), dp(34)))
+            addView(arc, LinearLayout.LayoutParams(dp(26), dp(26)).apply { marginEnd = dp(8) })
+            addView(tGame, gap())
+            addView(tGroup, gap())
+            addView(tSure, gap())
+            addView(tPulls)
         }
-        bubbleParams = overlayParams(size, size, focusable = false).apply {
+        arc.visibility = View.GONE
+        listOf(tGame, tGroup, tPulls).forEach { it.visibility = View.GONE }
+        bubbleParams = overlayParams(
+            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, focusable = false,
+        ).apply {
             x = prefs.getInt("bx", dp(8))
             y = prefs.getInt("by", dp(140))
         }
@@ -124,7 +150,7 @@ class OverlayService : Service() {
         webView = WebView(this)
         WebSetup.configure(
             this, webView,
-            WebBridge(mode = "overlay", onCollapse = ::collapse, onClose = ::stopSelf),
+            WebBridge(mode = "overlay", onCollapse = ::collapse, onClose = ::stopSelf, onSummary = ::showSummary),
         )
         val handle = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -177,6 +203,71 @@ class OverlayService : Service() {
         wm.addView(bubble, bubbleParams)
     }
 
+    private fun barText(size: Float, bold: Boolean = false) = TextView(this).apply {
+        textSize = size
+        setTextColor(Color.WHITE)
+        if (bold) setTypeface(typeface, android.graphics.Typeface.BOLD)
+        maxLines = 1
+    }
+
+    private fun gap() = LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT,
+    ).apply { marginEnd = dp(8) }
+
+    private fun barBackground(fill: Int, stroke: Int) = GradientDrawable().apply {
+        cornerRadius = dp(22).toFloat()
+        setColor(fill)
+        setStroke(dp(1), stroke)
+    }
+
+    private fun color(s: String?, fallback: Int): Int = runCatching { Color.parseColor(s) }.getOrDefault(fallback)
+
+    /** JSON from the web UI: game, group, pity, hard, guaranteed, canPull, bg, text, accent, top. */
+    private fun showSummary(json: String) {
+        val o = runCatching { JSONObject(json) }.getOrNull() ?: return
+        val text = color(o.optString("text"), Color.WHITE)
+        val top = color(o.optString("top"), Color.parseColor("#FFFFD36B"))
+        val bg = color(o.optString("bg"), Color.parseColor("#161222"))
+        bubble.background = barBackground((bg and 0x00FFFFFF) or (0xEE shl 24), top)
+        bubbleIcon.visibility = View.GONE
+        arc.visibility = View.VISIBLE
+        val hard = if (o.isNull("hard")) 0 else o.optInt("hard")
+        arc.set(o.optInt("pity"), hard, top, (text and 0x00FFFFFF) or (0x33 shl 24))
+        tGame.apply { this.text = o.optString("game"); setTextColor(text); visibility = View.VISIBLE }
+        tGroup.apply {
+            this.text = o.optString("group") + "  " + o.optInt("pity") + (if (hard > 0) "/$hard" else "")
+            setTextColor((text and 0x00FFFFFF) or (0xB0 shl 24))
+            visibility = View.VISIBLE
+        }
+        tSure.visibility = if (o.optBoolean("guaranteed")) View.VISIBLE else View.GONE
+        tPulls.apply { this.text = "${o.optInt("canPull")}뽑"; setTextColor(text); visibility = View.VISIBLE }
+        if (!expanded) runCatching { wm.updateViewLayout(bubble, bubbleParams) }
+    }
+
+    /** Small ring showing pity progress, like the desktop collapsed line. */
+    private inner class PityArc : View(this@OverlayService) {
+        private val track = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = dp(4).toFloat() }
+        private val value = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE; strokeWidth = dp(4).toFloat(); strokeCap = Paint.Cap.ROUND
+        }
+        private var ratio = 0f
+        private val box = RectF()
+
+        fun set(pity: Int, hard: Int, color: Int, trackColor: Int) {
+            ratio = if (hard > 0) (pity.toFloat() / hard).coerceIn(0f, 1f) else 0f
+            value.color = color
+            track.color = trackColor
+            invalidate()
+        }
+
+        override fun onDraw(canvas: Canvas) {
+            val inset = track.strokeWidth / 2 + 1
+            box.set(inset, inset, width - inset, height - inset)
+            canvas.drawOval(box, track)
+            if (ratio > 0f) canvas.drawArc(box, -90f, 360f * ratio, false, value)
+        }
+    }
+
     private fun handleButton(label: String, onClick: () -> Unit) = TextView(this).apply {
         text = label
         textSize = 16f
@@ -202,6 +293,7 @@ class OverlayService : Service() {
     }
 
     override fun onDestroy() {
+        running = false
         if (created) {
             runCatching { wm.removeView(if (expanded) panel else bubble) }
             webView.destroy()
@@ -250,5 +342,9 @@ class OverlayService : Service() {
         private const val CHANNEL = "overlay"
         private const val NOTIFICATION_ID = 1
         const val ACTION_STOP = "io.github.chlumael.twilightgames.STOP"
+        const val ACTION_REFRESH = "io.github.chlumael.twilightgames.REFRESH"
+
+        /** True while the overlay service is alive (lets the app ask it to refresh). */
+        @Volatile var running = false
     }
 }
