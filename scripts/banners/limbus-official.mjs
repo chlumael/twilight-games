@@ -2,7 +2,10 @@
 // 공지 본문은 그림·영상뿐이라, 본문에 붙은 공식 유튜브 영상의 제목에서 픽업 이름을 읽는다.
 //   공지 제목  "2026.11.26 (KST) 신규 인격 특정 추출"            → 시작 날짜
 //   영상 제목  "LimbusCompany [000] A 그레고르 / [000] B 이상"   → 픽업 인격·E.G.O
-// 발푸르기스의 밤처럼 영상 없이 그림만 있는 공지는 읽지 못한다(화면 인식·수동 입력 몫).
+// 발푸르기스의 밤 공지는 영상이 없다. 배너와 기간은 공지에서 읽고, 그림 안에만 있는 픽업 이름은
+// data/names/limbus-walpurgis.json 에 따로 적는다(공지 그림을 보고 옮겨 적은 것).
+
+import { readFile } from "node:fs/promises";
 
 const EVENTS = "https://store.steampowered.com/events/ajaxgetpartnereventspageable/?clan_accountid=0&appid=1973530&l=koreana";
 const OEMBED = "https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=";
@@ -14,6 +17,25 @@ export function parseEvent(event) {
   const video = String(event.announcement_body?.body ?? "").match(/\[previewyoutube=([\w-]{6,20})/);
   if (!m || !video) return null;
   return { date: `${m[1]}-${m[2]}-${m[3]}`, video: video[1] };
+}
+
+/**
+ * 발푸르기스의 밤 공지 → { round, date, start, end } 또는 null.
+ * 기간은 공지에 설정된 이벤트 시간을 쓴다(하루 넘게 잡혀 있을 때만. 옛 공지는 게시 시각만 들어 있다).
+ * 픽업 이름은 공지 그림 안에만 있어 자동으로 읽지 못한다 → data/names/limbus-walpurgis.json
+ */
+export function parseWalpurgis(event) {
+  const m = String(event.event_name ?? "").match(
+    /^\s*(\d{4})\.(\d{2})\.(\d{2}) \(KST\) 제(\d+)회 발푸르기스의 밤 (?:특정 추출|신규 인격 & E\.G\.O 정보 안내)/);
+  if (!m) return null;
+  const from = event.rtime32_start_time, to = event.rtime32_end_time;
+  const timed = from && to && to - from > 86400;
+  return {
+    round: Number(m[4]),
+    date: `${m[1]}-${m[2]}-${m[3]}`,
+    start: timed ? new Date(from * 1000).toISOString() : null,
+    end: timed ? new Date(to * 1000).toISOString() : null,
+  };
 }
 
 /**
@@ -35,34 +57,61 @@ export function parseVideoTitle(title) {
   return items;
 }
 
-/** 같은 날짜의 공지를 한 배너로 묶고 기간을 채운다. */
-export function buildBanners(entries) {
+const item = (x) => ({ id: `ko:${x.name}`, ko: x.name, grade: x.grade });
+const SOURCE = "림버스 스팀 공식 공지";
+
+/**
+ * 같은 날짜의 공지를 한 배너로 묶고 기간을 채운다.
+ * walpurgis: parseWalpurgis 결과 목록, names: { "10": [{ grade, name }] } (회차별 픽업 이름)
+ */
+export function buildBanners(entries, walpurgis = [], names = {}) {
   const byDate = new Map();
   for (const e of entries) {
     const items = byDate.get(e.date) ?? [];
     for (const it of e.items) if (!items.some((x) => x.name === it.name)) items.push(it);
     byDate.set(e.date, items);
   }
-  const dates = [...byDate.keys()].filter((d) => byDate.get(d).length).sort();
-  return dates.map((date, i) => {
-    const items = byDate.get(date);
+  const list = [];
+  for (const [date, items] of byDate) {
+    if (!items.length) continue;
     const top = items.filter((x) => x.grade !== "00");
-    const item = (x) => ({ id: `ko:${x.name}`, ko: x.name, grade: x.grade });
-    const next = dates[i + 1];
-    return {
+    list.push({
       id: `limbus:official:${date}`,
-      group: "limbus-extraction",
       name: `${top.map((x) => x.name).join(" · ")} 특정 추출`,
-      // 공지에는 날짜만 있다. 점검 종료 시각을 몰라 그날 0시(KST)로 두고 근사값으로 표시한다.
-      start: new Date(`${date}T00:00:00+09:00`).toISOString(),
-      startApprox: true,
-      // 종료일은 공지 글에 없어 다음 특정 추출 시작으로 둔다(근사값). 마지막 배너는 미정.
-      end: next ? new Date(`${next}T00:00:00+09:00`).toISOString() : null,
-      ...(next ? { endApprox: true } : {}),
+      date, start: null, end: null, items,
+    });
+  }
+  const rounds = new Map();
+  for (const w of walpurgis) if (!rounds.has(w.round) || w.start) rounds.set(w.round, w);
+  for (const w of rounds.values()) {
+    list.push({
+      id: `limbus:official:walpurgis-${w.round}`,
+      name: `제${w.round}회 발푸르기스의 밤 특정 추출`,
+      date: w.date, start: w.start, end: w.end, items: names[w.round] ?? [],
+    });
+  }
+  // 공지에 날짜만 있으면 그날 0시(KST)로 두고 근사값으로 표시한다.
+  for (const b of list) {
+    b.startApprox = b.start === null;
+    b.start ??= new Date(`${b.date}T00:00:00+09:00`).toISOString();
+  }
+  list.sort((a, b) => a.start.localeCompare(b.start));
+  return list.map((b, i) => {
+    // 종료일이 공지에 없으면 그 뒤 첫 배너의 시작으로 둔다(근사값). 마지막 배너는 미정.
+    const next = list.slice(i + 1).find((n) => n.start > b.start);
+    const end = b.end ?? next?.start ?? null;
+    return {
+      id: b.id,
+      group: "limbus-extraction",
+      name: b.name,
+      start: b.start,
+      ...(b.startApprox ? { startApprox: true } : {}),
+      end,
+      ...(b.end === null && end ? { endApprox: true } : {}),
       version: null,
-      source: "림버스 스팀 공식 공지",
-      featured: top.map(item),
-      featuredRare: items.filter((x) => x.grade === "00").map(item),
+      source: SOURCE,
+      featured: b.items.filter((x) => x.grade !== "00").map(item),
+      featuredRare: b.items.filter((x) => x.grade === "00").map(item),
     };
   });
 }
@@ -84,7 +133,10 @@ export async function limbusOfficial() {
     if (page.at(-1).rtime32_start_time < cutoff) break;
   }
   const entries = [];
+  const walpurgis = [];
   for (const ev of events.filter((e) => e.rtime32_start_time >= cutoff)) {
+    const w = parseWalpurgis(ev);
+    if (w) walpurgis.push(w);
     const p = parseEvent(ev);
     if (!p) continue;
     try {
@@ -93,5 +145,9 @@ export async function limbusOfficial() {
       console.warn(`림버스: ${p.date} 영상 제목을 읽지 못함 (${e.message})`);
     }
   }
-  return buildBanners(entries);
+  const names = await readFile(new URL("../../data/names/limbus-walpurgis.json", import.meta.url), "utf8")
+    .then((t) => JSON.parse(t).rounds ?? {}).catch(() => ({}));
+  const missing = [...new Set(walpurgis.map((w) => w.round))].filter((r) => !names[r]?.length);
+  if (missing.length) console.warn(`림버스: 발푸르기스의 밤 픽업 이름이 비어 있는 회차 → ${missing.join(", ")} (data/names/limbus-walpurgis.json)`);
+  return buildBanners(entries, walpurgis, names);
 }

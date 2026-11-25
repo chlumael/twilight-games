@@ -1,9 +1,10 @@
 // Builds data/banners.json: 원신은 공개 정리 자료, 엔드필드는 한국어 공식 공지.
 //   node scripts/banners/build.mjs [outFile]
 // Upstream files are never executed: JS data modules are parsed as JSON5 text.
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import JSON5 from "json5";
 import { endfieldOfficial as endfield } from "./endfield-official.mjs";
+import { applyKoreanNames, fetchWishAnnouncements } from "./genshin-official.mjs";
 import { limbusOfficial as limbus } from "./limbus-official.mjs";
 
 const PAIMON = "https://raw.githubusercontent.com/MadeBaruna/paimon-moe/main/src";
@@ -97,7 +98,15 @@ async function genshin() {
   add(banners.weapons, "genshin-weapon", 1);
   add(banners.chronicled, "genshin-chronicled", 1);
   const cutoff = Date.now() - 730 * 864e5; // keep about two years
-  return out.filter((b) => Date.parse(b.end) > cutoff).sort((a, b) => a.start.localeCompare(b.start));
+  const list = out.filter((b) => Date.parse(b.end) > cutoff).sort((a, b) => a.start.localeCompare(b.start));
+  // 한국어 기원 이름: 공식 게임 내 공지(진행 중인 것) + 이전 팩에서 이어받기. 실패해도 영어 이름으로 계속한다.
+  const previous = await readFile(new URL("../../data/banners.json", import.meta.url), "utf8")
+    .then((t) => JSON.parse(t).games?.genshin ?? []).catch(() => []);
+  const announcements = await fetchWishAnnouncements().catch((e) => {
+    console.warn(`원신: 한국어 기원 이름을 읽지 못함 (${e.message})`);
+    return [];
+  });
+  return applyKoreanNames(list, announcements, previous);
 }
 
 const games = {};

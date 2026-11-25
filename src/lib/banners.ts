@@ -15,6 +15,8 @@ export interface PackBanner {
   id: string;
   group: string;
   name: string;
+  /** 한국어 이름을 붙인 경우의 원래 영어 이름 */
+  nameEn?: string;
   /** ISO 시각. 출처에 일정이 없으면 null. start만 있고 end가 null이면 종료일 미정(진행 중). */
   start: string | null;
   end: string | null;

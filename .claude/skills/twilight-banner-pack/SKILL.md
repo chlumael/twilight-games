@@ -31,10 +31,10 @@ for g,l in d['games'].items():
 
 | 게임 | 출처 | 주의 |
 |---|---|---|
-| 원신 | paimon.moe (`banners.js`, `bannersDual.js`, `itemList.js`, `characters.js`, `weaponList.js`, `locales/items/ko.json`) | 시간은 아시아 서버(UTC+8). 캐릭터 배너는 두 5성이 모두 적혀 있어 `shortName`으로 자기 픽업만 남긴다 |
+| 원신 | paimon.moe (`banners.js`, `bannersDual.js`, `itemList.js`, `characters.js`, `weaponList.js`, `locales/items/ko.json`) | 시간은 아시아 서버(UTC+8). 캐릭터 배너는 두 5성이 모두 적혀 있어 `shortName`으로 자기 픽업만 남긴다. 기원 이름 한국어는 `genshin-official.mjs`가 게임 내 공식 공지(진행 중인 기원만 있음)에서 픽업 이름으로 맞춰 붙이고, 이전 팩의 한국어 이름을 이어받는다(원래 이름은 `nameEn`) |
 | 엔드필드 | 한국어 공식 공지 (`scripts/banners/endfield-official.mjs`, 자료 주소 `web-news.gryphline.com/api/bulletin`) | 제목 `「이름」 특별 허가\|재구축 헤드헌팅`인 공지만 해석. 시간은 Asia 서버(UTC+8). "버전 업데이트 후/전까지"는 근사값으로 채우고 `startApprox`/`endApprox` 표시. 해석 못 한 공지는 실행 로그에 경고로 나온다 |
 | 명일방주 | 없음 (한국 서버 데이터 저장소는 2025-12 이후 멈춤) | 화면 인식으로 생성 예정 |
-| 림버스 | 스팀 공식 공지 한국어판 (`scripts/banners/limbus-official.mjs`) | 공지 제목 `YYYY.MM.DD (KST) … 특정 추출`에서 날짜, 본문의 유튜브 영상 제목(`[000] 이름 / [00] 이름 / [TETH] 이름`)에서 픽업을 읽는다. 본문은 그림뿐이라 영상이 없는 공지(발푸르기스의 밤 등)는 건너뛴다. 시작 시각·종료일은 근사값 |
+| 림버스 | 스팀 공식 공지 한국어판 (`scripts/banners/limbus-official.mjs`) | 공지 제목 `YYYY.MM.DD (KST) … 특정 추출`에서 날짜, 본문의 유튜브 영상 제목(`[000] 이름 / [00] 이름 / [TETH] 이름`)에서 픽업을 읽는다. 본문은 그림뿐이라 영상이 없는 공지(발푸르기스의 밤 등)는 건너뛴다. 시작 시각·종료일은 근사값. **발푸르기스의 밤**은 영상이 없어 배너·기간만 공지에서 읽는다. 픽업 이름은 공지 그림 오른쪽 위 이름 칸을 직접 보고 `data/names/limbus-walpurgis.json`의 회차에 적는다(자동 글자 인식 tesseract는 꾸민 글씨를 못 읽는 것을 확인함). 실행 로그에 "픽업 이름이 비어 있는 회차"가 나오면 새 회차를 채운다 |
 
 - **외부 JS는 절대 실행하지 않는다.** `export const x = {...}`는 JSON5로, 다른 모듈을 참조하는 표는 정규식(`extractNames`)으로 읽는다. 외부 코드를 실행하는 방식은 보안 정책에서 실제로 거부됐다.
 - 출처 하나가 실패해도 나머지는 만들어지고, 실패 내용은 `errors`에 남는다. validate는 원신·엔드필드가 비면 실패시킨다.

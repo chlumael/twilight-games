@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBanners, parseEvent, parseVideoTitle } from "./limbus-official.mjs";
+import { buildBanners, parseEvent, parseVideoTitle, parseWalpurgis } from "./limbus-official.mjs";
 
 describe("림버스 공식 공지 해석", () => {
   it("추출 공지에서 날짜와 영상을 읽는다", () => {
@@ -49,5 +49,32 @@ describe("림버스 공식 공지 해석", () => {
     expect(list[0].featured).toHaveLength(1);
     expect(list[1].end).toBeNull();
     expect(list[1].featuredRare.map((x) => x.ko)).toEqual(["나"]);
+  });
+
+  it("발푸르기스의 밤: 공지의 이벤트 시간을 기간으로 쓴다", () => {
+    const w = parseWalpurgis({
+      event_name: "2026.11.12 (KST) 제10회 발푸르기스의 밤 신규 인격 & E.G.O 정보 안내",
+      rtime32_start_time: 1794452400, rtime32_end_time: 1795654800,
+    });
+    expect(w).toEqual({ round: 10, date: "2026-11-12", start: "2026-11-12T03:00:00.000Z", end: "2026-11-26T01:00:00.000Z" });
+    // 옛 공지는 게시 시각만 있어 기간으로 쓰지 않는다
+    expect(parseWalpurgis({
+      event_name: "2025.11.06 (KST) 제7회 발푸르기스의 밤 특정 추출", rtime32_start_time: 100, rtime32_end_time: 3700,
+    })).toMatchObject({ round: 7, start: null, end: null });
+    expect(parseWalpurgis({ event_name: "제10회 발푸르기스의 밤 - PV" })).toBeNull();
+  });
+
+  it("발푸르기스 배너가 사이에 끼면 앞 배너는 그 시작에서 끝난다", () => {
+    const list = buildBanners(
+      [{ date: "2026-10-29", items: [{ grade: "000", name: "가" }] }, { date: "2026-11-26", items: [{ grade: "000", name: "나" }] }],
+      [{ round: 10, date: "2026-11-12", start: "2026-11-12T03:00:00.000Z", end: "2026-11-26T01:00:00.000Z" }],
+      { 10: [{ grade: "000", name: "쐐기 사무소 대표 오티스" }, { grade: "HE", name: "눈물로 벼려낸 검 홍루" }] },
+    );
+    expect(list.map((b) => b.id)).toEqual(["limbus:official:2026-10-29", "limbus:official:walpurgis-10", "limbus:official:2026-11-26"]);
+    expect(list[0].end).toBe("2026-11-12T03:00:00.000Z");
+    expect(list[1]).toMatchObject({ name: "제10회 발푸르기스의 밤 특정 추출", end: "2026-11-26T01:00:00.000Z" });
+    expect(list[1].startApprox).toBeUndefined();
+    expect(list[1].endApprox).toBeUndefined();
+    expect(list[1].featured.map((f) => f.ko)).toEqual(["쐐기 사무소 대표 오티스", "눈물로 벼려낸 검 홍루"]);
   });
 });
