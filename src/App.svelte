@@ -26,6 +26,7 @@
   import genshinItemsFile from "../data/genshin-items.json";
   import endfieldSixFile from "../data/names/endfield-6star.json";
   import arknightsSixFile from "../data/names/arknights-6star.json";
+  import { applyLimbusHistory, mergeSequence, parseLimbusHistory, type LimbusRow } from "./lib/limbus-history";
   import {
     importHistory, mergePages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow,
   } from "./lib/history";
@@ -123,7 +124,24 @@
       parseGenshinHistory(f, (n) => (genshinItems[n]?.rarity ?? null)) ??
       parseArknightsHistory(f);
     if (page?.rows.length) saveHistory(page.game, mergePages(historyStore[page.game] ?? {}, page));
+    const lb = page ? null : parseLimbusHistory(f, limbusKnown());
+    if (lb?.length) saveLimbus(mergeSequence(limbusRows, lb));
   }
+  // 림버스 추출 이력: 시각이 없어 순서로 맞춘다 (limbus-history.ts)
+  const LIMBUS_KEY = "tg-history-limbus";
+  let limbusRows = $state.raw<LimbusRow[]>((() => { try { return JSON.parse(localStorage.getItem(LIMBUS_KEY) ?? "[]"); } catch { return []; } })());
+  function saveLimbus(rows: LimbusRow[]) {
+    limbusRows = rows;
+    try { localStorage.setItem(LIMBUS_KEY, JSON.stringify(rows)); } catch { /* 무시 */ }
+  }
+  const limbusKnown = () => (pack?.games.limbus ?? []).flatMap((b) => b.featured.map((f) => f.ko ?? "")).filter(Boolean);
+  function applyLimbus() {
+    const out = applyLimbusHistory(records, limbusRows, new Date(), () => `lb-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
+    if (out.filled || out.added) update(out.records);
+    saveLimbus([]);
+    notify(`림버스 추출 이력: ${out.filled}개 채움, ${out.added}개 추가${out.known ? `, ${out.known}개는 이미 있음` : ""}`);
+  }
+
   /** 명일방주 요스타 기록의 배너 이름 → 종류 처음 값 (커널·상시는 넣지 않음, 사용자가 바꿀 수 있음) */
   const arknightsDefault = (b: string) => (/커널|상시|기초|초심자/.test(b) ? "" : "arknights-limited");
   function applyHistory(game: GameId, choices: Record<string, string>) {
@@ -173,7 +191,7 @@
     def.currencies.filter((c) => c.manualOnly).map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
   );
   const pending = $derived(
-    detections.length + HISTORY_GAMES.filter((g) => Object.keys(historyStore[g] ?? {}).length).length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
+    detections.length + (limbusRows.length ? 1 : 0) + HISTORY_GAMES.filter((g) => Object.keys(historyStore[g] ?? {}).length).length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
   );
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
@@ -619,6 +637,14 @@
               defaultGroup={g === "arknights" ? arknightsDefault : undefined}
               onApply={(choices) => applyHistory(g, choices)} onClear={() => saveHistory(g, {})} />
           {/each}
+          {#if limbusRows.length}
+            <div class="card lbhist">
+              <div class="lbhead"><b>림버스 추출 이력 {limbusRows.length}개 읽음</b><span class="muted">000 {limbusRows.filter((r) => r.top).length}개</span></div>
+              <p class="muted lbsmall">최신이 위. 이력에는 시각이 없어서 앱의 최근 뽑기(감지·직접 입력)에 위에서부터 이름·000을 채우고, 앱이 모르던 줄은 지금 시각으로 넣습니다. 아래로 내리며 1초씩 보여 주면 이어 붙습니다.</p>
+              <div class="lblist">{#each limbusRows as r, i (i)}<div class:top={r.top}>{r.top ? "000 " : ""}{r.name}</div>{/each}</div>
+              <div class="lbact"><button class="save" onclick={applyLimbus}>기록에 반영</button><button onclick={() => saveLimbus([])}>비우기</button></div>
+            </div>
+          {/if}
           {#each detections as d (d.id)}
             <DetectionCard detection={d} defaultGroup={settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id}
               guessFeatured={(gid, name) => guessFeaturedFor(d.game, gid, name)}
@@ -713,6 +739,13 @@
   .actions button.primary { background: var(--btn-bg); color: var(--btn-fg); border: var(--btn-border); clip-path: var(--btn-clip); }
   .undo { color: var(--muted); font-size: 16px; }
   .review { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+  .lbhist { display: flex; flex-direction: column; gap: 6px; padding: 10px; font-size: 12px; align-self: stretch; }
+  .lbhead { display: flex; justify-content: space-between; }
+  .lbsmall { font-size: 11px; margin: 0; line-height: 1.45; }
+  .lblist { display: flex; flex-direction: column; gap: 2px; max-height: 160px; overflow-y: auto; color: var(--text); }
+  .lblist .top { font-weight: 700; color: var(--top); }
+  .lbact { display: flex; gap: 6px; }
+  .lbact .save { flex: 1; }
   .toast {
     position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); color: #fff;
     padding: 5px 12px; border-radius: 999px; font-size: 12px; white-space: nowrap;

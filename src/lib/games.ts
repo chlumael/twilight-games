@@ -38,7 +38,7 @@ export interface CurrencyDef {
   label: string;
   /**
    * 보유량은 사용자가 직접 입력하고, 사용은 자동으로 차감한다.
-   * 가챠 화면에 수량이 보이지 않는 재화: 원신 창세의 결정, 명일방주 헤드헌팅권(창고에만 표시).
+   * 가챠 화면에 수량이 보이지 않는 재화: 원신 창세의 결정, 명일방주 헤드헌팅권(창고에만 표시), 림버스 추출 티켓.
    */
   manualOnly?: boolean;
 }
@@ -199,8 +199,8 @@ export const GAMES: Record<GameId, GameDef> = {
     topLabel: "000",
     currencies: [
       { key: "lunacy", label: "광기" },
-      { key: "ticket", label: "추출 티켓" },
-      { key: "tenTicket", label: "10회 추출 티켓" },
+      { key: "ticket", label: "추출 티켓", manualOnly: true },
+      { key: "tenTicket", label: "10회 추출 티켓", manualOnly: true },
     ],
     groups: [
       {
