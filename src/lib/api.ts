@@ -113,3 +113,18 @@ export async function screenReading(): Promise<boolean> {
   if (inTauri) return invoke<boolean>("screen_reading").catch(() => false);
   return !!android?.screenReading?.();
 }
+
+/** PC판 구글 로그인: 기본 브라우저를 열고 구글 ID 토큰을 돌려받는다 (src-tauri/src/login.rs). */
+export async function googleLoginPc(): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    let off: UnlistenFn | null = null;
+    listen<{ token?: string; error?: string }>("google-token", (e) => {
+      off?.();
+      if (e.payload.token) resolve(decodeURIComponent(e.payload.token));
+      else reject(new Error(e.payload.error || "로그인이 취소되었습니다"));
+    }).then((un) => {
+      off = un;
+      return invoke("google_login");
+    }).catch((err) => { off?.(); reject(new Error(String(err))); });
+  });
+}

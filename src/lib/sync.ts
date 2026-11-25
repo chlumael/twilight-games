@@ -8,7 +8,7 @@ import {
   type Auth, type User,
 } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, getFirestore, setDoc, type Firestore } from "firebase/firestore/lite";
-import { android } from "./api";
+import { android, googleLoginPc, inTauri } from "./api";
 import { firebaseConfig, googleWebClientId } from "./firebase-config";
 import { GAME_IDS } from "./games";
 import type { GameId, GameRecord } from "./types";
@@ -59,6 +59,11 @@ export async function signIn(): Promise<Account | null> {
       nativeSignIn(clientId);
     });
     const cred = await signInWithCredential(auth, GoogleAuthProvider.credential(token));
+    return toAccount(cred.user);
+  }
+  if (inTauri) {
+    // PC판: 기본 브라우저에서 로그인하고 토큰만 돌려받는다 (프로그램 안 웹 화면에서는 구글 로그인이 막힌다)
+    const cred = await signInWithCredential(auth, GoogleAuthProvider.credential(await googleLoginPc()));
     return toAccount(cred.user);
   }
   const cred = await signInWithPopup(auth, new GoogleAuthProvider());

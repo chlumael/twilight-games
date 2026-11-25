@@ -1,4 +1,5 @@
 mod detect;
+mod login;
 mod screen;
 mod storage;
 
@@ -89,6 +90,7 @@ pub fn run() {
             detect::list_processes,
             screen::screen_read,
             screen::screen_reading,
+            login::google_login,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
