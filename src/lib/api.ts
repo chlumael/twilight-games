@@ -24,6 +24,9 @@ interface AndroidBridge {
   /** 오버레이 전용: 화면 읽기 켜기/끄기. 결과는 window.__twilightScreen(json), __twilightScreenState(json) */
   screenRead?(start: boolean): void;
   screenReading?(): boolean;
+  /** 창을 띄울 때 화면 읽기를 함께 시작할지 */
+  autoScreenRead?(): boolean;
+  setAutoScreenRead?(on: boolean): void;
 }
 const androidBridge = (window as unknown as { TwilightAndroid?: AndroidBridge }).TwilightAndroid;
 export const android = androidBridge ?? null;

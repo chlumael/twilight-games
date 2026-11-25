@@ -19,6 +19,7 @@
   import bundledPack from "../data/banners.json";
   import { autoBanner, bannerLabel, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
+  import { readScreen, type ScreenFrame, type ScreenReading } from "./lib/recognize";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
@@ -39,6 +40,10 @@
   let view = $state<"main" | "settings" | "review" | "top" | "stats">("main");
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
+  let screenOn = $state(!!api.android?.screenReading?.());
+  let screenMessage = $state("");
+  let screenFrame = $state.raw<ScreenFrame | null>(null);
+  let screenResult = $state.raw<ScreenReading | null>(null);
   let pack = $state.raw<BannerPack | null>(isPack(bundledPack) ? bundledPack : null);
 
   const def = $derived(GAMES[game]);
@@ -344,6 +349,29 @@
   }
 
   onMount(() => {
+    // 화면 읽기 결과 받기 (안드로이드 오버레이). 창이 접혀 있어도 계속 받는다.
+    const sw = window as unknown as { __twilightScreen?: (j: string) => void; __twilightScreenState?: (j: string) => void };
+    sw.__twilightScreen = (json) => {
+      try {
+        const f = JSON.parse(json) as ScreenFrame;
+        screenOn = true;
+        screenFrame = f;
+        const r = readScreen(f);
+        if (r) {
+          screenResult = r;
+          // 읽은 화면이 다른 게임이면 그 게임으로 바꾼다 (기록은 건드리지 않는다)
+          if (r.game !== game) { game = r.game; settings = { ...settings, lastGame: r.game }; }
+        }
+      } catch { /* 깨진 데이터는 버린다 */ }
+    };
+    sw.__twilightScreenState = (json) => {
+      try {
+        const st = JSON.parse(json) as { state: string; message: string };
+        screenOn = st.state === "started";
+        screenMessage = st.state === "denied" ? "화면 녹화를 허용하지 않아 시작하지 못했습니다."
+          : st.state === "error" ? `시작하지 못했습니다: ${st.message}` : "";
+      } catch { /* 무시 */ }
+    };
     (window as unknown as { __twilightReload?: () => void }).__twilightReload = () => {
       if (loaded) reloadFromStorage();
     };
@@ -461,7 +489,7 @@
           {#if pending === 0}
             <p class="muted">확인할 기록이 없습니다.</p>
           {/if}
-          <ScreenPanel {game} currency={rec.currency} onGame={(id) => { game = id; settings = { ...settings, lastGame: id }; }}
+          <ScreenPanel {game} currency={rec.currency} reading={screenOn} message={screenMessage} frame={screenFrame} result={screenResult}
             onCurrency={(values) => update(setCurrency(records, game, values))} />
           <button onclick={() => (view = "main")}>닫기</button>
         </section>

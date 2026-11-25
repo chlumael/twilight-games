@@ -61,6 +61,8 @@ class WebBridge(
     private val onSignIn: (webClientId: String) -> Unit = {},
     private val onSignOut: () -> Unit = {},
     private val onScreenRead: (start: Boolean) -> Unit = {},
+    private val onAutoScreenRead: (on: Boolean) -> Unit = {},
+    private val autoScreenRead: () -> Boolean = { true },
 ) {
     private val main = Handler(Looper.getMainLooper())
 
@@ -77,4 +79,7 @@ class WebBridge(
     /** 화면 읽기 켜기/끄기 (오버레이 전용). 결과는 window.__twilightScreen / __twilightScreenState 로 온다. */
     @JavascriptInterface fun screenRead(start: Boolean) { main.post { onScreenRead(start) } }
     @JavascriptInterface fun screenReading(): Boolean = ScreenReadService.running
+    /** 창을 띄울 때 화면 읽기를 함께 시작할지 (앱 화면의 설정에서 바꾼다). */
+    @JavascriptInterface fun autoScreenRead(): Boolean = autoScreenRead.invoke()
+    @JavascriptInterface fun setAutoScreenRead(on: Boolean) { main.post { onAutoScreenRead(on) } }
 }

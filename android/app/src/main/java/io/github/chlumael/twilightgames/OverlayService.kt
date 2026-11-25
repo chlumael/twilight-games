@@ -372,9 +372,11 @@ class OverlayService : Service() {
 
         @Volatile private var instance: OverlayService? = null
         private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        /** 웹 화면이 아직 뜨기 전에 온 상태 알림은 잠깐 뒤에 다시 보낸다. */
+        @Volatile private var lastState: String? = null
 
         /** 화면에서 읽은 글자(JSON)를 오버레이의 웹 화면으로 넘긴다. */
         fun screenText(json: String) { mainHandler.post { instance?.callPage("__twilightScreen", json) } }
-        fun screenState(json: String) { mainHandler.post { instance?.callPage("__twilightScreenState", json) } }
+        fun screenState(json: String) { lastState = json; mainHandler.post { instance?.callPage("__twilightScreenState", json) } }
     }
 }

@@ -1,52 +1,25 @@
 <script lang="ts">
-  import { onDestroy } from "svelte";
   import * as api from "../lib/api";
   import { GAMES } from "../lib/games";
-  import { frameText, readScreen, type ScreenFrame, type ScreenReading } from "../lib/recognize";
+  import { frameText, type ScreenFrame, type ScreenReading } from "../lib/recognize";
   import type { GameId } from "../lib/types";
 
-  let { game, currency, onGame, onCurrency }: {
+  let { game, currency, reading, message, frame, result, onCurrency }: {
     game: GameId;
     currency: Record<string, number>;
-    /** 읽은 화면이 다른 게임이면 그 게임으로 바꾼다 */
-    onGame: (id: GameId) => void;
+    /** 화면 읽기가 켜져 있는지, 알림 문구, 마지막으로 읽은 화면과 해석 결과 (App이 받아서 넘긴다) */
+    reading: boolean;
+    message: string;
+    frame: ScreenFrame | null;
+    result: ScreenReading | null;
     /** 읽은 재화를 적용한다 */
     onCurrency: (values: Record<string, number>) => void;
   } = $props();
 
   const bridge = api.android;
   const supported = !!bridge?.screenRead && api.androidMode === "overlay";
-  let reading = $state(!!bridge?.screenReading?.());
-  let message = $state("");
-  let frame = $state.raw<ScreenFrame | null>(null);
-  let result = $state.raw<ScreenReading | null>(null);
   let showRaw = $state(false);
   let copied = $state(false);
-
-  const w = window as unknown as {
-    __twilightScreen?: (json: string) => void;
-    __twilightScreenState?: (json: string) => void;
-  };
-  w.__twilightScreen = (json) => {
-    try {
-      const f = JSON.parse(json) as ScreenFrame;
-      frame = f;
-      const r = readScreen(f);
-      if (r) {
-        result = r;
-        if (r.game !== game) onGame(r.game);
-      }
-    } catch { /* 깨진 데이터는 버린다 */ }
-  };
-  w.__twilightScreenState = (json) => {
-    try {
-      const s = JSON.parse(json) as { state: string; message: string };
-      reading = s.state === "started";
-      message = s.state === "denied" ? "화면 녹화를 허용하지 않아 시작하지 못했습니다."
-        : s.state === "error" ? `시작하지 못했습니다: ${s.message}` : "";
-    } catch { /* 무시 */ }
-  };
-  onDestroy(() => { delete w.__twilightScreen; delete w.__twilightScreenState; });
 
   const label = (g: GameId, key: string) => GAMES[g].currencies.find((c) => c.key === key)?.label ?? key;
   const changed = $derived(result && result.game === game
@@ -68,7 +41,7 @@
   {#if !supported}
     <p class="muted small">게임 위에 띄운 창(안드로이드)에서만 쓸 수 있습니다.</p>
   {:else}
-    <p class="muted small">켜면 화면 녹화 허용 창이 뜹니다. 화면은 2~3초에 한 번 기기 안에서만 읽고, 그림은 저장하거나 밖으로 보내지 않습니다. 가챠 메인 화면을 띄우면 재화와 배너를 읽어 아래에 보여 줍니다. 자동으로 기록을 바꾸지는 않습니다.</p>
+    <p class="muted small">창을 띄울 때 함께 켜집니다(앱 설정에서 끌 수 있음). 꺼져 있으면 "켜기"를 누르세요. 화면은 2~3초에 한 번 기기 안에서만 읽고, 그림은 저장하거나 밖으로 보내지 않습니다. 가챠 메인 화면을 띄우면 재화와 배너를 읽어 아래에 보여 줍니다. 자동으로 기록을 바꾸지는 않습니다.</p>
     {#if message}<p class="warn small">{message}</p>{/if}
     {#if reading && !result}<p class="muted small">읽는 중… 게임의 가챠 화면을 열어 주세요.</p>{/if}
   {/if}

@@ -35,6 +35,8 @@ class MainActivity : Activity() {
                 onCheckUpdate = { checkUpdate(force = true) },
                 onSignIn = ::signIn,
                 onSignOut = { GoogleSignIn.signOut(this) },
+                onAutoScreenRead = { on -> getSharedPreferences("overlay", MODE_PRIVATE).edit().putBoolean(PREF_AUTO_READ, on).apply() },
+                autoScreenRead = ::autoScreenRead,
             ),
         )
         checkUpdate(force = intent.getBooleanExtra(Updater.EXTRA_SHOW_UPDATE, false))
@@ -120,9 +122,24 @@ class MainActivity : Activity() {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQ_NOTIFY)
         }
         startForegroundService(Intent(this, OverlayService::class.java))
+        // 화면 읽기 자동 시작: 창을 띄울 때 화면 녹화 허용 창을 바로 보여 준다.
+        // (안드로이드 규칙상 허용은 매번 받아야 한다. 설정에서 끌 수 있다.)
+        if (autoScreenRead() && !ScreenReadService.running) {
+            val mgr = getSystemService(android.media.projection.MediaProjectionManager::class.java)
+            @Suppress("DEPRECATION")
+            startActivityForResult(mgr.createScreenCaptureIntent(), REQ_CAPTURE)
+            return
+        }
+        finishLaunch()
+    }
+
+    private fun finishLaunch() {
         Toast.makeText(this, "게임을 켜면 트래커 버블이 떠 있습니다", Toast.LENGTH_SHORT).show()
         moveTaskToBack(true)
     }
+
+    private fun autoScreenRead(): Boolean =
+        getSharedPreferences("overlay", MODE_PRIVATE).getBoolean(PREF_AUTO_READ, true)
 
     private fun saveFile(name: String, content: String) {
         pendingSave = content
@@ -141,6 +158,16 @@ class MainActivity : Activity() {
             REQ_OPEN -> {
                 fileCallback?.onReceiveValue(if (resultCode == RESULT_OK && uri != null) arrayOf(uri) else null)
                 fileCallback = null
+            }
+            REQ_CAPTURE -> {
+                if (resultCode == RESULT_OK && data != null) {
+                    startForegroundService(
+                        Intent(this, ScreenReadService::class.java)
+                            .putExtra(ScreenReadService.EXTRA_CODE, resultCode)
+                            .putExtra(ScreenReadService.EXTRA_DATA, data),
+                    )
+                }
+                finishLaunch()
             }
             REQ_SAVE -> {
                 val content = pendingSave
@@ -172,5 +199,7 @@ class MainActivity : Activity() {
         private const val REQ_OPEN = 1
         private const val REQ_SAVE = 2
         private const val REQ_NOTIFY = 3
+        private const val REQ_CAPTURE = 4
+        const val PREF_AUTO_READ = "autoScreenRead"
     }
 }
