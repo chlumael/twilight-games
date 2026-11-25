@@ -191,6 +191,7 @@ export const GAMES: Record<GameId, GameDef> = {
     currencies: [
       { key: "lunacy", label: "광기" },
       { key: "ticket", label: "추출 티켓" },
+      { key: "tenTicket", label: "10회 추출 티켓" },
     ],
     groups: [
       {
