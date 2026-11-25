@@ -1,4 +1,5 @@
 mod detect;
+mod screen;
 mod storage;
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -66,6 +67,7 @@ pub fn run() {
         )
         .manage(ClickThrough::default())
         .manage(process_map)
+        .manage(screen::ScreenRead::default())
         .setup(move |app| {
             for (shortcut, action) in hotkeys() {
                 // Another app may own the combination; keep running without it.
@@ -85,6 +87,8 @@ pub fn run() {
             storage::import_backup,
             detect::set_process_map,
             detect::list_processes,
+            screen::screen_read,
+            screen::screen_reading,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

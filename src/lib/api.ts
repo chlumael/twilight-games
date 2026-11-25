@@ -99,3 +99,17 @@ export function onEvent<T>(name: string, handler: (payload: T) => void): Promise
   if (!inTauri) return Promise.resolve(() => {});
   return listen<T>(name, (e) => handler(e.payload));
 }
+
+// ---- 화면 읽기 (안드로이드 오버레이 / PC) ----
+/** 이 환경에서 화면 읽기를 쓸 수 있는지 */
+export const screenSupported = inTauri || (!!android?.screenRead && androidMode === "overlay");
+
+export function screenRead(start: boolean): void {
+  if (inTauri) void invoke("screen_read", { start }).catch(() => {});
+  else android?.screenRead?.(start);
+}
+
+export async function screenReading(): Promise<boolean> {
+  if (inTauri) return invoke<boolean>("screen_reading").catch(() => false);
+  return !!android?.screenReading?.();
+}
