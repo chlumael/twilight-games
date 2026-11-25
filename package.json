@@ -9,7 +9,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "tauri": "tauri",
-    "banners": "node scripts/banners/build.mjs && node scripts/banners/validate.mjs"
+    "banners": "node scripts/banners/build.mjs && node scripts/banners/validate.mjs",
+    "build:web": "WEB_BASE=/twilight-games/ vite build"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.1.1",

@@ -31,7 +31,16 @@ export async function exportBackup(content: string): Promise<string | null> {
 }
 
 export async function importBackup(): Promise<string | null> {
-  if (!inTauri) return null;
+  if (!inTauri) {
+    // Browser: let the user pick a file.
+    return new Promise((resolve) => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "application/json,.json";
+      input.onchange = async () => resolve(input.files?.[0] ? await input.files[0].text() : null);
+      input.click();
+    });
+  }
   return invoke<string | null>("import_backup");
 }
 

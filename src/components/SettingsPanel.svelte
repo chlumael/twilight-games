@@ -5,9 +5,11 @@
   import type { Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
 
-  let { settings, game, record, onSettings, onBaseline, onExport, onImport, onClose }: {
+  let { settings, game, web = false, record, onSettings, onBaseline, onExport, onImport, onClose }: {
     settings: Settings;
     game: GameId;
+    /** Web app: hide desktop-only options (overlay, hotkeys, process detection). */
+    web?: boolean;
     record: GameRecord;
     onSettings: (s: Settings) => void;
     onBaseline: (groupId: string, b: Baseline) => void;
@@ -44,6 +46,7 @@
     <button class="icon" onclick={onClose} aria-label="닫기">✕</button>
   </header>
 
+  {#if !web}
   <section>
     <h4>오버레이</h4>
     <label class="row">
@@ -55,6 +58,7 @@
     </label>
     <p class="muted hint">단축키: Ctrl+Alt+T 클릭 통과 · H 접기/펼치기 · Q 확인 대기 · Z 되돌리기</p>
   </section>
+  {/if}
 
   <section>
     <h4>{GAMES[game].name} 시작 상태</h4>
@@ -85,6 +89,7 @@
     {/each}
   </section>
 
+  {#if !web}
   <section>
     <h4>게임 감지 (실행 파일 이름)</h4>
     <button onclick={async () => (processes = await listProcesses())}>실행 중인 프로그램 불러오기</button>
@@ -103,13 +108,17 @@
     {/each}
   </section>
 
+  {/if}
+
   <section>
     <h4>백업</h4>
     <div class="row">
       <button onclick={onExport}>내보내기</button>
       <button onclick={onImport}>가져오기</button>
     </div>
-    <p class="muted hint">기록은 이 PC에만 저장되며 매일 자동 백업(7일)됩니다.</p>
+    <p class="muted hint">
+      {web ? "기록은 이 브라우저에만 저장됩니다. 브라우저 데이터를 지우면 사라지니 가끔 내보내기로 백업하세요." : "기록은 이 PC에만 저장되며 매일 자동 백업(7일)됩니다."}
+    </p>
   </section>
 </div>
 

@@ -28,7 +28,9 @@
   let game = $state<GameId>("genshin");
   let manualGame = $state(false);
   let detection = $state<api.Detection>({ running: [], foreground: null });
-  let collapsed = $state(true);
+  /** Running as a phone/browser web app instead of the desktop overlay. */
+  const web = !api.inTauri;
+  let collapsed = $state(!web);
   let view = $state<"main" | "settings" | "review" | "top">("main");
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
@@ -109,9 +111,18 @@
   });
 
   $effect(() => {
+    if (web) return;
     const size = collapsed ? COLLAPSED : EXPANDED;
     api.resizeWindow(size.w, size.h);
   });
+
+  function switchGame(id: GameId) {
+    game = id;
+    view = "main";
+    settings = { ...settings, lastGame: id };
+  }
+
+  const GAME_ICON: Record<GameId, string> = { genshin: "intertwined", arknights: "orundum", endfield: "oroberyl", limbus: "lunacy" };
 
   let bodyEl = $state<HTMLDivElement>();
   $effect(() => {
@@ -244,7 +255,7 @@
   });
 </script>
 
-<main class:collapsed data-skin={game} style={skinStyle(game)}>
+<main class:collapsed class:web data-skin={game} style={skinStyle(game)}>
   {#if collapsed}
     <div class="line" data-tauri-drag-region ondblclick={() => (collapsed = false)} role="presentation">
       <span class="stripe" data-tauri-drag-region></span>
@@ -263,10 +274,14 @@
         <span class="brand-title" data-tauri-drag-region>{skin.title}</span>
         <span class="brand-sub" data-tauri-drag-region>
           {skin.sub} ·
-          <select class="game-select" value={manualGame ? game : "auto"} onchange={(e) => selectGame((e.currentTarget as HTMLSelectElement).value)}>
-            <option value="auto">{def.name} (자동)</option>
-            {#each GAME_IDS as id}<option value={id}>{GAMES[id].name}</option>{/each}
-          </select>
+          {#if web}
+            {def.name}
+          {:else}
+            <select class="game-select" value={manualGame ? game : "auto"} onchange={(e) => selectGame((e.currentTarget as HTMLSelectElement).value)}>
+              <option value="auto">{def.name} (자동)</option>
+              {#each GAME_IDS as id}<option value={id}>{GAMES[id].name}</option>{/each}
+            </select>
+          {/if}
         </span>
       </div>
       <span class="spacer" data-tauri-drag-region></span>
@@ -275,13 +290,23 @@
         확인 {pending}
       </button>
       <button class="icon" onclick={() => (view = view === "settings" ? "main" : "settings")} aria-label="설정">⚙</button>
-      <button class="icon" onclick={() => { collapsed = true; view = "main"; }} aria-label="접기">▴</button>
+      {#if !web}<button class="icon" onclick={() => { collapsed = true; view = "main"; }} aria-label="접기">▴</button>{/if}
     </header>
+    {#if web}
+      <nav class="games" aria-label="게임 선택">
+        {#each GAME_IDS as id (id)}
+          {@const ic = currencyIcon(id, GAME_ICON[id])}
+          <button class:active={id === game} onclick={() => switchGame(id)}>
+            {#if ic}<img src={ic} alt="" />{/if}<span>{GAMES[id].shortName}</span>
+          </button>
+        {/each}
+      </nav>
+    {/if}
 
     <div class="body" bind:this={bodyEl}>
       {#if view === "settings"}
         <SettingsPanel
-          {settings} {game} record={rec}
+          {settings} {game} {web} record={rec}
           onSettings={changeSettings} onBaseline={setBaseline}
           onExport={exportData} onImport={importData} onClose={() => (view = "main")}
         />
@@ -382,4 +407,26 @@
     padding: 5px 12px; border-radius: 999px; font-size: 12px; white-space: nowrap;
   }
   main.collapsed .toast { display: none; }
+
+  /* ---- phone / browser web app ---- */
+  main.web {
+    width: 100%; max-width: 560px; margin: 0 auto; height: 100dvh;
+    border-radius: 0; border-top: none; border-bottom: none;
+    padding-top: env(safe-area-inset-top);
+  }
+  main.web header { cursor: default; padding: 10px 10px 8px 14px; }
+  main.web .body { padding: 10px 14px 0; gap: 12px; }
+  .games { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 6px 10px; background: rgba(0, 0, 0, 0.18); }
+  .games button {
+    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 5px 2px;
+    border: 1px solid transparent; background: transparent; color: inherit; font-size: 11px; opacity: 0.65;
+  }
+  .games button.active { opacity: 1; border-color: var(--line); background: var(--panel); font-weight: 700; }
+  .games img { width: 24px; height: 24px; object-fit: contain; }
+  main.web .actions {
+    position: sticky; bottom: 0; z-index: 3; margin: 0 -14px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, transparent, rgba(var(--bg-rgb), 0.96) 28%);
+  }
+  main.web .actions button { padding: 11px 4px; }
+  main.web :global(input), main.web :global(select) { font-size: 16px; } /* no zoom-on-focus */
 </style>

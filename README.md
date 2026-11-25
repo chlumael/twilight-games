@@ -7,7 +7,11 @@
 
 현재 설계 단계입니다. 자세한 내용은 [DESIGN.md](DESIGN.md)를 참고하세요.
 
-## 설치
+## 휴대폰에서 쓰기 (웹앱)
+
+안드로이드 Chrome으로 https://chlumael.github.io/twilight-games/ 를 열고, 메뉴(⋮) → **홈 화면에 추가**를 누르면 앱처럼 쓸 수 있습니다. 기록은 그 휴대폰 브라우저에만 저장되니, 설정 → 백업 → 내보내기로 가끔 백업하세요.
+
+## 설치 (PC)
 
 [Actions](https://github.com/chlumael/twilight-games/actions) 탭에서 가장 최근의 성공한 `build` 실행을 열고, `twilight-games-windows` 파일을 내려받아 압축을 풀고 설치 파일을 실행합니다.
 코드 서명이 없어서 "Windows의 PC 보호" 창이 뜨면 **추가 정보 → 실행**을 누르세요.
