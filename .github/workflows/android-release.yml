@@ -1,0 +1,74 @@
+name: android-release
+
+# Push a tag like v0.2.1 (matching versionName in android/app/build.gradle.kts)
+# to build the signed APK and publish it as a GitHub Release. Installed apps
+# find it through the update check (Updater.kt).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)publish, e.g. v0.2.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      # Every release must be signed by this certificate, or installed apps cannot update.
+      EXPECTED_CERT_SHA256: 21724c02904a68f70e6fa90d05e9aa03c0978cff848551f080bfe86b4389f0dc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - name: Tag matches app version
+        run: |
+          v=$(grep -oP 'versionName = "\K[^"]+' android/app/build.gradle.kts)
+          [ "v$v" = "$TAG" ] || { echo "::error::tag $TAG does not match versionName $v"; exit 1; }
+      - name: Signing key present
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ] || { echo "::error::Add ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD secrets"; exit 1; }
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:android
+      - name: Build APK
+        working-directory: android
+        env:
+          TWILIGHT_KEYSTORE: ${{ runner.temp }}/release.jks
+          TWILIGHT_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Verify signing certificate
+        run: |
+          apk=android/app/build/outputs/apk/release/app-release.apk
+          bt=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          sha=$("$bt/apksigner" verify --print-certs "$apk" | grep -oP 'SHA-256 digest: \K[0-9a-f]+' | head -1)
+          [ "$sha" = "$EXPECTED_CERT_SHA256" ] || { echo "::error::wrong signing key ($sha)"; exit 1; }
+          cp "$apk" "twilight-games-${TAG#v}.apk"
+      - name: Release notes from the tag message
+        run: |
+          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+          git for-each-ref "refs/tags/$TAG" --format='%(contents)' > notes.md
+          [ -s notes.md ] || echo "개선 사항이 있습니다." > notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: 황혼 게임즈 ${{ env.TAG }}
+          body_path: notes.md
+          files: twilight-games-*.apk

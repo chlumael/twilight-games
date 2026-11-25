@@ -1,0 +1,51 @@
+:root {
+  --bg-alpha: 0.9;
+  --bg-rgb: 22, 18, 34;
+  --text: #f3eefc;
+  --muted: #a99fbd;
+  --line: rgba(255, 255, 255, 0.12);
+  --panel: rgba(255, 255, 255, 0.06);
+  --input-bg: rgba(0, 0, 0, 0.3);
+  --cell: rgba(255, 255, 255, 0.16);
+  --cell-empty: rgba(255, 255, 255, 0.05);
+  --track: rgba(255, 255, 255, 0.09);
+  --a1: #ffb86b;
+  --a2: #b48cff;
+  --top: #ffd36b;
+  --glow: rgba(255, 211, 107, 0.5);
+  --good: #4fcf7f;
+  --warn: #ff6e5a;
+  --radius: 10px;
+  --btn-radius: 6px;
+  --btn-bg: var(--a1);
+  --btn-fg: #111;
+  --btn-border: none;
+  --btn-clip: none;
+  --title-font: inherit;
+  --num-font: inherit;
+  --tab-active-bg: rgba(255, 255, 255, 0.15);
+  --tab-active-fg: var(--text);
+  font-family: "Pretendard", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  font-size: 13px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; user-select: none; }
+#app { height: 100%; }
+main { color: var(--text); }
+button {
+  font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--btn-radius); padding: 4px 8px; cursor: pointer;
+}
+button:hover { filter: brightness(1.12); }
+button.icon { padding: 2px 6px; background: transparent; border-color: transparent; }
+input, select {
+  font: inherit; color: var(--text); background: var(--input-bg); border: 1px solid var(--line);
+  border-radius: calc(var(--radius) / 2); padding: 3px 6px; min-width: 0; user-select: text;
+}
+select option { color: #111; }
+input[type="number"] { width: 100%; }
+label { color: var(--muted); font-size: 12px; }
+.muted { color: var(--muted); }
+.good { color: var(--good); }
+.warn { color: var(--warn); }
+.top { color: var(--top); }

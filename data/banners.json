@@ -1,0 +1,6023 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-11-25T01:01:55.947Z",
+ "games": {
+  "genshin": [
+   {
+    "id": "genshin:genshin-char:2024-11-20 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Piercing Shot's Crimson Wake",
+    "start": "2024-11-19T22:00:00.000Z",
+    "end": "2024-12-10T09:59:00.000Z",
+    "version": "5.2",
+    "featured": [
+     {
+      "id": "chasca",
+      "en": "Chasca",
+      "ko": "차스카"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     },
+     {
+      "id": "barbara",
+      "en": "Barbara",
+      "ko": "바바라"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2024-11-20 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Conjuring Chiaroscuro",
+    "start": "2024-11-19T22:00:00.000Z",
+    "end": "2024-12-10T09:59:00.000Z",
+    "version": "5.2",
+    "featured": [
+     {
+      "id": "lyney",
+      "en": "Lyney",
+      "ko": "리니"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     },
+     {
+      "id": "barbara",
+      "en": "Barbara",
+      "ko": "바바라"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2024-11-20 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2024-11-19T22:00:00.000Z",
+    "end": "2024-12-10T09:59:00.000Z",
+    "version": "5.2",
+    "featured": [
+     {
+      "id": "astral_vultures_crimson_plumage",
+      "en": "Astral Vulture's Crimson Plumage",
+      "ko": "붉은 깃 별독수리"
+     },
+     {
+      "id": "the_first_great_magic",
+      "en": "The First Great Magic",
+      "ko": "최초의 대마술"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "waveriding_whirl",
+      "en": "Waveriding Whirl",
+      "ko": "돌아오는 파도"
+     },
+     {
+      "id": "flower-wreathed_feathers",
+      "en": "Flower-Wreathed Feathers",
+      "ko": "꽃장식 깃"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2024-12-10 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Decree of the Deeps",
+    "start": "2024-12-10T10:00:00.000Z",
+    "end": "2024-12-31T06:59:00.000Z",
+    "version": "5.2",
+    "featured": [
+     {
+      "id": "neuvillette",
+      "en": "Neuvillette",
+      "ko": "느비예트"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "shikanoin_heizou",
+      "en": "Shikanoin Heizou",
+      "ko": "시카노인 헤이조"
+     },
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     },
+     {
+      "id": "yaoyao",
+      "en": "Yaoyao",
+      "ko": "요요"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2024-12-10 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Gentry of Hermitage",
+    "start": "2024-12-10T10:00:00.000Z",
+    "end": "2024-12-31T06:59:00.000Z",
+    "version": "5.2",
+    "featured": [
+     {
+      "id": "zhongli",
+      "en": "Zhongli",
+      "ko": "종려"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "shikanoin_heizou",
+      "en": "Shikanoin Heizou",
+      "ko": "시카노인 헤이조"
+     },
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     },
+     {
+      "id": "yaoyao",
+      "en": "Yaoyao",
+      "ko": "요요"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2024-12-10 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2024-12-10T10:00:00.000Z",
+    "end": "2024-12-31T06:59:00.000Z",
+    "version": "5.2",
+    "featured": [
+     {
+      "id": "tome_of_the_eternal_flow",
+      "en": "Tome of the Eternal Flow",
+      "ko": "영원히 샘솟는 법전"
+     },
+     {
+      "id": "vortex_vanquisher",
+      "en": "Vortex Vanquisher",
+      "ko": "관홍의 창"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "mitternachts_waltz",
+      "en": "Mitternachts Waltz",
+      "ko": "유야의 왈츠"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-01-01 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Ancient Flame Ablaze",
+    "start": "2024-12-31T22:00:00.000Z",
+    "end": "2025-01-21T09:59:00.000Z",
+    "version": "5.3",
+    "featured": [
+     {
+      "id": "mavuika",
+      "en": "Mavuika",
+      "ko": "마비카"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "kachina",
+      "en": "Kachina",
+      "ko": "카치나"
+     },
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     },
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-01-01 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Starry Night's Whispers",
+    "start": "2024-12-31T22:00:00.000Z",
+    "end": "2025-01-21T09:59:00.000Z",
+    "version": "5.3",
+    "featured": [
+     {
+      "id": "citlali",
+      "en": "Citlali",
+      "ko": "시틀라리"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "kachina",
+      "en": "Kachina",
+      "ko": "카치나"
+     },
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     },
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-01-01 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2024-12-31T22:00:00.000Z",
+    "end": "2025-01-21T09:59:00.000Z",
+    "version": "5.3",
+    "featured": [
+     {
+      "id": "a_thousand_blazing_suns",
+      "en": "A Thousand Blazing Suns",
+      "ko": "타오르는 천 개의 태양"
+     },
+     {
+      "id": "starcallers_watch",
+      "en": "Starcaller's Watch",
+      "ko": "별지기의 시선"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "lithic_blade",
+      "en": "Lithic Blade",
+      "ko": "천암고검"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-01-21 18:00:00:1",
+    "group": "genshin-char",
+    "name": "The Hearth's Ashen Shadow",
+    "start": "2025-01-21T10:00:00.000Z",
+    "end": "2025-02-11T06:59:00.000Z",
+    "version": "5.3",
+    "featured": [
+     {
+      "id": "arlecchino",
+      "en": "Arlecchino",
+      "ko": "아를레키노"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "lan_yan",
+      "en": "Lan Yan",
+      "ko": "남연"
+     },
+     {
+      "id": "chevreuse",
+      "en": "Chevreuse",
+      "ko": "슈브르즈"
+     },
+     {
+      "id": "rosaria",
+      "en": "Rosaria",
+      "ko": "로자리아"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-01-21 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Illuminating Lightning",
+    "start": "2025-01-21T10:00:00.000Z",
+    "end": "2025-02-11T06:59:00.000Z",
+    "version": "5.3",
+    "featured": [
+     {
+      "id": "clorinde",
+      "en": "Clorinde",
+      "ko": "클로린드"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "lan_yan",
+      "en": "Lan Yan",
+      "ko": "남연"
+     },
+     {
+      "id": "chevreuse",
+      "en": "Chevreuse",
+      "ko": "슈브르즈"
+     },
+     {
+      "id": "rosaria",
+      "en": "Rosaria",
+      "ko": "로자리아"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-01-21 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-01-21T10:00:00.000Z",
+    "end": "2025-02-11T06:59:00.000Z",
+    "version": "5.3",
+    "featured": [
+     {
+      "id": "crimson_moons_semblance",
+      "en": "Crimson Moon's Semblance",
+      "ko": "붉은 달의 형상"
+     },
+     {
+      "id": "absolution",
+      "en": "Absolution",
+      "ko": "사면"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "lithic_spear",
+      "en": "Lithic Spear",
+      "ko": "천암장창"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-chronicled:2025-01-21 18:00:00:1",
+    "group": "genshin-chronicled",
+    "name": "Remembrance of Jade and Stone",
+    "start": "2025-01-21T10:00:00.000Z",
+    "end": "2025-02-11T06:59:00.000Z",
+    "version": "5.3",
+    "featured": [
+     {
+      "id": "baizhu",
+      "en": "Baizhu",
+      "ko": "백출"
+     },
+     {
+      "id": "shenhe",
+      "en": "Shenhe",
+      "ko": "신학"
+     },
+     {
+      "id": "keqing",
+      "en": "Keqing",
+      "ko": "각청"
+     },
+     {
+      "id": "ganyu",
+      "en": "Ganyu",
+      "ko": "감우"
+     },
+     {
+      "id": "qiqi",
+      "en": "Qiqi",
+      "ko": "치치"
+     },
+     {
+      "id": "tartaglia",
+      "en": "Tartaglia",
+      "ko": "타르탈리아"
+     },
+     {
+      "id": "xiao",
+      "en": "Xiao",
+      "ko": "소"
+     },
+     {
+      "id": "primordial_jade_cutter",
+      "en": "Primordial Jade Cutter",
+      "ko": "반암결록"
+     },
+     {
+      "id": "summit_shaper",
+      "en": "Summit Shaper",
+      "ko": "참봉의 칼날"
+     },
+     {
+      "id": "the_unforged",
+      "en": "The Unforged",
+      "ko": "무공의 검"
+     },
+     {
+      "id": "calamity_queller",
+      "en": "Calamity Queller",
+      "ko": "식재"
+     },
+     {
+      "id": "primordial_jade_winged_spear",
+      "en": "primordial_jade_winged_spear",
+      "ko": null
+     },
+     {
+      "id": "jadefalls_splendor",
+      "en": "Jadefall's Splendor",
+      "ko": "벽락의 옥"
+     },
+     {
+      "id": "memory_of_dust",
+      "en": "Memory of Dust",
+      "ko": "속세의 자물쇠"
+     },
+     {
+      "id": "polar_star",
+      "en": "Polar Star",
+      "ko": "극지의 별"
+     },
+     {
+      "id": "amos_bow",
+      "en": "Amos' Bow",
+      "ko": "아모스의 활"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "gaming",
+      "en": "Gaming",
+      "ko": "가명"
+     },
+     {
+      "id": "yaoyao",
+      "en": "Yaoyao",
+      "ko": "요요"
+     },
+     {
+      "id": "yun_jin",
+      "en": "Yun Jin",
+      "ko": "운근"
+     },
+     {
+      "id": "yanfei",
+      "en": "Yanfei",
+      "ko": "연비"
+     },
+     {
+      "id": "xinyan",
+      "en": "Xinyan",
+      "ko": "신염"
+     },
+     {
+      "id": "chongyun",
+      "en": "Chongyun",
+      "ko": "중운"
+     },
+     {
+      "id": "ningguang",
+      "en": "Ningguang",
+      "ko": "응광"
+     },
+     {
+      "id": "xingqiu",
+      "en": "Xingqiu",
+      "ko": "행추"
+     },
+     {
+      "id": "beidou",
+      "en": "Beidou",
+      "ko": "북두"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "lithic_blade",
+      "en": "Lithic Blade",
+      "ko": "천암고검"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "lithic_spear",
+      "en": "Lithic Spear",
+      "ko": "천암장창"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-02-12 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Dawn's Drifting Reverie",
+    "start": "2025-02-11T22:00:00.000Z",
+    "end": "2025-03-04T09:59:00.000Z",
+    "version": "5.4",
+    "featured": [
+     {
+      "id": "yumemizuki_mizuki",
+      "en": "Yumemizuki Mizuki",
+      "ko": "유메미즈키 미즈키"
+     },
+     {
+      "id": "sigewinne",
+      "en": "Sigewinne",
+      "ko": "시그윈"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "gorou",
+      "en": "Gorou",
+      "ko": "고로"
+     },
+     {
+      "id": "sayu",
+      "en": "Sayu",
+      "ko": "사유"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-02-12 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Romaritime Meluserenity",
+    "start": "2025-02-11T22:00:00.000Z",
+    "end": "2025-03-04T09:59:00.000Z",
+    "version": "5.4",
+    "featured": [
+     {
+      "id": "sigewinne",
+      "en": "Sigewinne",
+      "ko": "시그윈"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "gorou",
+      "en": "Gorou",
+      "ko": "고로"
+     },
+     {
+      "id": "sayu",
+      "en": "Sayu",
+      "ko": "사유"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-02-12 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-02-11T22:00:00.000Z",
+    "end": "2025-03-04T09:59:00.000Z",
+    "version": "5.4",
+    "featured": [
+     {
+      "id": "sunny_morning_sleep-in",
+      "en": "Sunny Morning Sleep-In",
+      "ko": "나른한 새해"
+     },
+     {
+      "id": "silvershower_heartstrings",
+      "en": "Silvershower Heartstrings",
+      "ko": "심금을 울리는 하얀 비"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "akuoumaru",
+      "en": "Akuoumaru",
+      "ko": "아쿠오마루"
+     },
+     {
+      "id": "wavebreakers_fin",
+      "en": "Wavebreaker's Fin",
+      "ko": "파도 베는 지느러미"
+     },
+     {
+      "id": "mouuns_moon",
+      "en": "Mouun's Moon",
+      "ko": "모운의 달"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-03-04 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Tempestuous Destiny",
+    "start": "2025-03-04T10:00:00.000Z",
+    "end": "2025-03-25T06:59:00.000Z",
+    "version": "5.4",
+    "featured": [
+     {
+      "id": "wriothesley",
+      "en": "Wriothesley",
+      "ko": "라이오슬리"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "charlotte",
+      "en": "Charlotte",
+      "ko": "샤를로트"
+     },
+     {
+      "id": "chongyun",
+      "en": "Chongyun",
+      "ko": "중운"
+     },
+     {
+      "id": "mika",
+      "en": "Mika",
+      "ko": "미카"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-03-04 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Chanson of Many Waters",
+    "start": "2025-03-04T10:00:00.000Z",
+    "end": "2025-03-25T06:59:00.000Z",
+    "version": "5.4",
+    "featured": [
+     {
+      "id": "furina",
+      "en": "Furina",
+      "ko": "푸리나"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "charlotte",
+      "en": "Charlotte",
+      "ko": "샤를로트"
+     },
+     {
+      "id": "chongyun",
+      "en": "Chongyun",
+      "ko": "중운"
+     },
+     {
+      "id": "mika",
+      "en": "Mika",
+      "ko": "미카"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-03-04 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-03-04T10:00:00.000Z",
+    "end": "2025-03-25T06:59:00.000Z",
+    "version": "5.4",
+    "featured": [
+     {
+      "id": "splendor_of_tranquil_waters",
+      "en": "Splendor of Tranquil Waters",
+      "ko": "고요히 샘솟는 빛"
+     },
+     {
+      "id": "cashflow_supervision",
+      "en": "Cashflow Supervision",
+      "ko": "현금 흐름 감독"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-03-26 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Cornucopia of Contention",
+    "start": "2025-03-25T22:00:00.000Z",
+    "end": "2025-04-15T09:59:00.000Z",
+    "version": "5.5",
+    "featured": [
+     {
+      "id": "varesa",
+      "en": "Varesa",
+      "ko": "바레사"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "chevreuse",
+      "en": "Chevreuse",
+      "ko": "슈브르즈"
+     },
+     {
+      "id": "gaming",
+      "en": "Gaming",
+      "ko": "가명"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-03-26 06:00:00:2",
+    "group": "genshin-char",
+    "name": "The Crane Soars Skyward",
+    "start": "2025-03-25T22:00:00.000Z",
+    "end": "2025-04-15T09:59:00.000Z",
+    "version": "5.5",
+    "featured": [
+     {
+      "id": "xianyun",
+      "en": "Xianyun",
+      "ko": "한운"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "chevreuse",
+      "en": "Chevreuse",
+      "ko": "슈브르즈"
+     },
+     {
+      "id": "gaming",
+      "en": "Gaming",
+      "ko": "가명"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-03-26 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-03-25T22:00:00.000Z",
+    "end": "2025-04-15T09:59:00.000Z",
+    "version": "5.5",
+    "featured": [
+     {
+      "id": "vivid_notions",
+      "en": "Vivid Notions",
+      "ko": "빛나는 마음"
+     },
+     {
+      "id": "cranes_echoing_call",
+      "en": "Crane's Echoing Call",
+      "ko": "학의 여음"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "sturdy_bone",
+      "en": "Sturdy Bone",
+      "ko": "견고한 골검"
+     },
+     {
+      "id": "fruitful_hook",
+      "en": "Fruitful Hook",
+      "ko": "수확의 갈고리"
+     },
+     {
+      "id": "mountain-bracing_bolt",
+      "en": "Mountain-Bracing Bolt",
+      "ko": "산을 고정하는 못"
+     },
+     {
+      "id": "waveriding_whirl",
+      "en": "Waveriding Whirl",
+      "ko": "돌아오는 파도"
+     },
+     {
+      "id": "flower-wreathed_feathers",
+      "en": "Flower-Wreathed Feathers",
+      "ko": "꽃장식 깃"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-04-15 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Forgefire's Blessing",
+    "start": "2025-04-15T10:00:00.000Z",
+    "end": "2025-05-06T06:59:00.000Z",
+    "version": "5.5",
+    "featured": [
+     {
+      "id": "xilonen",
+      "en": "Xilonen",
+      "ko": "실로닌"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "faruzan",
+      "en": "Faruzan",
+      "ko": "파루잔"
+     },
+     {
+      "id": "beidou",
+      "en": "Beidou",
+      "ko": "북두"
+     },
+     {
+      "id": "yanfei",
+      "en": "Yanfei",
+      "ko": "연비"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-04-15 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Ballad in Goblets",
+    "start": "2025-04-15T10:00:00.000Z",
+    "end": "2025-05-06T06:59:00.000Z",
+    "version": "5.5",
+    "featured": [
+     {
+      "id": "xilonen",
+      "en": "Xilonen",
+      "ko": "실로닌"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "faruzan",
+      "en": "Faruzan",
+      "ko": "파루잔"
+     },
+     {
+      "id": "beidou",
+      "en": "Beidou",
+      "ko": "북두"
+     },
+     {
+      "id": "yanfei",
+      "en": "Yanfei",
+      "ko": "연비"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-04-15 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-04-15T10:00:00.000Z",
+    "end": "2025-05-06T06:59:00.000Z",
+    "version": "5.5",
+    "featured": [
+     {
+      "id": "peak_patrol_song",
+      "en": "Peak Patrol Song",
+      "ko": "바위산을 맴도는 노래"
+     },
+     {
+      "id": "elegy_for_the_end",
+      "en": "Elegy for the End",
+      "ko": "종말 탄식의 노래"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-05-07 06:00:00:1",
+    "group": "genshin-char",
+    "name": "La Chanson Cerise",
+    "start": "2025-05-06T22:00:00.000Z",
+    "end": "2025-05-27T09:59:00.000Z",
+    "version": "5.6",
+    "featured": [
+     {
+      "id": "escoffier",
+      "en": "Escoffier",
+      "ko": "에스코피에"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ifa",
+      "en": "Ifa",
+      "ko": "이파"
+     },
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "layla",
+      "en": "Layla",
+      "ko": "레일라"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-05-07 06:00:00:2",
+    "group": "genshin-char",
+    "name": "In the Name of the Rosula",
+    "start": "2025-05-06T22:00:00.000Z",
+    "end": "2025-05-27T09:59:00.000Z",
+    "version": "5.6",
+    "featured": [
+     {
+      "id": "navia",
+      "en": "Navia",
+      "ko": "나비아"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ifa",
+      "en": "Ifa",
+      "ko": "이파"
+     },
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "layla",
+      "en": "Layla",
+      "ko": "레일라"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-05-07 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-05-06T22:00:00.000Z",
+    "end": "2025-05-27T09:59:00.000Z",
+    "version": "5.6",
+    "featured": [
+     {
+      "id": "symphonist_of_scents",
+      "en": "Symphonist of Scents",
+      "ko": "맛의 지휘자"
+     },
+     {
+      "id": "verdict",
+      "en": "Verdict",
+      "ko": "판정"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_dockhands_assistant",
+      "en": "The Dockhand's Assistant",
+      "ko": "뱃도랑 장검"
+     },
+     {
+      "id": "portable_power_saw",
+      "en": "Portable Power Saw",
+      "ko": "휴대용 체인톱"
+     },
+     {
+      "id": "prospectors_drill",
+      "en": "Prospector's Drill",
+      "ko": "탐사용 드릴"
+     },
+     {
+      "id": "range_gauge",
+      "en": "Range Gauge",
+      "ko": "거리 측정기"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-05-27 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Seeker of Flame-Wrought Secrets",
+    "start": "2025-05-27T10:00:00.000Z",
+    "end": "2025-06-17T06:59:00.000Z",
+    "version": "5.6",
+    "featured": [
+     {
+      "id": "kinich",
+      "en": "Kinich",
+      "ko": "키니치"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "thoma",
+      "en": "Thoma",
+      "ko": "토마"
+     },
+     {
+      "id": "kujou_sara",
+      "en": "Kujou Sara",
+      "ko": "쿠죠 사라"
+     },
+     {
+      "id": "lynette",
+      "en": "Lynette",
+      "ko": "리넷"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-05-27 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Reign of Serenity",
+    "start": "2025-05-27T10:00:00.000Z",
+    "end": "2025-06-17T06:59:00.000Z",
+    "version": "5.6",
+    "featured": [
+     {
+      "id": "kinich",
+      "en": "Kinich",
+      "ko": "키니치"
+     },
+     {
+      "id": "raiden_shogun",
+      "en": "Raiden Shogun",
+      "ko": "라이덴 쇼군"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "thoma",
+      "en": "Thoma",
+      "ko": "토마"
+     },
+     {
+      "id": "kujou_sara",
+      "en": "Kujou Sara",
+      "ko": "쿠죠 사라"
+     },
+     {
+      "id": "lynette",
+      "en": "Lynette",
+      "ko": "리넷"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-05-27 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-05-27T10:00:00.000Z",
+    "end": "2025-06-17T06:59:00.000Z",
+    "version": "5.6",
+    "featured": [
+     {
+      "id": "fang_of_the_mountain_king",
+      "en": "Fang of the Mountain King",
+      "ko": "산왕의 엄니"
+     },
+     {
+      "id": "engulfing_lightning",
+      "en": "Engulfing Lightning",
+      "ko": "예초의 번개"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-chronicled:2025-05-27 18:00:00:1",
+    "group": "genshin-chronicled",
+    "name": "Thunder Rends the Plains on High",
+    "start": "2025-05-27T10:00:00.000Z",
+    "end": "2025-06-17T06:59:00.000Z",
+    "version": "5.6",
+    "featured": [
+     {
+      "id": "kamisato_ayaka",
+      "en": "Kamisato Ayaka",
+      "ko": "카미사토 아야카"
+     },
+     {
+      "id": "kamisato_ayato",
+      "en": "Kamisato Ayato",
+      "ko": "카미사토 아야토"
+     },
+     {
+      "id": "yoimiya",
+      "en": "Yoimiya",
+      "ko": "요이미야"
+     },
+     {
+      "id": "chiori",
+      "en": "Chiori",
+      "ko": "치오리"
+     },
+     {
+      "id": "yae_miko",
+      "en": "Yae Miko",
+      "ko": "야에 미코"
+     },
+     {
+      "id": "arataki_itto",
+      "en": "Arataki Itto",
+      "ko": "아라타키 이토"
+     },
+     {
+      "id": "sangonomiya_kokomi",
+      "en": "Sangonomiya Kokomi",
+      "ko": "산고노미야 코코미"
+     },
+     {
+      "id": "kaedehara_kazuha",
+      "en": "Kaedehara Kazuha",
+      "ko": "카에데하라 카즈하"
+     },
+     {
+      "id": "uraku_misugiri",
+      "en": "Uraku Misugiri",
+      "ko": "우라쿠의 미스기리"
+     },
+     {
+      "id": "haran_geppaku_futsu",
+      "en": "Haran Geppaku Futsu",
+      "ko": "하란 월백의 후츠"
+     },
+     {
+      "id": "mistsplitter_reforged",
+      "en": "Mistsplitter Reforged",
+      "ko": "안개를 가르는 회광"
+     },
+     {
+      "id": "freedom-sworn",
+      "en": "Freedom-Sworn",
+      "ko": "오래된 자유의 서약"
+     },
+     {
+      "id": "redhorn_stonethresher",
+      "en": "Redhorn Stonethresher",
+      "ko": "쇄석의 붉은 뿔"
+     },
+     {
+      "id": "kaguras_verity",
+      "en": "Kagura's Verity",
+      "ko": "카구라의 진의"
+     },
+     {
+      "id": "everlasting_moonglow",
+      "en": "Everlasting Moonglow",
+      "ko": "불멸의 달빛"
+     },
+     {
+      "id": "thundering_pulse",
+      "en": "Thundering Pulse",
+      "ko": "비뢰의 고동"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "kuki_shinobu",
+      "en": "Kuki Shinobu",
+      "ko": "쿠키 시노부"
+     },
+     {
+      "id": "kirara",
+      "en": "Kirara",
+      "ko": "키라라"
+     },
+     {
+      "id": "shikanoin_heizou",
+      "en": "Shikanoin Heizou",
+      "ko": "시카노인 헤이조"
+     },
+     {
+      "id": "kujou_sara",
+      "en": "Kujou Sara",
+      "ko": "쿠죠 사라"
+     },
+     {
+      "id": "gorou",
+      "en": "Gorou",
+      "ko": "고로"
+     },
+     {
+      "id": "sayu",
+      "en": "Sayu",
+      "ko": "사유"
+     },
+     {
+      "id": "thoma",
+      "en": "Thoma",
+      "ko": "토마"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "akuoumaru",
+      "en": "Akuoumaru",
+      "ko": "아쿠오마루"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "wavebreakers_fin",
+      "en": "Wavebreaker's Fin",
+      "ko": "파도 베는 지느러미"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "mouuns_moon",
+      "en": "Mouun's Moon",
+      "ko": "모운의 달"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-06-18 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Void Star's Advent",
+    "start": "2025-06-17T22:00:00.000Z",
+    "end": "2025-07-08T09:59:00.000Z",
+    "version": "5.7",
+    "featured": [
+     {
+      "id": "skirk",
+      "en": "Skirk",
+      "ko": "스커크"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "dahlia",
+      "en": "Dahlia",
+      "ko": "달리아"
+     },
+     {
+      "id": "candace",
+      "en": "Candace",
+      "ko": "캔디스"
+     },
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-06-18 06:00:00:2",
+    "group": "genshin-char",
+    "name": "The Transcendent One Returns",
+    "start": "2025-06-17T22:00:00.000Z",
+    "end": "2025-07-08T09:59:00.000Z",
+    "version": "5.7",
+    "featured": [
+     {
+      "id": "shenhe",
+      "en": "Shenhe",
+      "ko": "신학"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "dahlia",
+      "en": "Dahlia",
+      "ko": "달리아"
+     },
+     {
+      "id": "candace",
+      "en": "Candace",
+      "ko": "캔디스"
+     },
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-06-18 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-06-17T22:00:00.000Z",
+    "end": "2025-07-08T09:59:00.000Z",
+    "version": "5.7",
+    "featured": [
+     {
+      "id": "azurelight",
+      "en": "Azurelight",
+      "ko": "창백한 섬광"
+     },
+     {
+      "id": "calamity_queller",
+      "en": "Calamity Queller",
+      "ko": "식재"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "xiphos_moonlight",
+      "en": "Xiphos' Moonlight",
+      "ko": "크시포스의 달빛"
+     },
+     {
+      "id": "makhaira_aquamarine",
+      "en": "Makhaira Aquamarine",
+      "ko": "물빛 마카이라"
+     },
+     {
+      "id": "wandering_evenstar",
+      "en": "Wandering Evenstar",
+      "ko": "방랑하는 저녁별"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-07-08 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Ancient Flame Ablaze",
+    "start": "2025-07-08T10:00:00.000Z",
+    "end": "2025-07-29T06:59:00.000Z",
+    "version": "5.7",
+    "featured": [
+     {
+      "id": "mavuika",
+      "en": "Mavuika",
+      "ko": "마비카"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "yaoyao",
+      "en": "Yaoyao",
+      "ko": "요요"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-07-08 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Ambrosial Essence",
+    "start": "2025-07-08T10:00:00.000Z",
+    "end": "2025-07-29T06:59:00.000Z",
+    "version": "5.7",
+    "featured": [
+     {
+      "id": "emilie",
+      "en": "Emilie",
+      "ko": "에밀리"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "yaoyao",
+      "en": "Yaoyao",
+      "ko": "요요"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-07-08 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-07-08T10:00:00.000Z",
+    "end": "2025-07-29T06:59:00.000Z",
+    "version": "5.7",
+    "featured": [
+     {
+      "id": "a_thousand_blazing_suns",
+      "en": "A Thousand Blazing Suns",
+      "ko": "타오르는 천 개의 태양"
+     },
+     {
+      "id": "calamity_queller",
+      "en": "Calamity Queller",
+      "ko": "식재"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-07-30 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Astral Actuation",
+    "start": "2025-07-29T22:00:00.000Z",
+    "end": "2025-08-19T09:59:00.000Z",
+    "version": "5.8",
+    "featured": [
+     {
+      "id": "ineffa",
+      "en": "Ineffa",
+      "ko": "이네파"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "sethos",
+      "en": "Sethos",
+      "ko": "세토스"
+     },
+     {
+      "id": "xingqiu",
+      "en": "Xingqiu",
+      "ko": "행추"
+     },
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-07-30 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Starry Night's Whispers",
+    "start": "2025-07-29T22:00:00.000Z",
+    "end": "2025-08-19T09:59:00.000Z",
+    "version": "5.8",
+    "featured": [
+     {
+      "id": "citlali",
+      "en": "Citlali",
+      "ko": "시틀라리"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "sethos",
+      "en": "Sethos",
+      "ko": "세토스"
+     },
+     {
+      "id": "xingqiu",
+      "en": "Xingqiu",
+      "ko": "행추"
+     },
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-07-30 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-07-29T22:00:00.000Z",
+    "end": "2025-08-19T09:59:00.000Z",
+    "version": "5.8",
+    "featured": [
+     {
+      "id": "fractured_halo",
+      "en": "Fractured Halo",
+      "ko": "파멸의 빛고리"
+     },
+     {
+      "id": "starcallers_watch",
+      "en": "Starcaller's Watch",
+      "ko": "별지기의 시선"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "sturdy_bone",
+      "en": "Sturdy Bone",
+      "ko": "견고한 골검"
+     },
+     {
+      "id": "mountain-bracing_bolt",
+      "en": "Mountain-Bracing Bolt",
+      "ko": "산을 고정하는 못"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-08-19 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Sharktacular Surfari",
+    "start": "2025-08-19T10:00:00.000Z",
+    "end": "2025-09-09T06:59:00.000Z",
+    "version": "5.8",
+    "featured": [
+     {
+      "id": "mualani",
+      "en": "Mualani",
+      "ko": "말라니"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ifa",
+      "en": "Ifa",
+      "ko": "이파"
+     },
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-08-19 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Piercing Shot's Crimson Wake",
+    "start": "2025-08-19T10:00:00.000Z",
+    "end": "2025-09-09T06:59:00.000Z",
+    "version": "5.8",
+    "featured": [
+     {
+      "id": "chasca",
+      "en": "Chasca",
+      "ko": "차스카"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ifa",
+      "en": "Ifa",
+      "ko": "이파"
+     },
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-08-19 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-08-19T10:00:00.000Z",
+    "end": "2025-09-09T06:59:00.000Z",
+    "version": "5.8",
+    "featured": [
+     {
+      "id": "surfs_up",
+      "en": "Surf's Up",
+      "ko": "서핑 타임"
+     },
+     {
+      "id": "astral_vultures_crimson_plumage",
+      "en": "Astral Vulture's Crimson Plumage",
+      "ko": "붉은 깃 별독수리"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "fruitful_hook",
+      "en": "Fruitful Hook",
+      "ko": "수확의 갈고리"
+     },
+     {
+      "id": "waveriding_whirl",
+      "en": "Waveriding Whirl",
+      "ko": "돌아오는 파도"
+     },
+     {
+      "id": "flower-wreathed_feathers",
+      "en": "Flower-Wreathed Feathers",
+      "ko": "꽃장식 깃"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-09-10 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Moonsong of the Groves",
+    "start": "2025-09-09T22:00:00.000Z",
+    "end": "2025-09-30T09:59:00.000Z",
+    "version": "6.0",
+    "featured": [
+     {
+      "id": "lauma",
+      "en": "Lauma",
+      "ko": "라우마"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "barbara",
+      "en": "Barbara",
+      "ko": "바바라"
+     },
+     {
+      "id": "kuki_shinobu",
+      "en": "Kuki Shinobu",
+      "ko": "쿠키 시노부"
+     },
+     {
+      "id": "kaveh",
+      "en": "Kaveh",
+      "ko": "카베"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-09-10 06:00:00:2",
+    "group": "genshin-char",
+    "name": "The Moongrass' Enlightenment",
+    "start": "2025-09-09T22:00:00.000Z",
+    "end": "2025-09-30T09:59:00.000Z",
+    "version": "6.0",
+    "featured": [
+     {
+      "id": "nahida",
+      "en": "Nahida",
+      "ko": "나히다"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "barbara",
+      "en": "Barbara",
+      "ko": "바바라"
+     },
+     {
+      "id": "kuki_shinobu",
+      "en": "Kuki Shinobu",
+      "ko": "쿠키 시노부"
+     },
+     {
+      "id": "kaveh",
+      "en": "Kaveh",
+      "ko": "카베"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-09-10 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-09-09T22:00:00.000Z",
+    "end": "2025-09-30T09:59:00.000Z",
+    "version": "6.0",
+    "featured": [
+     {
+      "id": "nightweavers_looking_glass",
+      "en": "Nightweaver's Looking Glass",
+      "ko": "밤을 엮는 거울"
+     },
+     {
+      "id": "a_thousand_floating_dreams",
+      "en": "A Thousand Floating Dreams",
+      "ko": "떠오르는 천일 밤의 꿈"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-chronicled:2025-09-10 06:00:00:1",
+    "group": "genshin-chronicled",
+    "name": "Roving Chalice of Dewgrass",
+    "start": "2025-09-09T22:00:00.000Z",
+    "end": "2025-09-30T09:59:00.000Z",
+    "version": "6.0",
+    "featured": [
+     {
+      "id": "dehya",
+      "en": "Dehya",
+      "ko": "데히야"
+     },
+     {
+      "id": "alhaitham",
+      "en": "Alhaitham",
+      "ko": "알하이탐"
+     },
+     {
+      "id": "wanderer",
+      "en": "Wanderer",
+      "ko": "방랑자"
+     },
+     {
+      "id": "cyno",
+      "en": "Cyno",
+      "ko": "사이노"
+     },
+     {
+      "id": "nilou",
+      "en": "Nilou",
+      "ko": "닐루"
+     },
+     {
+      "id": "tighnari",
+      "en": "Tighnari",
+      "ko": "타이나리"
+     },
+     {
+      "id": "light_of_foliar_incision",
+      "en": "Light of Foliar Incision",
+      "ko": "잎을 가르는 빛"
+     },
+     {
+      "id": "key_of_khaj-nisut",
+      "en": "Key of Khaj-Nisut",
+      "ko": "성현의 열쇠"
+     },
+     {
+      "id": "beacon_of_the_reed_sea",
+      "en": "Beacon of the Reed Sea",
+      "ko": "갈대 바다의 등대"
+     },
+     {
+      "id": "staff_of_the_scarlet_sands",
+      "en": "Staff of the Scarlet Sands",
+      "ko": "적색 사막의 지팡이"
+     },
+     {
+      "id": "tulaytullahs_remembrance",
+      "en": "Tulaytullah's Remembrance",
+      "ko": "툴레이툴라의 기억"
+     },
+     {
+      "id": "hunters_path",
+      "en": "Hunter's Path",
+      "ko": "사냥꾼의 길"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "sethos",
+      "en": "Sethos",
+      "ko": "세토스"
+     },
+     {
+      "id": "kaveh",
+      "en": "Kaveh",
+      "ko": "카베"
+     },
+     {
+      "id": "faruzan",
+      "en": "Faruzan",
+      "ko": "파루잔"
+     },
+     {
+      "id": "layla",
+      "en": "Layla",
+      "ko": "레일라"
+     },
+     {
+      "id": "candace",
+      "en": "Candace",
+      "ko": "캔디스"
+     },
+     {
+      "id": "dori",
+      "en": "Dori",
+      "ko": "도리"
+     },
+     {
+      "id": "collei",
+      "en": "Collei",
+      "ko": "콜레이"
+     },
+     {
+      "id": "xiphos_moonlight",
+      "en": "Xiphos' Moonlight",
+      "ko": "크시포스의 달빛"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "makhaira_aquamarine",
+      "en": "Makhaira Aquamarine",
+      "ko": "물빛 마카이라"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "wandering_evenstar",
+      "en": "Wandering Evenstar",
+      "ko": "방랑하는 저녁별"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-09-30 18:00:00:1",
+    "group": "genshin-char",
+    "name": "The Lone Light Knocks at Night",
+    "start": "2025-09-30T10:00:00.000Z",
+    "end": "2025-10-21T09:59:00.000Z",
+    "version": "6.0",
+    "featured": [
+     {
+      "id": "flins",
+      "en": "Flins",
+      "ko": "플린스"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     },
+     {
+      "id": "dori",
+      "en": "Dori",
+      "ko": "도리"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-09-30 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Discerner of Enigmas",
+    "start": "2025-09-30T10:00:00.000Z",
+    "end": "2025-10-21T09:59:00.000Z",
+    "version": "6.0",
+    "featured": [
+     {
+      "id": "yelan",
+      "en": "Yelan",
+      "ko": "야란"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     },
+     {
+      "id": "dori",
+      "en": "Dori",
+      "ko": "도리"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-09-30 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-09-30T10:00:00.000Z",
+    "end": "2025-10-21T09:59:00.000Z",
+    "version": "6.0",
+    "featured": [
+     {
+      "id": "bloodsoaked_ruins",
+      "en": "Bloodsoaked Ruins",
+      "ko": "피로 물든 성"
+     },
+     {
+      "id": "aqua_simulacra",
+      "en": "Aqua Simulacra",
+      "ko": "약수"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-10-22 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Temptation of the Crimson Sands",
+    "start": "2025-10-21T22:00:00.000Z",
+    "end": "2025-11-11T09:59:00.000Z",
+    "version": "6.1",
+    "featured": [
+     {
+      "id": "nefer",
+      "en": "Nefer",
+      "ko": "네페르"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "xingqiu",
+      "en": "Xingqiu",
+      "ko": "행추"
+     },
+     {
+      "id": "collei",
+      "en": "Collei",
+      "ko": "콜레이"
+     },
+     {
+      "id": "yaoyao",
+      "en": "Yaoyao",
+      "ko": "요요"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-10-22 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Chanson of Many Waters",
+    "start": "2025-10-21T22:00:00.000Z",
+    "end": "2025-11-11T09:59:00.000Z",
+    "version": "6.1",
+    "featured": [
+     {
+      "id": "furina",
+      "en": "Furina",
+      "ko": "푸리나"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "xingqiu",
+      "en": "Xingqiu",
+      "ko": "행추"
+     },
+     {
+      "id": "collei",
+      "en": "Collei",
+      "ko": "콜레이"
+     },
+     {
+      "id": "yaoyao",
+      "en": "Yaoyao",
+      "ko": "요요"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-10-22 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-10-21T22:00:00.000Z",
+    "end": "2025-11-11T09:59:00.000Z",
+    "version": "6.1",
+    "featured": [
+     {
+      "id": "reliquary_of_truth",
+      "en": "Reliquary of Truth",
+      "ko": "진실의 함"
+     },
+     {
+      "id": "splendor_of_tranquil_waters",
+      "en": "Splendor of Tranquil Waters",
+      "ko": "고요히 샘솟는 빛"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "moonweavers_dawn",
+      "en": "Moonweaver's Dawn",
+      "ko": "달을 엮는 자의 새벽빛"
+     },
+     {
+      "id": "sacrificers_staff",
+      "en": "Sacrificer's Staff",
+      "ko": "신성한 제사의 지팡이"
+     },
+     {
+      "id": "dawning_frost",
+      "en": "Dawning Frost",
+      "ko": "서릿빛 새벽"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-11-11 18:00:00:1",
+    "group": "genshin-char",
+    "name": "The Hearth's Ashen Shadow",
+    "start": "2025-11-11T10:00:00.000Z",
+    "end": "2025-12-02T06:59:00.000Z",
+    "version": "6.1",
+    "featured": [
+     {
+      "id": "arlecchino",
+      "en": "Arlecchino",
+      "ko": "아를레키노"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "lan_yan",
+      "en": "Lan Yan",
+      "ko": "남연"
+     },
+     {
+      "id": "rosaria",
+      "en": "Rosaria",
+      "ko": "로자리아"
+     },
+     {
+      "id": "yun_jin",
+      "en": "Yun Jin",
+      "ko": "운근"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-11-11 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Gentry of Hermitage",
+    "start": "2025-11-11T10:00:00.000Z",
+    "end": "2025-12-02T06:59:00.000Z",
+    "version": "6.1",
+    "featured": [
+     {
+      "id": "zhongli",
+      "en": "Zhongli",
+      "ko": "종려"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "lan_yan",
+      "en": "Lan Yan",
+      "ko": "남연"
+     },
+     {
+      "id": "rosaria",
+      "en": "Rosaria",
+      "ko": "로자리아"
+     },
+     {
+      "id": "yun_jin",
+      "en": "Yun Jin",
+      "ko": "운근"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-11-11 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-11-11T10:00:00.000Z",
+    "end": "2025-12-02T06:59:00.000Z",
+    "version": "6.1",
+    "featured": [
+     {
+      "id": "crimson_moons_semblance",
+      "en": "Crimson Moon's Semblance",
+      "ko": "붉은 달의 형상"
+     },
+     {
+      "id": "vortex_vanquisher",
+      "en": "Vortex Vanquisher",
+      "ko": "관홍의 창"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_dockhands_assistant",
+      "en": "The Dockhand's Assistant",
+      "ko": "뱃도랑 장검"
+     },
+     {
+      "id": "portable_power_saw",
+      "en": "Portable Power Saw",
+      "ko": "휴대용 체인톱"
+     },
+     {
+      "id": "range_gauge",
+      "en": "Range Gauge",
+      "ko": "거리 측정기"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-12-03 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Rubedo, of White Stone Born",
+    "start": "2025-12-02T22:00:00.000Z",
+    "end": "2025-12-23T09:59:00.000Z",
+    "version": "6.2",
+    "featured": [
+     {
+      "id": "durin",
+      "en": "Durin",
+      "ko": "두린"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     },
+     {
+      "id": "faruzan",
+      "en": "Faruzan",
+      "ko": "파루잔"
+     },
+     {
+      "id": "jahoda",
+      "en": "Jahoda",
+      "ko": "야호다"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-12-03 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Ballad in Goblets",
+    "start": "2025-12-02T22:00:00.000Z",
+    "end": "2025-12-23T09:59:00.000Z",
+    "version": "6.2",
+    "featured": [
+     {
+      "id": "venti",
+      "en": "Venti",
+      "ko": "벤티"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     },
+     {
+      "id": "faruzan",
+      "en": "Faruzan",
+      "ko": "파루잔"
+     },
+     {
+      "id": "jahoda",
+      "en": "Jahoda",
+      "ko": "야호다"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-12-03 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-12-02T22:00:00.000Z",
+    "end": "2025-12-23T09:59:00.000Z",
+    "version": "6.2",
+    "featured": [
+     {
+      "id": "athame_artis",
+      "en": "Athame Artis",
+      "ko": "검은 침식"
+     },
+     {
+      "id": "the_daybreak_chronicles",
+      "en": "The Daybreak Chronicles",
+      "ko": "여명이 트는 역사"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_alley_flash",
+      "en": "The Alley Flash",
+      "ko": "뒷골목의 섬광"
+     },
+     {
+      "id": "prospectors_drill",
+      "en": "Prospector's Drill",
+      "ko": "탐사용 드릴"
+     },
+     {
+      "id": "wine_and_song",
+      "en": "Wine and Song",
+      "ko": "뒷골목의 술과 시"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-12-23 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Cornucopia of Contention",
+    "start": "2025-12-23T10:00:00.000Z",
+    "end": "2026-01-13T06:59:00.000Z",
+    "version": "6.2",
+    "featured": [
+     {
+      "id": "varesa",
+      "en": "Varesa",
+      "ko": "바레사"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "chevreuse",
+      "en": "Chevreuse",
+      "ko": "슈브르즈"
+     },
+     {
+      "id": "gaming",
+      "en": "Gaming",
+      "ko": "가명"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2025-12-23 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Forgefire's Blessing",
+    "start": "2025-12-23T10:00:00.000Z",
+    "end": "2026-01-13T06:59:00.000Z",
+    "version": "6.2",
+    "featured": [
+     {
+      "id": "xilonen",
+      "en": "Xilonen",
+      "ko": "실로닌"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "chevreuse",
+      "en": "Chevreuse",
+      "ko": "슈브르즈"
+     },
+     {
+      "id": "gaming",
+      "en": "Gaming",
+      "ko": "가명"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2025-12-23 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2025-12-23T10:00:00.000Z",
+    "end": "2026-01-13T06:59:00.000Z",
+    "version": "6.2",
+    "featured": [
+     {
+      "id": "vivid_notions",
+      "en": "Vivid Notions",
+      "ko": "빛나는 마음"
+     },
+     {
+      "id": "peak_patrol_song",
+      "en": "Peak Patrol Song",
+      "ko": "바위산을 맴도는 노래"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "fruitful_hook",
+      "en": "Fruitful Hook",
+      "ko": "수확의 갈고리"
+     },
+     {
+      "id": "alley_hunter",
+      "en": "Alley Hunter",
+      "ko": "뒷골목 사냥꾼"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-01-14 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Somnias a Luna",
+    "start": "2026-01-13T22:00:00.000Z",
+    "end": "2026-02-03T09:59:00.000Z",
+    "version": "6.3",
+    "featured": [
+     {
+      "id": "columbina",
+      "en": "Columbina",
+      "ko": "콜롬비나"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     },
+     {
+      "id": "sethos",
+      "en": "Sethos",
+      "ko": "세토스"
+     },
+     {
+      "id": "ifa",
+      "en": "Ifa",
+      "ko": "이파"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-01-14 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Astral Actuation",
+    "start": "2026-01-13T22:00:00.000Z",
+    "end": "2026-02-03T09:59:00.000Z",
+    "version": "6.3",
+    "featured": [
+     {
+      "id": "ineffa",
+      "en": "Ineffa",
+      "ko": "이네파"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     },
+     {
+      "id": "sethos",
+      "en": "Sethos",
+      "ko": "세토스"
+     },
+     {
+      "id": "ifa",
+      "en": "Ifa",
+      "ko": "이파"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-01-14 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-01-13T22:00:00.000Z",
+    "end": "2026-02-03T09:59:00.000Z",
+    "version": "6.3",
+    "featured": [
+     {
+      "id": "nocturnes_curtain_call",
+      "en": "Nocturne's Curtain Call",
+      "ko": "막간의 야상곡"
+     },
+     {
+      "id": "fractured_halo",
+      "en": "Fractured Halo",
+      "ko": "파멸의 빛고리"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "mountain-bracing_bolt",
+      "en": "Mountain-Bracing Bolt",
+      "ko": "산을 고정하는 못"
+     },
+     {
+      "id": "waveriding_whirl",
+      "en": "Waveriding Whirl",
+      "ko": "돌아오는 파도"
+     },
+     {
+      "id": "mitternachts_waltz",
+      "en": "Mitternachts Waltz",
+      "ko": "유야의 왈츠"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-02-03 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Harmonious Abundance",
+    "start": "2026-02-03T10:00:00.000Z",
+    "end": "2026-02-24T06:59:00.000Z",
+    "version": "6.3",
+    "featured": [
+     {
+      "id": "zibai",
+      "en": "Zibai",
+      "ko": "자백"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "illuga",
+      "en": "Illuga",
+      "ko": "일루가"
+     },
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "gorou",
+      "en": "Gorou",
+      "ko": "고로"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-02-03 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Decree of the Deeps",
+    "start": "2026-02-03T10:00:00.000Z",
+    "end": "2026-02-24T06:59:00.000Z",
+    "version": "6.3",
+    "featured": [
+     {
+      "id": "neuvillette",
+      "en": "Neuvillette",
+      "ko": "느비예트"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "illuga",
+      "en": "Illuga",
+      "ko": "일루가"
+     },
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "gorou",
+      "en": "Gorou",
+      "ko": "고로"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-02-03 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-02-03T10:00:00.000Z",
+    "end": "2026-02-24T06:59:00.000Z",
+    "version": "6.3",
+    "featured": [
+     {
+      "id": "lightbearing_moonshard",
+      "en": "Lightbearing Moonshard",
+      "ko": "신월의 달빛"
+     },
+     {
+      "id": "tome_of_the_eternal_flow",
+      "en": "Tome of the Eternal Flow",
+      "ko": "영원히 샘솟는 법전"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "xiphos_moonlight",
+      "en": "Xiphos' Moonlight",
+      "ko": "크시포스의 달빛"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-02-25 06:00:00:1",
+    "group": "genshin-char",
+    "name": "The Northerly Wind's Song of Triumph",
+    "start": "2026-02-24T22:00:00.000Z",
+    "end": "2026-03-17T09:59:00.000Z",
+    "version": "6.4",
+    "featured": [
+     {
+      "id": "varka",
+      "en": "Varka",
+      "ko": "바르카"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-02-25 06:00:00:2",
+    "group": "genshin-char",
+    "name": "The Lone Light Knocks at Night",
+    "start": "2026-02-24T22:00:00.000Z",
+    "end": "2026-03-17T09:59:00.000Z",
+    "version": "6.4",
+    "featured": [
+     {
+      "id": "flins",
+      "en": "Flins",
+      "ko": "플린스"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-02-25 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-02-24T22:00:00.000Z",
+    "end": "2026-03-17T09:59:00.000Z",
+    "version": "6.4",
+    "featured": [
+     {
+      "id": "gest_of_the_mighty_wolf",
+      "en": "Gest of the Mighty Wolf",
+      "ko": "늑대의 무용담"
+     },
+     {
+      "id": "bloodsoaked_ruins",
+      "en": "Bloodsoaked Ruins",
+      "ko": "피로 물든 성"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "sacrificers_staff",
+      "en": "Sacrificer's Staff",
+      "ko": "신성한 제사의 지팡이"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-chronicled:2026-02-25 06:00:00:1",
+    "group": "genshin-chronicled",
+    "name": "Ode to the Dawn Breeze",
+    "start": "2026-02-24T22:00:00.000Z",
+    "end": "2026-03-17T09:59:00.000Z",
+    "version": "6.0",
+    "featured": [
+     {
+      "id": "eula",
+      "en": "Eula",
+      "ko": "유라"
+     },
+     {
+      "id": "mona",
+      "en": "Mona",
+      "ko": "모나"
+     },
+     {
+      "id": "albedo",
+      "en": "Albedo",
+      "ko": "알베도"
+     },
+     {
+      "id": "klee",
+      "en": "Klee",
+      "ko": "클레"
+     },
+     {
+      "id": "diluc",
+      "en": "Diluc",
+      "ko": "다이루크"
+     },
+     {
+      "id": "jean",
+      "en": "Jean",
+      "ko": "진"
+     },
+     {
+      "id": "skyward_blade",
+      "en": "Skyward Blade",
+      "ko": "천공의 검"
+     },
+     {
+      "id": "aquila_favonia",
+      "en": "Aquila Favonia",
+      "ko": "매의 검"
+     },
+     {
+      "id": "song_of_broken_pines",
+      "en": "Song of Broken Pines",
+      "ko": "송뢰가 울릴 무렵"
+     },
+     {
+      "id": "wolfs_gravestone",
+      "en": "Wolf's Gravestone",
+      "ko": "늑대의 말로"
+     },
+     {
+      "id": "skyward_pride",
+      "en": "Skyward Pride",
+      "ko": "천공의 긍지"
+     },
+     {
+      "id": "skyward_spine",
+      "en": "Skyward Spine",
+      "ko": "천공의 마루"
+     },
+     {
+      "id": "lost_prayer_to_the_sacred_winds",
+      "en": "Lost Prayer to the Sacred Winds",
+      "ko": "사풍 원서"
+     },
+     {
+      "id": "skyward_atlas",
+      "en": "Skyward Atlas",
+      "ko": "천공의 두루마리"
+     },
+     {
+      "id": "elegy_for_the_end",
+      "en": "Elegy for the End",
+      "ko": "종말 탄식의 노래"
+     },
+     {
+      "id": "skyward_harp",
+      "en": "Skyward Harp",
+      "ko": "천공의 날개"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "dahlia",
+      "en": "Dahlia",
+      "ko": "달리아"
+     },
+     {
+      "id": "mika",
+      "en": "Mika",
+      "ko": "미카"
+     },
+     {
+      "id": "rosaria",
+      "en": "Rosaria",
+      "ko": "로자리아"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     },
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     },
+     {
+      "id": "noelle",
+      "en": "Noelle",
+      "ko": "노엘"
+     },
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     },
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     },
+     {
+      "id": "amber",
+      "en": "Amber",
+      "ko": "엠버"
+     },
+     {
+      "id": "razor",
+      "en": "Razor",
+      "ko": "레이저"
+     },
+     {
+      "id": "kaeya",
+      "en": "Kaeya",
+      "ko": "케이아"
+     },
+     {
+      "id": "barbara",
+      "en": "Barbara",
+      "ko": "바바라"
+     },
+     {
+      "id": "lisa",
+      "en": "Lisa",
+      "ko": "리사"
+     },
+     {
+      "id": "the_alley_flash",
+      "en": "The Alley Flash",
+      "ko": "뒷골목의 섬광"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "wine_and_song",
+      "en": "Wine and Song",
+      "ko": "뒷골목의 술과 시"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "mitternachts_waltz",
+      "en": "Mitternachts Waltz",
+      "ko": "유야의 왈츠"
+     },
+     {
+      "id": "alley_hunter",
+      "en": "Alley Hunter",
+      "ko": "뒷골목 사냥꾼"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-03-17 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Void Star's Advent",
+    "start": "2026-03-17T10:00:00.000Z",
+    "end": "2026-04-07T06:59:00.000Z",
+    "version": "6.4",
+    "featured": [
+     {
+      "id": "skirk",
+      "en": "Skirk",
+      "ko": "스커크"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "dahlia",
+      "en": "Dahlia",
+      "ko": "달리아"
+     },
+     {
+      "id": "candace",
+      "en": "Candace",
+      "ko": "캔디스"
+     },
+     {
+      "id": "charlotte",
+      "en": "Charlotte",
+      "ko": "샤를로트"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-03-17 18:00:00:2",
+    "group": "genshin-char",
+    "name": "La Chanson Cerise",
+    "start": "2026-03-17T10:00:00.000Z",
+    "end": "2026-04-07T06:59:00.000Z",
+    "version": "6.4",
+    "featured": [
+     {
+      "id": "escoffier",
+      "en": "Escoffier",
+      "ko": "에스코피에"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "dahlia",
+      "en": "Dahlia",
+      "ko": "달리아"
+     },
+     {
+      "id": "candace",
+      "en": "Candace",
+      "ko": "캔디스"
+     },
+     {
+      "id": "charlotte",
+      "en": "Charlotte",
+      "ko": "샤를로트"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-03-17 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-03-17T10:00:00.000Z",
+    "end": "2026-04-07T06:59:00.000Z",
+    "version": "6.4",
+    "featured": [
+     {
+      "id": "azurelight",
+      "en": "Azurelight",
+      "ko": "창백한 섬광"
+     },
+     {
+      "id": "symphonist_of_scents",
+      "en": "Symphonist of Scents",
+      "ko": "맛의 지휘자"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-04-08 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Ya-hoho! Compendium",
+    "start": "2026-04-07T22:00:00.000Z",
+    "end": "2026-04-28T09:59:00.000Z",
+    "version": "6.5",
+    "featured": [
+     {
+      "id": "linnea",
+      "en": "Linnea",
+      "ko": "린네아"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "illuga",
+      "en": "Illuga",
+      "ko": "일루가"
+     },
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "noelle",
+      "en": "Noelle",
+      "ko": "노엘"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-04-08 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Piercing Shot's Crimson Wake",
+    "start": "2026-04-07T22:00:00.000Z",
+    "end": "2026-04-28T09:59:00.000Z",
+    "version": "6.5",
+    "featured": [
+     {
+      "id": "chasca",
+      "en": "Chasca",
+      "ko": "차스카"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "illuga",
+      "en": "Illuga",
+      "ko": "일루가"
+     },
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "noelle",
+      "en": "Noelle",
+      "ko": "노엘"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-04-08 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-04-07T22:00:00.000Z",
+    "end": "2026-04-28T09:59:00.000Z",
+    "version": "6.5",
+    "featured": [
+     {
+      "id": "golden_frostbound_oath",
+      "en": "Golden Frostbound Oath",
+      "ko": "서리 맺힌 금빛 가지"
+     },
+     {
+      "id": "astral_vultures_crimson_plumage",
+      "en": "Astral Vulture's Crimson Plumage",
+      "ko": "붉은 깃 별독수리"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "flower-wreathed_feathers",
+      "en": "Flower-Wreathed Feathers",
+      "ko": "꽃장식 깃"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-04-28 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Moonsong of the Groves",
+    "start": "2026-04-28T10:00:00.000Z",
+    "end": "2026-05-19T06:59:00.000Z",
+    "version": "6.5",
+    "featured": [
+     {
+      "id": "lauma",
+      "en": "Lauma",
+      "ko": "라우마"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "xingqiu",
+      "en": "Xingqiu",
+      "ko": "행추"
+     },
+     {
+      "id": "kirara",
+      "en": "Kirara",
+      "ko": "키라라"
+     },
+     {
+      "id": "jahoda",
+      "en": "Jahoda",
+      "ko": "야호다"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-04-28 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Temptation of the Crimson Sands",
+    "start": "2026-04-28T10:00:00.000Z",
+    "end": "2026-05-19T06:59:00.000Z",
+    "version": "6.5",
+    "featured": [
+     {
+      "id": "nefer",
+      "en": "Nefer",
+      "ko": "네페르"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "xingqiu",
+      "en": "Xingqiu",
+      "ko": "행추"
+     },
+     {
+      "id": "kirara",
+      "en": "Kirara",
+      "ko": "키라라"
+     },
+     {
+      "id": "jahoda",
+      "en": "Jahoda",
+      "ko": "야호다"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-04-28 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-04-28T10:00:00.000Z",
+    "end": "2026-05-19T06:59:00.000Z",
+    "version": "6.5",
+    "featured": [
+     {
+      "id": "nightweavers_looking_glass",
+      "en": "Nightweaver's Looking Glass",
+      "ko": "밤을 엮는 거울"
+     },
+     {
+      "id": "reliquary_of_truth",
+      "en": "Reliquary of Truth",
+      "ko": "진실의 함"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "dawning_frost",
+      "en": "Dawning Frost",
+      "ko": "서릿빛 새벽"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-chronicled:2026-04-28 18:00:00:1",
+    "group": "genshin-chronicled",
+    "name": "Dewlit Tranquility",
+    "start": "2026-04-28T10:00:00.000Z",
+    "end": "2026-05-19T06:59:00.000Z",
+    "version": "6.5",
+    "featured": [
+     {
+      "id": "emilie",
+      "en": "Emilie",
+      "ko": "에밀리"
+     },
+     {
+      "id": "clorinde",
+      "en": "Clorinde",
+      "ko": "클로린드"
+     },
+     {
+      "id": "sigewinne",
+      "en": "Sigewinne",
+      "ko": "시그윈"
+     },
+     {
+      "id": "navia",
+      "en": "Navia",
+      "ko": "나비아"
+     },
+     {
+      "id": "lyney",
+      "en": "Lyney",
+      "ko": "리니"
+     },
+     {
+      "id": "absolution",
+      "en": "Absolution",
+      "ko": "사면"
+     },
+     {
+      "id": "verdict",
+      "en": "Verdict",
+      "ko": "판정"
+     },
+     {
+      "id": "lumidouce_elegy",
+      "en": "Lumidouce Elegy",
+      "ko": "등방울꽃의 애가"
+     },
+     {
+      "id": "silvershower_heartstrings",
+      "en": "Silvershower Heartstrings",
+      "ko": "심금을 울리는 하얀 비"
+     },
+     {
+      "id": "the_first_great_magic",
+      "en": "The First Great Magic",
+      "ko": "최초의 대마술"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "chevreuse",
+      "en": "Chevreuse",
+      "ko": "슈브르즈"
+     },
+     {
+      "id": "charlotte",
+      "en": "Charlotte",
+      "ko": "샤를로트"
+     },
+     {
+      "id": "freminet",
+      "en": "Freminet",
+      "ko": "프레미네"
+     },
+     {
+      "id": "lynette",
+      "en": "Lynette",
+      "ko": "리넷"
+     },
+     {
+      "id": "the_dockhands_assistant",
+      "en": "The Dockhand's Assistant",
+      "ko": "뱃도랑 장검"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "portable_power_saw",
+      "en": "Portable Power Saw",
+      "ko": "휴대용 체인톱"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "prospectors_drill",
+      "en": "Prospector's Drill",
+      "ko": "탐사용 드릴"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "range_gauge",
+      "en": "Range Gauge",
+      "ko": "거리 측정기"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-05-20 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Angel's Reverie",
+    "start": "2026-05-19T22:00:00.000Z",
+    "end": "2026-06-09T09:59:00.000Z",
+    "version": "6.6",
+    "featured": [
+     {
+      "id": "nicole",
+      "en": "Nicole",
+      "ko": "니콜"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "prune",
+      "en": "Prune",
+      "ko": "프루네"
+     },
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     },
+     {
+      "id": "razor",
+      "en": "Razor",
+      "ko": "레이저"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-05-20 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Rubedo, of White Stone Born",
+    "start": "2026-05-19T22:00:00.000Z",
+    "end": "2026-06-09T09:59:00.000Z",
+    "version": "6.6",
+    "featured": [
+     {
+      "id": "durin",
+      "en": "Durin",
+      "ko": "두린"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "prune",
+      "en": "Prune",
+      "ko": "프루네"
+     },
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     },
+     {
+      "id": "razor",
+      "en": "Razor",
+      "ko": "레이저"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-05-20 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-05-19T22:00:00.000Z",
+    "end": "2026-06-09T09:59:00.000Z",
+    "version": "6.6",
+    "featured": [
+     {
+      "id": "angelos_heptades",
+      "en": "Angelos' Heptades",
+      "ko": "일곱빛 계시"
+     },
+     {
+      "id": "athame_artis",
+      "en": "Athame Artis",
+      "ko": "검은 침식"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "moonweavers_dawn",
+      "en": "Moonweaver's Dawn",
+      "ko": "달을 엮는 자의 새벽빛"
+     },
+     {
+      "id": "mitternachts_waltz",
+      "en": "Mitternachts Waltz",
+      "ko": "유야의 왈츠"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-06-09 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Frostedge Nocturne",
+    "start": "2026-06-09T10:00:00.000Z",
+    "end": "2026-06-30T06:59:00.000Z",
+    "version": "6.6",
+    "featured": [
+     {
+      "id": "lohen",
+      "en": "Lohen",
+      "ko": "로엔"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "mika",
+      "en": "Mika",
+      "ko": "미카"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     },
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-06-09 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Ancient Flame Ablaze",
+    "start": "2026-06-09T10:00:00.000Z",
+    "end": "2026-06-30T06:59:00.000Z",
+    "version": "6.6",
+    "featured": [
+     {
+      "id": "mavuika",
+      "en": "Mavuika",
+      "ko": "마비카"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "mika",
+      "en": "Mika",
+      "ko": "미카"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     },
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-06-09 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-06-09T10:00:00.000Z",
+    "end": "2026-06-30T06:59:00.000Z",
+    "version": "6.6",
+    "featured": [
+     {
+      "id": "disaster_and_remorse",
+      "en": "Disaster and Remorse",
+      "ko": "재앙"
+     },
+     {
+      "id": "a_thousand_blazing_suns",
+      "en": "A Thousand Blazing Suns",
+      "ko": "타오르는 천 개의 태양"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_alley_flash",
+      "en": "The Alley Flash",
+      "ko": "뒷골목의 섬광"
+     },
+     {
+      "id": "wine_and_song",
+      "en": "Wine and Song",
+      "ko": "뒷골목의 술과 시"
+     },
+     {
+      "id": "alley_hunter",
+      "en": "Alley Hunter",
+      "ko": "뒷골목 사냥꾼"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-07-01 06:00:00:1",
+    "group": "genshin-char",
+    "name": "To the Looking-Glass the Mademoiselle Said",
+    "start": "2026-06-30T22:00:00.000Z",
+    "end": "2026-07-21T09:59:00.000Z",
+    "version": "6.7",
+    "featured": [
+     {
+      "id": "sandrone",
+      "en": "Sandrone",
+      "ko": "산드로네"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "beidou",
+      "en": "Beidou",
+      "ko": "북두"
+     },
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     },
+     {
+      "id": "freminet",
+      "en": "Freminet",
+      "ko": "프레미네"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-07-01 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Starry Night's Whispers",
+    "start": "2026-06-30T22:00:00.000Z",
+    "end": "2026-07-21T09:59:00.000Z",
+    "version": "6.7",
+    "featured": [
+     {
+      "id": "sandrone",
+      "en": "Sandrone",
+      "ko": "산드로네"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "beidou",
+      "en": "Beidou",
+      "ko": "북두"
+     },
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     },
+     {
+      "id": "freminet",
+      "en": "Freminet",
+      "ko": "프레미네"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-07-01 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-06-30T22:00:00.000Z",
+    "end": "2026-07-21T09:59:00.000Z",
+    "version": "6.7",
+    "featured": [
+     {
+      "id": "a_teaspoon_of_transcendence",
+      "en": "A Teaspoon of Transcendence",
+      "ko": "초월의 열쇠"
+     },
+     {
+      "id": "starcallers_watch",
+      "en": "Starcaller's Watch",
+      "ko": "별지기의 시선"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-chronicled:2026-07-01 06:00:00:1",
+    "group": "genshin-chronicled",
+    "name": "Heavenlit Prophecy",
+    "start": "2026-06-30T22:00:00.000Z",
+    "end": "2026-07-21T09:59:00.000Z",
+    "version": "6.7",
+    "featured": [
+     {
+      "id": "yumemizuki_mizuki",
+      "en": "Yumemizuki Mizuki",
+      "ko": "유메미즈키 미즈키"
+     },
+     {
+      "id": "wriothesley",
+      "en": "Wriothesley",
+      "ko": "라이오슬리"
+     },
+     {
+      "id": "cyno",
+      "en": "Cyno",
+      "ko": "사이노"
+     },
+     {
+      "id": "yae_miko",
+      "en": "Yae Miko",
+      "ko": "야에 미코"
+     },
+     {
+      "id": "qiqi",
+      "en": "Qiqi",
+      "ko": "치치"
+     },
+     {
+      "id": "sunny_morning_sleep-in",
+      "en": "Sunny Morning Sleep-In",
+      "ko": "나른한 새해"
+     },
+     {
+      "id": "cashflow_supervision",
+      "en": "Cashflow Supervision",
+      "ko": "현금 흐름 감독"
+     },
+     {
+      "id": "staff_of_the_scarlet_sands",
+      "en": "Staff of the Scarlet Sands",
+      "ko": "적색 사막의 지팡이"
+     },
+     {
+      "id": "kaguras_verity",
+      "en": "Kagura's Verity",
+      "ko": "카구라의 진의"
+     },
+     {
+      "id": "skyward_blade",
+      "en": "Skyward Blade",
+      "ko": "천공의 검"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "amber",
+      "en": "Amber",
+      "ko": "엠버"
+     },
+     {
+      "id": "barbara",
+      "en": "Barbara",
+      "ko": "바바라"
+     },
+     {
+      "id": "beidou",
+      "en": "Beidou",
+      "ko": "북두"
+     },
+     {
+      "id": "bennett",
+      "en": "Bennett",
+      "ko": "베넷"
+     },
+     {
+      "id": "candace",
+      "en": "Candace",
+      "ko": "캔디스"
+     },
+     {
+      "id": "charlotte",
+      "en": "Charlotte",
+      "ko": "샤를로트"
+     },
+     {
+      "id": "chevreuse",
+      "en": "Chevreuse",
+      "ko": "슈브르즈"
+     },
+     {
+      "id": "chongyun",
+      "en": "Chongyun",
+      "ko": "중운"
+     },
+     {
+      "id": "collei",
+      "en": "Collei",
+      "ko": "콜레이"
+     },
+     {
+      "id": "dahlia",
+      "en": "Dahlia",
+      "ko": "달리아"
+     },
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     },
+     {
+      "id": "dori",
+      "en": "Dori",
+      "ko": "도리"
+     },
+     {
+      "id": "faruzan",
+      "en": "Faruzan",
+      "ko": "파루잔"
+     },
+     {
+      "id": "fischl",
+      "en": "Fischl",
+      "ko": "피슬"
+     },
+     {
+      "id": "freminet",
+      "en": "Freminet",
+      "ko": "프레미네"
+     },
+     {
+      "id": "gaming",
+      "en": "Gaming",
+      "ko": "가명"
+     },
+     {
+      "id": "gorou",
+      "en": "Gorou",
+      "ko": "고로"
+     },
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "ifa",
+      "en": "Ifa",
+      "ko": "이파"
+     },
+     {
+      "id": "illuga",
+      "en": "Illuga",
+      "ko": "일루가"
+     },
+     {
+      "id": "jahoda",
+      "en": "Jahoda",
+      "ko": "야호다"
+     },
+     {
+      "id": "kachina",
+      "en": "Kachina",
+      "ko": "카치나"
+     },
+     {
+      "id": "kaeya",
+      "en": "Kaeya",
+      "ko": "케이아"
+     },
+     {
+      "id": "kaveh",
+      "en": "Kaveh",
+      "ko": "카베"
+     },
+     {
+      "id": "kirara",
+      "en": "Kirara",
+      "ko": "키라라"
+     },
+     {
+      "id": "kujou_sara",
+      "en": "Kujou Sara",
+      "ko": "쿠죠 사라"
+     },
+     {
+      "id": "kuki_shinobu",
+      "en": "Kuki Shinobu",
+      "ko": "쿠키 시노부"
+     },
+     {
+      "id": "lan_yan",
+      "en": "Lan Yan",
+      "ko": "남연"
+     },
+     {
+      "id": "layla",
+      "en": "Layla",
+      "ko": "레일라"
+     },
+     {
+      "id": "lisa",
+      "en": "Lisa",
+      "ko": "리사"
+     },
+     {
+      "id": "lynette",
+      "en": "Lynette",
+      "ko": "리넷"
+     },
+     {
+      "id": "mika",
+      "en": "Mika",
+      "ko": "미카"
+     },
+     {
+      "id": "ningguang",
+      "en": "Ningguang",
+      "ko": "응광"
+     },
+     {
+      "id": "noelle",
+      "en": "Noelle",
+      "ko": "노엘"
+     },
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "prune",
+      "en": "Prune",
+      "ko": "프루네"
+     },
+     {
+      "id": "razor",
+      "en": "Razor",
+      "ko": "레이저"
+     },
+     {
+      "id": "rosaria",
+      "en": "Rosaria",
+      "ko": "로자리아"
+     },
+     {
+      "id": "sayu",
+      "en": "Sayu",
+      "ko": "사유"
+     },
+     {
+      "id": "sethos",
+      "en": "Sethos",
+      "ko": "세토스"
+     },
+     {
+      "id": "shikanoin_heizou",
+      "en": "Shikanoin Heizou",
+      "ko": "시카노인 헤이조"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     },
+     {
+      "id": "thoma",
+      "en": "Thoma",
+      "ko": "토마"
+     },
+     {
+      "id": "xiangling",
+      "en": "Xiangling",
+      "ko": "향릉"
+     },
+     {
+      "id": "xingqiu",
+      "en": "Xingqiu",
+      "ko": "행추"
+     },
+     {
+      "id": "xinyan",
+      "en": "Xinyan",
+      "ko": "신염"
+     },
+     {
+      "id": "yanfei",
+      "en": "Yanfei",
+      "ko": "연비"
+     },
+     {
+      "id": "yaoyao",
+      "en": "Yaoyao",
+      "ko": "요요"
+     },
+     {
+      "id": "yun_jin",
+      "en": "Yun Jin",
+      "ko": "운근"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-07-21 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Somnias a Luna",
+    "start": "2026-07-21T10:00:00.000Z",
+    "end": "2026-08-11T06:59:00.000Z",
+    "version": "6.7",
+    "featured": [
+     {
+      "id": "columbina",
+      "en": "Columbina",
+      "ko": "콜롬비나"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "jahoda",
+      "en": "Jahoda",
+      "ko": "야호다"
+     },
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "sethos",
+      "en": "Sethos",
+      "ko": "세토스"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-07-21 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Reign of Serenity",
+    "start": "2026-07-21T10:00:00.000Z",
+    "end": "2026-08-11T06:59:00.000Z",
+    "version": "6.7",
+    "featured": [
+     {
+      "id": "raiden_shogun",
+      "en": "Raiden Shogun",
+      "ko": "라이덴 쇼군"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "jahoda",
+      "en": "Jahoda",
+      "ko": "야호다"
+     },
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "sethos",
+      "en": "Sethos",
+      "ko": "세토스"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-07-21 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-07-21T10:00:00.000Z",
+    "end": "2026-08-11T06:59:00.000Z",
+    "version": "6.7",
+    "featured": [
+     {
+      "id": "nocturnes_curtain_call",
+      "en": "Nocturne's Curtain Call",
+      "ko": "막간의 야상곡"
+     },
+     {
+      "id": "engulfing_lightning",
+      "en": "Engulfing Lightning",
+      "ko": "예초의 번개"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "waveriding_whirl",
+      "en": "Waveriding Whirl",
+      "ko": "돌아오는 파도"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-08-12 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Swan's Shadow in Silken Ice",
+    "start": "2026-08-11T22:00:00.000Z",
+    "end": "2026-09-01T09:59:00.000Z",
+    "version": "7.0",
+    "featured": [
+     {
+      "id": "odette",
+      "en": "Odette",
+      "ko": "오데트"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "alyosha",
+      "en": "Alyosha",
+      "ko": "알료샤"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     },
+     {
+      "id": "lynette",
+      "en": "Lynette",
+      "ko": "리넷"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-08-12 06:00:00:2",
+    "group": "genshin-char",
+    "name": "The Hearth's Ashen Shadow",
+    "start": "2026-08-11T22:00:00.000Z",
+    "end": "2026-09-01T09:59:00.000Z",
+    "version": "7.0",
+    "featured": [
+     {
+      "id": "arlecchino",
+      "en": "Arlecchino",
+      "ko": "아를레키노"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "alyosha",
+      "en": "Alyosha",
+      "ko": "알료샤"
+     },
+     {
+      "id": "sucrose",
+      "en": "Sucrose",
+      "ko": "설탕"
+     },
+     {
+      "id": "lynette",
+      "en": "Lynette",
+      "ko": "리넷"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-08-12 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-08-11T22:00:00.000Z",
+    "end": "2026-09-01T09:59:00.000Z",
+    "version": "7.0",
+    "featured": [
+     {
+      "id": "whitelake_frostfeather",
+      "en": "Whitelake Frostfeather",
+      "ko": "백조의 호수"
+     },
+     {
+      "id": "crimson_moons_semblance",
+      "en": "Crimson Moon's Semblance",
+      "ko": "붉은 달의 형상"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-09-01 18:00:00:1",
+    "group": "genshin-char",
+    "name": "The Lone Light Knocks at Night",
+    "start": "2026-09-01T10:00:00.000Z",
+    "end": "2026-09-22T06:59:00.000Z",
+    "version": "7.0",
+    "featured": [
+     {
+      "id": "flins",
+      "en": "Flins",
+      "ko": "플린스"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "lan_yan",
+      "en": "Lan Yan",
+      "ko": "남연"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-09-01 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Astral Actuation",
+    "start": "2026-09-01T10:00:00.000Z",
+    "end": "2026-09-22T06:59:00.000Z",
+    "version": "7.0",
+    "featured": [
+     {
+      "id": "ineffa",
+      "en": "Ineffa",
+      "ko": "이네파"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "lan_yan",
+      "en": "Lan Yan",
+      "ko": "남연"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-09-01 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-09-01T10:00:00.000Z",
+    "end": "2026-09-22T06:59:00.000Z",
+    "version": "7.0",
+    "featured": [
+     {
+      "id": "bloodsoaked_ruins",
+      "en": "Bloodsoaked Ruins",
+      "ko": "피로 물든 성"
+     },
+     {
+      "id": "fractured_halo",
+      "en": "Fractured Halo",
+      "ko": "파멸의 빛고리"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-09-23 06:00:00:1",
+    "group": "genshin-char",
+    "name": "When Warm Winds Cavort",
+    "start": "2026-09-22T22:00:00.000Z",
+    "end": "2026-10-13T09:59:59.000Z",
+    "version": "7.1",
+    "featured": [
+     {
+      "id": "vesna",
+      "en": "Vesna",
+      "ko": "베스나"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     },
+     {
+      "id": "faruzan",
+      "en": "Faruzan",
+      "ko": "파루잔"
+     },
+     {
+      "id": "chongyun",
+      "en": "Chongyun",
+      "ko": "중운"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-09-23 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Surging Ballad",
+    "start": "2026-09-22T22:00:00.000Z",
+    "end": "2026-10-13T09:59:59.000Z",
+    "version": "7.1",
+    "featured": [
+     {
+      "id": "vodyanitsa",
+      "en": "Vodyanitsa",
+      "ko": "보댜니차"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "diona",
+      "en": "Diona",
+      "ko": "디오나"
+     },
+     {
+      "id": "faruzan",
+      "en": "Faruzan",
+      "ko": "파루잔"
+     },
+     {
+      "id": "chongyun",
+      "en": "Chongyun",
+      "ko": "중운"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-09-23 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-09-22T22:00:00.000Z",
+    "end": "2026-10-13T09:59:59.000Z",
+    "version": "7.1",
+    "featured": [
+     {
+      "id": "beyond_the_chrysalis",
+      "en": "Beyond the Chrysalis",
+      "ko": "나비의 우화"
+     },
+     {
+      "id": "hymn_of_the_maelstrom",
+      "en": "Hymn of the Maelstrom",
+      "ko": "파도의 찬송가"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "new_bough",
+      "en": "New Bough",
+      "ko": "새순"
+     },
+     {
+      "id": "winters_heavy_heart",
+      "en": "Winter's Heavy Heart",
+      "ko": "얼어붙은 심장"
+     },
+     {
+      "id": "breezeborne_refrain",
+      "en": "Breezeborne Refrain",
+      "ko": "산들바람 활"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-10-13 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Void Star's Advent",
+    "start": "2026-10-13T10:00:00.000Z",
+    "end": "2026-11-03T06:59:59.000Z",
+    "version": "7.1",
+    "featured": [
+     {
+      "id": "skirk",
+      "en": "Skirk",
+      "ko": "스커크"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "dahlia",
+      "en": "Dahlia",
+      "ko": "달리아"
+     },
+     {
+      "id": "candace",
+      "en": "Candace",
+      "ko": "캔디스"
+     },
+     {
+      "id": "mika",
+      "en": "Mika",
+      "ko": "미카"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-10-13 18:00:00:2",
+    "group": "genshin-char",
+    "name": "La Chanson Cerise",
+    "start": "2026-10-13T10:00:00.000Z",
+    "end": "2026-11-03T06:59:59.000Z",
+    "version": "7.1",
+    "featured": [
+     {
+      "id": "skirk",
+      "en": "Skirk",
+      "ko": "스커크"
+     },
+     {
+      "id": "escoffier",
+      "en": "Escoffier",
+      "ko": "에스코피에"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "dahlia",
+      "en": "Dahlia",
+      "ko": "달리아"
+     },
+     {
+      "id": "candace",
+      "en": "Candace",
+      "ko": "캔디스"
+     },
+     {
+      "id": "mika",
+      "en": "Mika",
+      "ko": "미카"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-10-13 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-10-13T10:00:00.000Z",
+    "end": "2026-11-03T06:59:59.000Z",
+    "version": "7.1",
+    "featured": [
+     {
+      "id": "azurelight",
+      "en": "Azurelight",
+      "ko": "창백한 섬광"
+     },
+     {
+      "id": "symphonist_of_scents",
+      "en": "Symphonist of Scents",
+      "ko": "맛의 지휘자"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "sturdy_bone",
+      "en": "Sturdy Bone",
+      "ko": "견고한 골검"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-11-04 06:00:00:1",
+    "group": "genshin-char",
+    "name": "Myriad Patterns Unfold",
+    "start": "2026-11-03T22:00:00.000Z",
+    "end": "2026-11-24T09:59:59.000Z",
+    "version": "7.2",
+    "featured": [
+     {
+      "id": "mitya",
+      "en": "Mitya",
+      "ko": "미탸"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "valeriy",
+      "en": "Valeriy",
+      "ko": "발레리"
+     },
+     {
+      "id": "charlotte",
+      "en": "Charlotte",
+      "ko": "샤를로트"
+     },
+     {
+      "id": "rosaria",
+      "en": "Rosaria",
+      "ko": "로자리아"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-11-04 06:00:00:2",
+    "group": "genshin-char",
+    "name": "Chanson of Many Waters",
+    "start": "2026-11-03T22:00:00.000Z",
+    "end": "2026-11-24T09:59:59.000Z",
+    "version": "7.2",
+    "featured": [
+     {
+      "id": "furina",
+      "en": "Furina",
+      "ko": "푸리나"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "valeriy",
+      "en": "Valeriy",
+      "ko": "발레리"
+     },
+     {
+      "id": "charlotte",
+      "en": "Charlotte",
+      "ko": "샤를로트"
+     },
+     {
+      "id": "rosaria",
+      "en": "Rosaria",
+      "ko": "로자리아"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-11-04 06:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-11-03T22:00:00.000Z",
+    "end": "2026-11-24T09:59:59.000Z",
+    "version": "7.2",
+    "featured": [
+     {
+      "id": "starsealed_edict",
+      "en": "Starsealed Edict",
+      "ko": "별빛 계시"
+     },
+     {
+      "id": "splendor_of_tranquil_waters",
+      "en": "Splendor of Tranquil Waters",
+      "ko": "고요히 샘솟는 빛"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "the_dockhands_assistant",
+      "en": "The Dockhand's Assistant",
+      "ko": "뱃도랑 장검"
+     },
+     {
+      "id": "prospectors_drill",
+      "en": "Prospector's Drill",
+      "ko": "탐사용 드릴"
+     },
+     {
+      "id": "dawning_frost",
+      "en": "Dawning Frost",
+      "ko": "서릿빛 새벽"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-11-24 18:00:00:1",
+    "group": "genshin-char",
+    "name": "Harmonious Abundance",
+    "start": "2026-11-24T10:00:00.000Z",
+    "end": "2026-12-15T06:59:59.000Z",
+    "version": "7.2",
+    "featured": [
+     {
+      "id": "zibai",
+      "en": "Zibai",
+      "ko": "자백"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "illuga",
+      "en": "Illuga",
+      "ko": "일루가"
+     },
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "ningguang",
+      "en": "Ningguang",
+      "ko": "응광"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-char:2026-11-24 18:00:00:2",
+    "group": "genshin-char",
+    "name": "Ya-hoho! Compendium",
+    "start": "2026-11-24T10:00:00.000Z",
+    "end": "2026-12-15T06:59:59.000Z",
+    "version": "7.2",
+    "featured": [
+     {
+      "id": "linnea",
+      "en": "Linnea",
+      "ko": "린네아"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "illuga",
+      "en": "Illuga",
+      "ko": "일루가"
+     },
+     {
+      "id": "aino",
+      "en": "Aino",
+      "ko": "아이노"
+     },
+     {
+      "id": "ningguang",
+      "en": "Ningguang",
+      "ko": "응광"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-weapon:2026-11-24 18:00:00:1",
+    "group": "genshin-weapon",
+    "name": "Epitome Invocation",
+    "start": "2026-11-24T10:00:00.000Z",
+    "end": "2026-12-15T06:59:59.000Z",
+    "version": "7.2",
+    "featured": [
+     {
+      "id": "lightbearing_moonshard",
+      "en": "Lightbearing Moonshard",
+      "ko": "신월의 달빛"
+     },
+     {
+      "id": "golden_frostbound_oath",
+      "en": "Golden Frostbound Oath",
+      "ko": "서리 맺힌 금빛 가지"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "portable_power_saw",
+      "en": "Portable Power Saw",
+      "ko": "휴대용 체인톱"
+     },
+     {
+      "id": "range_gauge",
+      "en": "Range Gauge",
+      "ko": "거리 측정기"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     }
+    ]
+   },
+   {
+    "id": "genshin:genshin-chronicled:2026-11-24 18:00:00:1",
+    "group": "genshin-chronicled",
+    "name": "Names Forged Beneath Blazing Skies",
+    "start": "2026-11-24T10:00:00.000Z",
+    "end": "2026-12-15T06:59:59.000Z",
+    "version": "7.2",
+    "featured": [
+     {
+      "id": "varesa",
+      "en": "Varesa",
+      "ko": "바레사"
+     },
+     {
+      "id": "chasca",
+      "en": "Chasca",
+      "ko": "차스카"
+     },
+     {
+      "id": "xilonen",
+      "en": "Xilonen",
+      "ko": "실로닌"
+     },
+     {
+      "id": "mualani",
+      "en": "Mualani",
+      "ko": "말라니"
+     },
+     {
+      "id": "kinich",
+      "en": "Kinich",
+      "ko": "키니치"
+     },
+     {
+      "id": "vivid_notions",
+      "en": "Vivid Notions",
+      "ko": "빛나는 마음"
+     },
+     {
+      "id": "astral_vultures_crimson_plumage",
+      "en": "Astral Vulture's Crimson Plumage",
+      "ko": "붉은 깃 별독수리"
+     },
+     {
+      "id": "peak_patrol_song",
+      "en": "Peak Patrol Song",
+      "ko": "바위산을 맴도는 노래"
+     },
+     {
+      "id": "surfs_up",
+      "en": "Surf's Up",
+      "ko": "서핑 타임"
+     },
+     {
+      "id": "fang_of_the_mountain_king",
+      "en": "Fang of the Mountain King",
+      "ko": "산왕의 엄니"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ifa",
+      "en": "Ifa",
+      "ko": "이파"
+     },
+     {
+      "id": "iansan",
+      "en": "Iansan",
+      "ko": "얀사"
+     },
+     {
+      "id": "ororon",
+      "en": "Ororon",
+      "ko": "올로룬"
+     },
+     {
+      "id": "kachina",
+      "en": "Kachina",
+      "ko": "카치나"
+     },
+     {
+      "id": "flower-wreathed_feathers",
+      "en": "Flower-Wreathed Feathers",
+      "ko": "꽃장식 깃"
+     },
+     {
+      "id": "waveriding_whirl",
+      "en": "Waveriding Whirl",
+      "ko": "돌아오는 파도"
+     },
+     {
+      "id": "mountain-bracing_bolt",
+      "en": "Mountain-Bracing Bolt",
+      "ko": "산을 고정하는 못"
+     },
+     {
+      "id": "fruitful_hook",
+      "en": "Fruitful Hook",
+      "ko": "수확의 갈고리"
+     },
+     {
+      "id": "sturdy_bone",
+      "en": "Sturdy Bone",
+      "ko": "견고한 골검"
+     },
+     {
+      "id": "rust",
+      "en": "Rust",
+      "ko": "녹슨 활"
+     },
+     {
+      "id": "sacrificial_bow",
+      "en": "Sacrificial Bow",
+      "ko": "제례활"
+     },
+     {
+      "id": "the_stringless",
+      "en": "The Stringless",
+      "ko": "절현"
+     },
+     {
+      "id": "favonius_warbow",
+      "en": "Favonius Warbow",
+      "ko": "페보니우스 활"
+     },
+     {
+      "id": "eye_of_perception",
+      "en": "Eye of Perception",
+      "ko": "소심"
+     },
+     {
+      "id": "sacrificial_fragments",
+      "en": "Sacrificial Fragments",
+      "ko": "제례의 악장"
+     },
+     {
+      "id": "the_widsith",
+      "en": "The Widsith",
+      "ko": "음유시인의 악장"
+     },
+     {
+      "id": "favonius_codex",
+      "en": "Favonius Codex",
+      "ko": "페보니우스 비전"
+     },
+     {
+      "id": "favonius_lance",
+      "en": "Favonius Lance",
+      "ko": "페보니우스 장창"
+     },
+     {
+      "id": "dragons_bane",
+      "en": "Dragon's Bane",
+      "ko": "용학살창"
+     },
+     {
+      "id": "rainslasher",
+      "en": "Rainslasher",
+      "ko": "빗물 베기"
+     },
+     {
+      "id": "sacrificial_greatsword",
+      "en": "Sacrificial Greatsword",
+      "ko": "제례 대검"
+     },
+     {
+      "id": "the_bell",
+      "en": "The Bell",
+      "ko": "시간의 검"
+     },
+     {
+      "id": "favonius_greatsword",
+      "en": "Favonius Greatsword",
+      "ko": "페보니우스 대검"
+     },
+     {
+      "id": "lions_roar",
+      "en": "Lion's Roar",
+      "ko": "용의 포효"
+     },
+     {
+      "id": "sacrificial_sword",
+      "en": "Sacrificial Sword",
+      "ko": "제례검"
+     },
+     {
+      "id": "the_flute",
+      "en": "The Flute",
+      "ko": "피리검"
+     },
+     {
+      "id": "favonius_sword",
+      "en": "Favonius Sword",
+      "ko": "페보니우스 검"
+     }
+    ]
+   }
+  ],
+  "endfield": [
+   {
+    "id": "endfield:rerun_chr_tangtang",
+    "group": "endfield-refactor",
+    "name": "Ancestral Spring Flows Anew",
+    "start": null,
+    "end": null,
+    "version": null,
+    "featured": [
+     {
+      "id": "chr_0027_tangtang",
+      "en": null,
+      "cn": "汤汤",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:rerun_chr_yvonne",
+    "group": "endfield-refactor",
+    "name": "Resplendent Spectrum",
+    "start": null,
+    "end": null,
+    "version": null,
+    "featured": [
+     {
+      "id": "chr_0017_yvonne",
+      "en": null,
+      "cn": "伊冯",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_0_1",
+    "group": "endfield-chartered",
+    "name": "Scars of the Forge",
+    "start": null,
+    "end": null,
+    "version": "1.0",
+    "featured": [
+     {
+      "id": "chr_0016_laevat",
+      "en": null,
+      "cn": "莱万汀",
+      "ko": "레바테인"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_0_2",
+    "group": "endfield-chartered",
+    "name": "Hues of Passion",
+    "start": null,
+    "end": null,
+    "version": "1.0",
+    "featured": [
+     {
+      "id": "chr_0017_yvonne",
+      "en": null,
+      "cn": "伊冯",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_0_3",
+    "group": "endfield-chartered",
+    "name": "The Floaty Messenger",
+    "start": null,
+    "end": null,
+    "version": "1.0",
+    "featured": [
+     {
+      "id": "chr_0013_aglina",
+      "en": null,
+      "cn": "洁尔佩塔",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_1_1",
+    "group": "endfield-chartered",
+    "name": "River's Daughter",
+    "start": null,
+    "end": null,
+    "version": "1.1",
+    "featured": [
+     {
+      "id": "chr_0027_tangtang",
+      "en": null,
+      "cn": "汤汤",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_1_2",
+    "group": "endfield-chartered",
+    "name": "Wolf Pearl",
+    "start": null,
+    "end": null,
+    "version": "1.1",
+    "featured": [
+     {
+      "id": "chr_0028_wulfa",
+      "en": null,
+      "cn": "洛茜",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_2_1",
+    "group": "endfield-chartered",
+    "name": "Thunder of Renewal",
+    "start": null,
+    "end": null,
+    "version": "1.2",
+    "featured": [
+     {
+      "id": "chr_0030_zhuangfy",
+      "en": null,
+      "cn": "庄方宜",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_3_1",
+    "group": "endfield-chartered",
+    "name": "Fists of No Regrets",
+    "start": null,
+    "end": null,
+    "version": "1.3",
+    "featured": [
+     {
+      "id": "chr_0031_mifu",
+      "en": null,
+      "cn": "弭弗",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_3_2",
+    "group": "endfield-chartered",
+    "name": "Expunger of Sin",
+    "start": null,
+    "end": null,
+    "version": "1.3",
+    "featured": [
+     {
+      "id": "chr_0033_camille",
+      "en": null,
+      "cn": "卡缪",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_4_1",
+    "group": "endfield-chartered",
+    "name": "North Yearns the Rift Vigile",
+    "start": null,
+    "end": null,
+    "version": "1.4",
+    "featured": [
+     {
+      "id": "chr_0032_lizhiyan",
+      "en": null,
+      "cn": "诀",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_4_2",
+    "group": "endfield-chartered",
+    "name": "Good Morning from Your Dawnstar",
+    "start": null,
+    "end": null,
+    "version": "1.4",
+    "featured": [
+     {
+      "id": "chr_0035_liino",
+      "en": null,
+      "cn": "梨诺",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_5_1",
+    "group": "endfield-chartered",
+    "name": "Winter Hunt",
+    "start": null,
+    "end": null,
+    "version": "1.5",
+    "featured": [
+     {
+      "id": "chr_0034_typhoea",
+      "en": null,
+      "cn": "提弗洛斯",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_6_1",
+    "group": "endfield-chartered",
+    "name": "Rejuvenation",
+    "start": null,
+    "end": null,
+    "version": "1.6",
+    "featured": [
+     {
+      "id": "chr_0036_jsspsi",
+      "en": null,
+      "cn": "祀",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "endfield:special_1_6_2",
+    "group": "endfield-chartered",
+    "name": "The Hearth Fire Beckons the Starry Flow",
+    "start": null,
+    "end": null,
+    "version": "1.6",
+    "featured": [
+     {
+      "id": "chr_0037_minghe",
+      "en": null,
+      "cn": "明河",
+      "ko": null
+     }
+    ],
+    "featuredRare": []
+   }
+  ],
+  "arknights": [],
+  "limbus": []
+ },
+ "errors": {}
+}

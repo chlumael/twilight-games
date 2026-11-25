@@ -1,0 +1,58 @@
+name: banners
+
+# Weekly refresh of data/banners.json. Opens a pull request for review instead
+# of committing directly, because the sources are community data.
+on:
+  schedule:
+    - cron: "17 3 * * 3" # Wednesdays 03:17 UTC (12:17 KST)
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Read-only: this job touches third-party data.
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/banners/build.mjs data/banners.new.json
+      - run: node scripts/banners/validate.mjs data/banners.new.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: banners
+          path: data/banners.new.json
+
+  pull-request:
+    needs: build
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: banners
+          path: data
+      - name: Keep only real changes
+        run: |
+          node -e '
+            const fs = require("fs");
+            const strip = (p) => { const j = JSON.parse(fs.readFileSync(p, "utf8")); delete j.generatedAt; return JSON.stringify(j); };
+            const changed = !fs.existsSync("data/banners.json") || strip("data/banners.json") !== strip("data/banners.new.json");
+            if (changed) fs.renameSync("data/banners.new.json", "data/banners.json"); else fs.rmSync("data/banners.new.json");
+            console.log(changed ? "changed" : "no change");
+          '
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bot/banners
+          commit-message: "Update banner data pack"
+          title: "배너 데이터 팩 갱신"
+          body: |
+            자동 생성된 배너 데이터 팩 변경입니다. 진행 중인 배너와 픽업 이름이 맞는지 확인 후 합쳐주세요.
+          add-paths: data/banners.json
