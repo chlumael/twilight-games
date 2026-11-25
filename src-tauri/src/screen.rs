@@ -104,7 +104,7 @@ mod imp {
     use windows::Storage::Streams::DataWriter;
     use windows::Win32::Foundation::{HWND, POINT, RECT};
     use windows::Win32::Graphics::Gdi::{
-        BitBlt, ClientToScreen, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
+        BitBlt, SetStretchBltMode, StretchBlt, HALFTONE, ClientToScreen, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
         ReleaseDC, SelectObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, SRCCOPY,
     };
     use windows::Win32::System::Threading::GetCurrentProcessId;
@@ -138,7 +138,8 @@ mod imp {
     }
 
     /// 앞에 떠 있는 창의 안쪽 영역을 찍어 BGRA 바이트로 돌려준다. 우리 창이 앞이면 None.
-    fn capture() -> Result<Option<(Vec<u8>, i32, i32)>, String> {
+    /// 돌려주는 값: (그림, 그림 가로, 그림 세로, 실제 창 가로, 실제 창 세로)
+    fn capture() -> Result<Option<(Vec<u8>, i32, i32, i32, i32)>, String> {
         // SAFETY: 표준 GDI 호출. 만든 DC·비트맵은 이 함수 안에서 모두 해제한다.
         unsafe {
             let hwnd = GetForegroundWindow();
@@ -161,14 +162,22 @@ mod imp {
 
             let screen = GetDC(None);
             let mem = CreateCompatibleDC(Some(screen));
-            let bmp = CreateCompatibleBitmap(screen, w, h);
+            // 작은 글자는 글자 인식이 자주 틀리므로("헤드헌팅" → "해드현팅") 창이 작으면 2배로 키워서 찍는다.
+            let scale = if h < 1500 { 2 } else { 1 };
+            let (cw, ch) = (w * scale, h * scale);
+            let bmp = CreateCompatibleBitmap(screen, cw, ch);
             let old = SelectObject(mem, bmp.into());
-            let blt = BitBlt(mem, 0, 0, w, h, Some(screen), origin.x, origin.y, SRCCOPY);
+            let blt = if scale == 1 {
+                BitBlt(mem, 0, 0, w, h, Some(screen), origin.x, origin.y, SRCCOPY)
+            } else {
+                SetStretchBltMode(mem, HALFTONE);
+                StretchBlt(mem, 0, 0, cw, ch, Some(screen), origin.x, origin.y, w, h, SRCCOPY).ok()
+            };
             let mut info = BITMAPINFO {
                 bmiHeader: BITMAPINFOHEADER {
                     biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
-                    biWidth: w,
-                    biHeight: -h, // 위에서 아래로
+                    biWidth: cw,
+                    biHeight: -ch, // 위에서 아래로
                     biPlanes: 1,
                     biBitCount: 32,
                     biCompression: BI_RGB.0,
@@ -176,8 +185,8 @@ mod imp {
                 },
                 ..Default::default()
             };
-            let mut buf = vec![0u8; (w as usize) * (h as usize) * 4];
-            let got = GetDIBits(mem, bmp, 0, h as u32, Some(buf.as_mut_ptr().cast()), &mut info, DIB_RGB_COLORS);
+            let mut buf = vec![0u8; (cw as usize) * (ch as usize) * 4];
+            let got = GetDIBits(mem, bmp, 0, ch as u32, Some(buf.as_mut_ptr().cast()), &mut info, DIB_RGB_COLORS);
             SelectObject(mem, old);
             let _ = DeleteObject(bmp.into());
             let _ = DeleteDC(mem);
@@ -186,12 +195,12 @@ mod imp {
             if got == 0 {
                 return Err("화면을 읽지 못했습니다".into());
             }
-            Ok(Some((buf, w, h)))
+            Ok(Some((buf, cw, ch, w, h)))
         }
     }
 
     pub fn read_once() -> Result<Option<Frame>, String> {
-        let Some((bytes, w, h)) = capture()? else { return Ok(None) };
+        let Some((bytes, w, h, win_w, win_h)) = capture()? else { return Ok(None) };
         let writer = DataWriter::new().map_err(err("버퍼"))?;
         writer.WriteBytes(&bytes).map_err(err("버퍼"))?;
         let buffer = writer.DetachBuffer().map_err(err("버퍼"))?;
@@ -238,6 +247,6 @@ mod imp {
         let blank = bytes.chunks(4).step_by(step / 4).all(|p| {
             (p[0] as i32 - first[0] as i32).abs() < 8 && (p[1] as i32 - first[1] as i32).abs() < 8 && (p[2] as i32 - first[2] as i32).abs() < 8
         });
-        Ok(Some(Frame { time, landscape: w > h, lines, width: w, height: h, blank }))
+        Ok(Some(Frame { time, landscape: w > h, lines, width: win_w, height: win_h, blank }))
     }
 }

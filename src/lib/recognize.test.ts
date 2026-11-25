@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { frameText, numberTokens, parseFrameText, parseNumber, readScreen, type ScreenLine } from "./recognize";
+import { frameText, looksLikeGacha, numberTokens, parseFrameText, parseNumber, readScreen, type ScreenLine } from "./recognize";
 
 /** 사용자 휴대폰에서 "읽은 글자 복사"로 받은 실제 인식 결과 */
 const phone = (name: string) => parseFrameText(readFileSync(new URL(`./fixtures/${name}.txt`, import.meta.url), "utf8"));
@@ -90,6 +90,17 @@ describe("화면 읽기", () => {
       game: "endfield",
       currency: { oroberyl: 52925, origeometry: 136, charteredPermit: 8, limitedPermit: 2 },
       until: "12. 23 12: 00 (UTC+8)", toTop: 73, toFeatured: 120,
+    });
+  });
+
+  it("엔드필드 메인(PC 윈도우 글자 인식): 틀리게 읽힌 낱말·기호를 바로잡는다", () => {
+    const f = parseFrameText(readFileSync(new URL("./fixtures/endfield-main-pc.txt", import.meta.url), "utf8"));
+    expect(looksLikeGacha(f)).toBe(true);
+    expect(readScreen(f)).toMatchObject({
+      game: "endfield",
+      // "55025 1"의 1은 "+" 단추, "105%"는 10500(파생 오리지늄 140 × 75)
+      currency: { oroberyl: 55025, origeometry: 140, charteredPermit: 8, limitedPermit: 17 },
+      toTop: 73, toFeatured: 120,
     });
   });
 

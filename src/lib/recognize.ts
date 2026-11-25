@@ -59,7 +59,11 @@ function endfield(lines: ScreenLine[]): ScreenReading | null {
   // 위쪽 오른편 숫자: [허가증들…] [파생 오리지늄 교환 칸] 오로베릴[+].
   // 사용자 확인(2026-11-25): 교환 칸은 보유 파생 오리지늄이 아니라 "전부 오로베릴로 바꾸면 받는 양"(× 75)이다.
   // 맨 오른쪽 숫자 뒤의 "+" 때문에 숫자만으로 된 줄로 읽히지 않으므로 줄 안의 숫자 조각으로 읽는다.
-  const top = numberTokens(lines.filter((l) => l.y < 0.1 && l.x > 0.4));
+  // PC(윈도우 글자 인식)는 오로베릴 뒤의 "+" 단추를 "1"로, 교환 칸의 "00"을 "%"로 읽는 일이 있다(실기 2026-11-25).
+  const topLines = lines
+    .filter((l) => l.y < 0.1 && l.x > 0.4)
+    .map((l) => ({ ...l, t: l.t.replace(/(\d{2,})\s+[1lI|]$/, "$1+").replace(/(\d)%/g, (_, d: string) => `${d}00`) }));
+  const top = numberTokens(topLines);
   const currency: Record<string, number> = {};
   if (top.length >= 2) {
     currency.oroberyl = top[top.length - 1].n;
@@ -202,8 +206,18 @@ const ORIGEOMETRY_TO_OROBERYL = 75;
 const ORIGINITE_TO_ORUNDUM = 180;
 
 /** 가챠 메인 화면이면 읽은 내용을, 아니면 null을 돌려준다. */
+/** 글자 인식이 자주 틀리는 낱말을 바로잡는다 (PC 윈도우 글자 인식: "해드현팅"·"헤드현팅" → "헤드헌팅"). */
+export function fixWords(text: string): string {
+  return text.replace(/[헤해]\s?드\s?[헌현]\s?팅/g, "헤드헌팅");
+}
+
+/** 프레임의 모든 줄에 fixWords를 적용한다. 화면 읽기가 들어오는 입구에서 한 번 부른다. */
+export function normalizeFrame(frame: ScreenFrame): ScreenFrame {
+  return { ...frame, lines: frame.lines.map((l) => ({ ...l, t: fixWords(l.t) })) };
+}
+
 export function readScreen(frame: ScreenFrame): ScreenReading | null {
-  const lines = frame.lines.filter((l) => l.t.trim());
+  const lines = normalizeFrame(frame).lines.filter((l) => l.t.trim());
   return endfield(lines) ?? limbus(lines) ?? genshin(lines) ?? arknights(lines);
 }
 
@@ -227,5 +241,5 @@ export function parseFrameText(text: string): ScreenFrame {
 
 /** 게임 가챠 화면으로 보이는지 (규칙에 안 맞아도 "읽은 글자 복사"용으로 남길지 판단) */
 export function looksLikeGacha(frame: ScreenFrame): boolean {
-  return frame.lines.some((l) => /헤드헌팅|기원|추출|회진행|LUNACY|UID|획득결과/i.test(l.t.replace(/\s+/g, "")));
+  return frame.lines.some((l) => /헤드헌팅|기원|추출|회진행|LUNACY|UID|획득결과/i.test(fixWords(l.t).replace(/\s+/g, "")));
 }

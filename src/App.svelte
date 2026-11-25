@@ -22,7 +22,7 @@
   import bundledPack from "../data/banners.json";
   import { autoBanner, bannerLabel, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
-  import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading } from "./lib/recognize";
+  import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading, normalizeFrame } from "./lib/recognize";
   import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "./lib/detect";
   import genshinItemsFile from "../data/genshin-items.json";
   import endfieldSixFile from "../data/names/endfield-6star.json";
@@ -535,13 +535,14 @@
     const sw = window as unknown as { __twilightScreen?: (j: string) => void; __twilightScreenState?: (j: string) => void };
     sw.__twilightScreen = (json) => {
       try {
-        const f = JSON.parse(json) as ScreenFrame;
+        const raw = JSON.parse(json) as ScreenFrame;
+        const f = normalizeFrame(raw); // 자주 틀리게 읽히는 낱말을 바로잡은 것 (복사용은 원본 그대로 둔다)
         screenOn = true;
         const r = readScreen(f);
         // "읽은 글자 복사"용으로는 게임 가챠 화면으로 보이는 것만 남긴다.
         // (화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으므로, 다른 앱 글자를 붙잡아 두지 않는다)
         // PC는 원인을 볼 수 있게 마지막으로 읽은 화면을 항상 남긴다(다른 프로그램을 앞에 두면 그것도 읽으니 주의 문구를 띄운다).
-        if (r || looksLikeGacha(f) || api.inTauri) screenFrame = f;
+        if (r || looksLikeGacha(f) || api.inTauri) screenFrame = raw;
         onScreenFrame(f, r);
         if (!r) readHistory(f);
         if (r) {
