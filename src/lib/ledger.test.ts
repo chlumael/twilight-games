@@ -175,3 +175,31 @@ describe("화면 감지 기록", () => {
     expect(groupStatus(r.games.genshin, "genshin", "genshin-char").pity).toBe(0);
   });
 });
+
+import { syncPityFromScreen } from "./ledger";
+
+describe("화면에 적힌 남은 횟수로 천장 맞추기", () => {
+  const status = (r: ReturnType<typeof emptyRecords>) => groupStatus(r.games.endfield, "endfield", "endfield-chartered");
+  it("기록이 없어도 화면 값으로 맞춘다 (80회 중 53회 남음 = 27회 쌓임, 120회 중 100회 남음)", () => {
+    const r = syncPityFromScreen(emptyRecords(), "endfield", "endfield-chartered", 53, 100);
+    expect(status(r).pity).toBe(27);
+    expect(status(r).counters[0].remaining).toBe(100);
+  });
+  it("앱이 센 값과 다르면 차이만큼 고치고, 같으면 그대로 둔다", () => {
+    let r = recordSession(emptyRecords(), "endfield", "endfield-chartered", 10, new Map(), t(0));
+    r = syncPityFromScreen(r, "endfield", "endfield-chartered", 43, 90);
+    expect(status(r).pity).toBe(37);
+    expect(status(r).counters[0].remaining).toBe(90);
+    expect(r.games.endfield.pulls.length).toBe(10); // 뽑기 기록은 그대로
+    expect(syncPityFromScreen(r, "endfield", "endfield-chartered", 43, 90)).toBe(r);
+    // 이후 10회를 더 기록하면 화면 값과 같이 움직인다
+    r = recordSession(r, "endfield", "endfield-chartered", 10, new Map(), t(5));
+    expect(status(r).pity).toBe(47);
+    expect(syncPityFromScreen(r, "endfield", "endfield-chartered", 33, 80)).toBe(r);
+  });
+  it("말이 안 되는 값은 무시한다", () => {
+    const r = emptyRecords();
+    expect(syncPityFromScreen(r, "endfield", "endfield-chartered", 530, null)).toBe(r);
+    expect(syncPityFromScreen(r, "endfield", "endfield-chartered", null, null)).toBe(r);
+  });
+});

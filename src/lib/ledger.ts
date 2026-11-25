@@ -351,3 +351,45 @@ export function recordDetected(
   rec.currencyUpdatedAt = now.toISOString();
   return next;
 }
+
+/**
+ * 게임 화면에 적힌 "N회 내 최고 등급 확정"·"N회 내 픽업 확정"에 앱의 수치를 맞춘다.
+ * 뽑기 기록은 건드리지 않고, 앱이 못 본 과거를 나타내는 기준값(baseline)만 고친다.
+ * 바꿀 것이 없으면 받은 records를 그대로 돌려준다.
+ */
+export function syncPityFromScreen(
+  records: Records,
+  game: GameId,
+  groupId: string,
+  toTop: number | null,
+  toFeatured: number | null,
+): Records {
+  const group = findGroup(game, groupId);
+  const rec = records.games[game];
+  const status = groupStatus(rec, game, groupId);
+  const base = { ...emptyBaseline(), ...(rec.baseline[groupId] ?? {}) };
+  let changed = false;
+  if (toTop !== null && group.hardPity !== null && toTop >= 1 && toTop <= group.hardPity) {
+    const delta = group.hardPity - toTop - status.pity;
+    if (delta !== 0) {
+      base.pity += delta;
+      changed = true;
+    }
+  }
+  const counter = group.bannerCounters.find((c) => c.untilFeatured);
+  if (toFeatured !== null && counter && toFeatured >= 1 && toFeatured <= counter.at) {
+    const target = counter.at - toFeatured;
+    if (status.bannerPulls !== target || base.bannerFeaturedGot) {
+      const recorded = status.bannerPulls - (base.banner === status.banner ? base.bannerPulls : 0);
+      base.banner = status.banner;
+      base.bannerPulls = target - recorded;
+      base.bannerFeaturedGot = false;
+      changed = true;
+    }
+  }
+  if (!changed) return records;
+  const next = structuredClone(records);
+  next.games[game].baseline[groupId] = base;
+  next.games[game].updatedAt = new Date().toISOString();
+  return next;
+}

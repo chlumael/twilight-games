@@ -119,4 +119,25 @@ describe("뽑기 감지", () => {
     expect(out.found).toEqual([]);
     expect(out.stable).toMatchObject({ oroberyl: 55025 });
   });
+
+  it("숫자 하나가 가끔 빠져 읽혀도 재화가 반영되고 뽑기를 센다 (PC)", () => {
+    const ef = (permits: [number, number] | null, oro: number, time: number) => {
+      const f = { time, landscape: true, lines: [
+        ...(permits ? [L(String(permits[0]), 0.6, 0.03, 0.02, 0.01), L(String(permits[1]), 0.68, 0.03, 0.02, 0.01)] : []),
+        L("10500", 0.775, 0.03, 0.02, 0.035), L(String(oro), 0.873, 0.03, 0.02, 0.036),
+        L("1회 헤드헌팅", 0.74, 0.91), L("10회 헤드헌팅", 0.89, 0.91),
+      ] };
+      return { frame: f, reading: readScreen(f) };
+    };
+    let st = emptyDetectState();
+    const found = [];
+    // 허가증이 읽혔다 안 읽혔다 한다 → 그래도 믿을 값이 쌓이고, 10회(허가증 5 + 오로베릴 2500)를 센다
+    for (const f of [ef([5, 0], 55025, 1), ef(null, 55025, 2), ef([5, 0], 55025, 3), ef(null, 52525, 4), ef([0, 0], 52525, 5), ef([0, 0], 52525, 6)]) {
+      const r = step(st, f.frame, f.reading, { ...ctx, spendOf: () => GAMES.endfield.groups[0].spend });
+      st = r.state;
+      if (r.detection) found.push(r.detection);
+    }
+    expect(st.stable.endfield).toMatchObject({ oroberyl: 52525, charteredPermit: 0, limitedPermit: 0 });
+    expect(found.reduce((a, d) => a + d.count, 0)).toBe(10);
+  });
 });

@@ -34,7 +34,8 @@ pub struct Frame {
 const SLOW: Duration = Duration::from_millis(2500);
 const FAST: Duration = Duration::from_millis(1000);
 const FAST_WINDOW: Duration = Duration::from_secs(20);
-const GACHA_WORDS: [&str; 7] = ["헤드헌팅", "기원", "추출", "진행", "LUNACY", "UID", "획득결과"];
+// 윈도우 글자 인식은 "헤드헌팅"을 "해드현팅"처럼 읽기도 해서 조각 낱말도 넣는다.
+const GACHA_WORDS: [&str; 10] = ["헤드헌팅", "헌팅", "현팅", "해드", "기원", "추출", "진행", "LUNACY", "UID", "획득결과"];
 
 #[tauri::command]
 pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, start: bool) -> Result<(), String> {
@@ -109,8 +110,13 @@ mod imp {
     };
     use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GetClientRect, GetForegroundWindow, GetWindowThreadProcessId, SetWindowDisplayAffinity, WDA_EXCLUDEFROMCAPTURE,
+        GetClientRect, GetForegroundWindow, GetWindowThreadProcessId, IsIconic, IsWindow, IsWindowVisible, SetWindowDisplayAffinity,
+        WDA_EXCLUDEFROMCAPTURE,
     };
+
+    use std::sync::atomic::{AtomicIsize, Ordering};
+    /// 마지막으로 읽은 다른 프로그램 창 (우리 창이 앞에 있을 때 이어서 읽는다)
+    static LAST_TARGET: AtomicIsize = AtomicIsize::new(0);
 
     fn err<E: std::fmt::Display>(what: &str) -> impl Fn(E) -> String + '_ {
         move |e| format!("{what}: {e}")
@@ -142,14 +148,21 @@ mod imp {
     fn capture() -> Result<Option<(Vec<u8>, i32, i32, i32, i32)>, String> {
         // SAFETY: 표준 GDI 호출. 만든 DC·비트맵은 이 함수 안에서 모두 해제한다.
         unsafe {
-            let hwnd = GetForegroundWindow();
-            if hwnd.0.is_null() {
-                return Ok(None);
-            }
+            let mut hwnd = GetForegroundWindow();
             let mut pid = 0u32;
-            GetWindowThreadProcessId(hwnd, Some(&mut pid));
-            if pid == GetCurrentProcessId() {
-                return Ok(None);
+            if !hwnd.0.is_null() {
+                GetWindowThreadProcessId(hwnd, Some(&mut pid));
+            }
+            if hwnd.0.is_null() || pid == GetCurrentProcessId() {
+                // 우리 창을 누르고 있는 동안에는 바로 전에 보던 창(게임)을 계속 읽는다.
+                // 우리 창은 화면 찍기에서 빠지므로 게임 위에 떠 있어도 가리지 않는다.
+                let last = HWND(LAST_TARGET.load(Ordering::SeqCst) as *mut core::ffi::c_void);
+                if last.0.is_null() || !IsWindow(Some(last)).as_bool() || !IsWindowVisible(last).as_bool() || IsIconic(last).as_bool() {
+                    return Ok(None);
+                }
+                hwnd = last;
+            } else {
+                LAST_TARGET.store(hwnd.0 as isize, Ordering::SeqCst);
             }
             let mut rc = RECT::default();
             GetClientRect(hwnd, &mut rc).map_err(err("창 크기"))?;

@@ -14,8 +14,7 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo,
-  } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, syncPityFromScreen } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
@@ -561,6 +560,12 @@
           steady = { game: r.game, counts };
           r.toTop = counts.shown.toTop;
           r.toFeatured = counts.shown.toFeatured;
+          // 엔드필드 한정 배너 화면(픽업 확정 문구가 함께 보일 때)에 적힌 남은 횟수로 앱의 천장 수치를 맞춘다
+          // (사용자 요청 2026-11-25). 두 번 연속 같게 읽힌 값만 쓴다.
+          if (r.game === "endfield" && counts.settled && r.toFeatured !== null) {
+            const synced = syncPityFromScreen(records, "endfield", "endfield-chartered", r.toTop, r.toFeatured);
+            if (synced !== records) update(synced);
+          }
           screenResult = r;
           // 읽은 화면이 다른 게임이면 그 게임으로 바꾼다 (기록은 건드리지 않는다)
           if (r.game !== game) { game = r.game; settings = { ...settings, lastGame: r.game }; }

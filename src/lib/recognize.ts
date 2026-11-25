@@ -254,10 +254,13 @@ export function looksLikeGacha(frame: ScreenFrame): boolean {
 export interface SteadyCounts {
   shown: { toTop: number | null; toFeatured: number | null };
   last: { toTop: number | null; toFeatured: number | null };
+  /** 이번에 읽은 값이 직전과 같아서 믿을 수 있는지 (앱의 천장 수치에 반영해도 되는지) */
+  settled: boolean;
 }
 export function steadyCounts(prev: SteadyCounts | null, reading: Pick<ScreenReading, "toTop" | "toFeatured">): SteadyCounts {
   const now = { toTop: reading.toTop, toFeatured: reading.toFeatured };
-  if (!prev) return { shown: now, last: now };
+  if (!prev) return { shown: now, last: now, settled: false };
   const pick = (k: "toTop" | "toFeatured") => (now[k] !== null && now[k] === prev.last[k] ? now[k] : prev.shown[k] ?? now[k]);
-  return { shown: { toTop: pick("toTop"), toFeatured: pick("toFeatured") }, last: now };
+  const settled = now.toTop !== null && now.toTop === prev.last.toTop && now.toFeatured === prev.last.toFeatured;
+  return { shown: { toTop: pick("toTop"), toFeatured: pick("toFeatured") }, last: now, settled };
 }

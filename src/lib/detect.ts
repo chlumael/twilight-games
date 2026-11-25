@@ -39,10 +39,10 @@ export interface DetectState {
   stable: Partial<Record<GameId, Record<string, number>>>;
   /** 그 재화를 읽은 시각 */
   stableAt: Partial<Record<GameId, number>>;
-  /** 바로 전 프레임에서 읽은 재화 (두 번 연속 같아야 믿는다) */
+  /** 재화별로 마지막에 읽은 값 (같은 재화가 두 번 연속 같아야 믿는다) */
   candidate: Partial<Record<GameId, Record<string, number>>>;
-  /** candidate가 연속으로 같게 읽힌 횟수 */
-  repeats?: Partial<Record<GameId, number>>;
+  /** 재화별로 같은 값이 연속으로 읽힌 횟수 */
+  repeats?: Partial<Record<GameId, Record<string, number>>>;
   /** 마지막 메인 화면 이후 본 공개 화면 */
   seen: SeenItem[];
   /** 바로 전 프레임의 공개 이름 (같은 화면을 여러 번 세지 않게) */
@@ -148,29 +148,34 @@ export function step(
   next.lastReveal = null;
   const { game, currency } = reading;
   if (Object.keys(currency).length === 0) return { state: next, detection: null };
-  if (!same(state.candidate[game], currency)) {
-    next.candidate[game] = currency;
-    next.repeats = { ...state.repeats, [game]: 1 };
-    return { state: next, detection: null };
-  }
-  const repeats = (state.repeats?.[game] ?? 1) + 1;
-  next.repeats = { ...state.repeats, [game]: repeats };
-  // 직전 값의 10배 이상으로 뛴 재화는 잘못 읽은 것일 가능성이 높다(숫자 옆 무늬가 숫자로 붙어 읽힘).
-  // 그런 값은 여러 번(5번) 연속 같게 읽힐 때만 믿는다.
+  // 재화마다 따로 본다: 같은 재화가 두 번 연속 같은 값으로 읽히면 그 값을 믿는다.
+  // (PC 글자 인식은 숫자 하나를 가끔 빠뜨려 읽힌 재화 종류가 화면마다 달라진다. 통째로 같아야 믿으면 영영 반영되지 않는다.)
+  const cand = state.candidate[game] ?? {};
+  const reps = state.repeats?.[game] ?? {};
   const prev = state.stable[game];
-  if (prev && repeats < JUMP_REPEATS && Object.keys(currency).some((k) => prev[k] !== undefined && currency[k] >= 1000 && currency[k] >= Math.max(prev[k], 1) * 10)) {
-    return { state: next, detection: null };
+  const nextReps: Record<string, number> = { ...reps };
+  let allConfirmed = true;
+  for (const [k, v] of Object.entries(currency)) {
+    nextReps[k] = cand[k] === v ? (reps[k] ?? 1) + 1 : 1;
+    // 직전 값의 10배 이상으로 뛴 재화는 잘못 읽은 것일 가능성이 높다(숫자 옆 무늬가 숫자로 붙어 읽힘).
+    // 그런 값은 여러 번(JUMP_REPEATS) 연속 같게 읽힐 때만 믿는다.
+    const jump = !!prev && prev[k] !== undefined && v >= 1000 && v >= Math.max(prev[k], 1) * 10;
+    if (nextReps[k] < (jump ? JUMP_REPEATS : 2)) allConfirmed = false;
   }
-  // 두 번 연속 같게 읽혔다 → 믿을 수 있는 값
-  const before = state.stable[game];
+  next.candidate[game] = { ...cand, ...currency };
+  next.repeats = { ...state.repeats, [game]: nextReps };
+  if (!allConfirmed) return { state: next, detection: null };
+  // 이번 화면에서 읽힌 재화가 모두 믿을 수 있는 값이다. 이번에 안 읽힌 재화는 앞서 믿던 값을 그대로 둔다.
+  const before = prev;
   const beforeAt = state.stableAt[game] ?? 0;
-  next.stable[game] = currency;
+  const merged = { ...(prev ?? {}), ...currency };
+  next.stable[game] = merged;
   next.stableAt[game] = frame.time;
   if (!before) {
     next.seen = [];
     return { state: next, detection: null };
   }
-  const { count, uncertain, spent } = countPulls(before, currency, ctx.spendOf(game));
+  const { count, uncertain, spent } = countPulls(before, merged, ctx.spendOf(game));
   // 한 번에 이렇게 많이 뽑을 수는 없다 → 앞서 잘못 읽은 값을 바로잡는 중이므로 기록하지 않는다
   if (count > MAX_PULLS_AT_ONCE) {
     next.seen = [];
@@ -196,7 +201,7 @@ export function step(
       uncertain: uncertain || (items.length > 0 && items.length !== n) || frame.time - beforeAt > STALE_MS,
       spent,
       items: items.slice(-n),
-      after: currency,
+      after: merged,
     },
   };
 }
