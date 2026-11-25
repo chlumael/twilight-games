@@ -35,8 +35,10 @@ export interface Detection {
 }
 
 export interface DetectState {
-  /** 게임별로 두 번 연속 같게 읽혀 믿을 수 있는 마지막 재화 */
+  /** 게임별로 두 번 연속 같게 읽혀 믿을 수 있는 마지막 재화 (앱을 껐다 켜도 이어지도록 저장한다) */
   stable: Partial<Record<GameId, Record<string, number>>>;
+  /** 그 재화를 읽은 시각 */
+  stableAt: Partial<Record<GameId, number>>;
   /** 바로 전 프레임에서 읽은 재화 (두 번 연속 같아야 믿는다) */
   candidate: Partial<Record<GameId, Record<string, number>>>;
   /** 마지막 메인 화면 이후 본 공개 화면 */
@@ -45,8 +47,11 @@ export interface DetectState {
   lastReveal: string | null;
 }
 
+/** 뽑기 전 재화가 이보다 오래된 값이면 "확실하지 않음"으로 표시한다 */
+export const STALE_MS = 10 * 60 * 1000;
+
 export function emptyDetectState(): DetectState {
-  return { stable: {}, candidate: {}, seen: [], lastReveal: null };
+  return { stable: {}, stableAt: {}, candidate: {}, seen: [], lastReveal: null };
 }
 
 const same = (a: Record<string, number> | undefined, b: Record<string, number>) =>
@@ -116,6 +121,7 @@ export function step(
 ): { state: DetectState; detection: Detection | null } {
   const next: DetectState = {
     stable: { ...state.stable },
+    stableAt: { ...state.stableAt },
     candidate: { ...state.candidate },
     seen: state.seen,
     lastReveal: state.lastReveal,
@@ -140,7 +146,9 @@ export function step(
   }
   // 두 번 연속 같게 읽혔다 → 믿을 수 있는 값
   const before = state.stable[game];
+  const beforeAt = state.stableAt[game] ?? 0;
   next.stable[game] = currency;
+  next.stableAt[game] = frame.time;
   if (!before) {
     next.seen = [];
     return { state: next, detection: null };
@@ -162,7 +170,8 @@ export function step(
       game,
       time: frame.time,
       count: n,
-      uncertain: uncertain || (items.length > 0 && items.length !== n),
+      // 뽑기 전 재화를 오래전에 읽었으면(가챠 화면을 열자마자 바로 뽑은 경우 등) 그 사이 다른 데 썼을 수 있다
+      uncertain: uncertain || (items.length > 0 && items.length !== n) || frame.time - beforeAt > STALE_MS,
       spent,
       items: items.slice(-n),
       after: currency,

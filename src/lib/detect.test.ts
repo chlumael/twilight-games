@@ -17,7 +17,7 @@ const ctx = {
   genshinItems: table,
   newId: () => `d${++n}`,
 };
-const main = (primo: number, fate: number, time = 0) => {
+const main = (primo: number, fate: number, time = 1000) => {
   const f = { time, landscape: true, lines: [
     L("4", 0.61, 0.04), L(`850 수${primo} +`, 0.68, 0.04, 0.03, 0.13), L(String(fate), 0.86, 0.04),
     L("기원 1회", 0.62, 0.89), L("기원 10회", 0.81, 0.89),
@@ -74,5 +74,21 @@ describe("뽑기 감지", () => {
   it("공개 화면 수와 횟수가 같으면 확실", () => {
     const d = run([main(160, 0), main(160, 0), reveal("탄궁"), main(0, 0), main(0, 0)]);
     expect(d[0]).toMatchObject({ count: 1, uncertain: false });
+  });
+
+  it("가챠 화면을 열자마자 뽑아도, 예전에 읽어 둔 재화로 센다 (오래된 값이면 확실하지 않음)", () => {
+    let s = emptyDetectState();
+    for (const f of [main(1600, 10, 0), main(1600, 10, 1000)]) s = step(s, f.frame, f.reading, ctx).state;
+    // 앱을 껐다 켰다고 치고 저장해 둔 값만 남긴다
+    s = { ...emptyDetectState(), stable: s.stable, stableAt: s.stableAt };
+    const later = 60 * 60 * 1000;
+    const out = [];
+    for (const f of [main(1600, 0, later), main(1600, 0, later + 1000)]) {
+      const r = step(s, f.frame, f.reading, ctx);
+      s = r.state;
+      if (r.detection) out.push(r.detection);
+    }
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ count: 10, uncertain: true });
   });
 });

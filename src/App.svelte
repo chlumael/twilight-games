@@ -46,7 +46,17 @@
   // ---- 뽑기 감지 (화면 읽기 결과 → 확인 대기) ----
   const DETECT_KEY = "tg-detections";
   const genshinItems = ((genshinItemsFile as { items?: ItemTable }).items ?? {}) as ItemTable;
-  let detectState = emptyDetectState();
+  const DETECT_STATE_KEY = "tg-detect-state";
+  // 마지막으로 읽은 재화는 저장해 두었다가 다음에 이어서 쓴다(가챠 화면을 열자마자 뽑아도 셀 수 있게)
+  let detectState = loadDetectState();
+  function loadDetectState() {
+    const base = emptyDetectState();
+    try {
+      const saved = JSON.parse(localStorage.getItem(DETECT_STATE_KEY) ?? "null");
+      if (saved?.stable) return { ...base, stable: saved.stable, stableAt: saved.stableAt ?? {} };
+    } catch { /* 없거나 깨졌으면 처음부터 */ }
+    return base;
+  }
   let detections = $state.raw<Detection[]>(loadDetections());
   function loadDetections(): Detection[] {
     try { return JSON.parse(localStorage.getItem(DETECT_KEY) ?? "[]") as Detection[]; } catch { return []; }
@@ -61,6 +71,9 @@
       genshinItems,
       newId: () => `det-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     });
+    if (out.state.stable !== detectState.stable && JSON.stringify(out.state.stable) !== JSON.stringify(detectState.stable)) {
+      try { localStorage.setItem(DETECT_STATE_KEY, JSON.stringify({ stable: out.state.stable, stableAt: out.state.stableAt })); } catch { /* 무시 */ }
+    }
     detectState = out.state;
     if (out.detection) {
       saveDetections([...loadDetections(), out.detection]);
