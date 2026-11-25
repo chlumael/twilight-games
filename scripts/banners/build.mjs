@@ -4,6 +4,7 @@
 import { writeFile } from "node:fs/promises";
 import JSON5 from "json5";
 import { endfieldOfficial as endfield } from "./endfield-official.mjs";
+import { limbusOfficial as limbus } from "./limbus-official.mjs";
 
 const PAIMON = "https://raw.githubusercontent.com/MadeBaruna/paimon-moe/main/src";
 
@@ -85,6 +86,7 @@ async function genshin() {
         start: asiaTime(b.start),
         end: asiaTime(b.end),
         version: b.version ?? null,
+        source: "paimon.moe (팬 정리 자료)",
         featured: featured.map(name),
         featuredRare: (b.featuredRare ?? []).map(name),
       });
@@ -100,16 +102,18 @@ async function genshin() {
 
 const games = {};
 const errors = {};
-for (const [key, fn] of Object.entries({ genshin, endfield })) {
+for (const [key, fn] of Object.entries({ genshin, endfield, limbus })) {
   try {
     games[key] = await fn();
   } catch (e) {
     errors[key] = String(e?.message ?? e);
   }
 }
-// No automatic source yet; the app creates these from on-screen banner names.
+// 명일방주는 아직 자동 출처가 없다. 앱이 화면의 배너 이름으로 만든다.
 games.arknights = [];
-games.limbus = [];
+games.limbus ??= [];
+games.genshin ??= [];
+games.endfield ??= [];
 
 const pack = { schemaVersion: 1, generatedAt: new Date().toISOString(), games, errors };
 const outFile = process.argv[2] ?? new URL("../../data/banners.json", import.meta.url);

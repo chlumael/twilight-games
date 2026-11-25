@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-25T02:53:17.254Z",
+ "generatedAt": "2026-11-25T02:58:29.117Z",
  "games": {
   "genshin": [
    {
@@ -10,6 +10,7 @@
     "start": "2024-11-19T22:00:00.000Z",
     "end": "2024-12-10T09:59:00.000Z",
     "version": "5.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "chasca",
@@ -42,6 +43,7 @@
     "start": "2024-11-19T22:00:00.000Z",
     "end": "2024-12-10T09:59:00.000Z",
     "version": "5.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "lyney",
@@ -74,6 +76,7 @@
     "start": "2024-11-19T22:00:00.000Z",
     "end": "2024-12-10T09:59:00.000Z",
     "version": "5.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "astral_vultures_crimson_plumage",
@@ -121,6 +124,7 @@
     "start": "2024-12-10T10:00:00.000Z",
     "end": "2024-12-31T06:59:00.000Z",
     "version": "5.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "neuvillette",
@@ -153,6 +157,7 @@
     "start": "2024-12-10T10:00:00.000Z",
     "end": "2024-12-31T06:59:00.000Z",
     "version": "5.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "zhongli",
@@ -185,6 +190,7 @@
     "start": "2024-12-10T10:00:00.000Z",
     "end": "2024-12-31T06:59:00.000Z",
     "version": "5.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "tome_of_the_eternal_flow",
@@ -232,6 +238,7 @@
     "start": "2024-12-31T22:00:00.000Z",
     "end": "2025-01-21T09:59:00.000Z",
     "version": "5.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "mavuika",
@@ -264,6 +271,7 @@
     "start": "2024-12-31T22:00:00.000Z",
     "end": "2025-01-21T09:59:00.000Z",
     "version": "5.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "citlali",
@@ -296,6 +304,7 @@
     "start": "2024-12-31T22:00:00.000Z",
     "end": "2025-01-21T09:59:00.000Z",
     "version": "5.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "a_thousand_blazing_suns",
@@ -343,6 +352,7 @@
     "start": "2025-01-21T10:00:00.000Z",
     "end": "2025-02-11T06:59:00.000Z",
     "version": "5.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "arlecchino",
@@ -375,6 +385,7 @@
     "start": "2025-01-21T10:00:00.000Z",
     "end": "2025-02-11T06:59:00.000Z",
     "version": "5.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "clorinde",
@@ -407,6 +418,7 @@
     "start": "2025-01-21T10:00:00.000Z",
     "end": "2025-02-11T06:59:00.000Z",
     "version": "5.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "crimson_moons_semblance",
@@ -454,6 +466,7 @@
     "start": "2025-01-21T10:00:00.000Z",
     "end": "2025-02-11T06:59:00.000Z",
     "version": "5.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "baizhu",
@@ -696,6 +709,7 @@
     "start": "2025-02-11T22:00:00.000Z",
     "end": "2025-03-04T09:59:00.000Z",
     "version": "5.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "yumemizuki_mizuki",
@@ -733,6 +747,7 @@
     "start": "2025-02-11T22:00:00.000Z",
     "end": "2025-03-04T09:59:00.000Z",
     "version": "5.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "sigewinne",
@@ -765,6 +780,7 @@
     "start": "2025-02-11T22:00:00.000Z",
     "end": "2025-03-04T09:59:00.000Z",
     "version": "5.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "sunny_morning_sleep-in",
@@ -812,6 +828,7 @@
     "start": "2025-03-04T10:00:00.000Z",
     "end": "2025-03-25T06:59:00.000Z",
     "version": "5.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "wriothesley",
@@ -844,6 +861,7 @@
     "start": "2025-03-04T10:00:00.000Z",
     "end": "2025-03-25T06:59:00.000Z",
     "version": "5.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "furina",
@@ -876,6 +894,7 @@
     "start": "2025-03-04T10:00:00.000Z",
     "end": "2025-03-25T06:59:00.000Z",
     "version": "5.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "splendor_of_tranquil_waters",
@@ -923,6 +942,7 @@
     "start": "2025-03-25T22:00:00.000Z",
     "end": "2025-04-15T09:59:00.000Z",
     "version": "5.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "varesa",
@@ -955,6 +975,7 @@
     "start": "2025-03-25T22:00:00.000Z",
     "end": "2025-04-15T09:59:00.000Z",
     "version": "5.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "xianyun",
@@ -987,6 +1008,7 @@
     "start": "2025-03-25T22:00:00.000Z",
     "end": "2025-04-15T09:59:00.000Z",
     "version": "5.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "vivid_notions",
@@ -1034,6 +1056,7 @@
     "start": "2025-04-15T10:00:00.000Z",
     "end": "2025-05-06T06:59:00.000Z",
     "version": "5.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "xilonen",
@@ -1066,6 +1089,7 @@
     "start": "2025-04-15T10:00:00.000Z",
     "end": "2025-05-06T06:59:00.000Z",
     "version": "5.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "xilonen",
@@ -1098,6 +1122,7 @@
     "start": "2025-04-15T10:00:00.000Z",
     "end": "2025-05-06T06:59:00.000Z",
     "version": "5.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "peak_patrol_song",
@@ -1145,6 +1170,7 @@
     "start": "2025-05-06T22:00:00.000Z",
     "end": "2025-05-27T09:59:00.000Z",
     "version": "5.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "escoffier",
@@ -1177,6 +1203,7 @@
     "start": "2025-05-06T22:00:00.000Z",
     "end": "2025-05-27T09:59:00.000Z",
     "version": "5.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "navia",
@@ -1209,6 +1236,7 @@
     "start": "2025-05-06T22:00:00.000Z",
     "end": "2025-05-27T09:59:00.000Z",
     "version": "5.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "symphonist_of_scents",
@@ -1256,6 +1284,7 @@
     "start": "2025-05-27T10:00:00.000Z",
     "end": "2025-06-17T06:59:00.000Z",
     "version": "5.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "kinich",
@@ -1288,6 +1317,7 @@
     "start": "2025-05-27T10:00:00.000Z",
     "end": "2025-06-17T06:59:00.000Z",
     "version": "5.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "kinich",
@@ -1325,6 +1355,7 @@
     "start": "2025-05-27T10:00:00.000Z",
     "end": "2025-06-17T06:59:00.000Z",
     "version": "5.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "fang_of_the_mountain_king",
@@ -1372,6 +1403,7 @@
     "start": "2025-05-27T10:00:00.000Z",
     "end": "2025-06-17T06:59:00.000Z",
     "version": "5.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "kamisato_ayaka",
@@ -1604,6 +1636,7 @@
     "start": "2025-06-17T22:00:00.000Z",
     "end": "2025-07-08T09:59:00.000Z",
     "version": "5.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "skirk",
@@ -1636,6 +1669,7 @@
     "start": "2025-06-17T22:00:00.000Z",
     "end": "2025-07-08T09:59:00.000Z",
     "version": "5.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "shenhe",
@@ -1668,6 +1702,7 @@
     "start": "2025-06-17T22:00:00.000Z",
     "end": "2025-07-08T09:59:00.000Z",
     "version": "5.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "azurelight",
@@ -1715,6 +1750,7 @@
     "start": "2025-07-08T10:00:00.000Z",
     "end": "2025-07-29T06:59:00.000Z",
     "version": "5.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "mavuika",
@@ -1747,6 +1783,7 @@
     "start": "2025-07-08T10:00:00.000Z",
     "end": "2025-07-29T06:59:00.000Z",
     "version": "5.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "emilie",
@@ -1779,6 +1816,7 @@
     "start": "2025-07-08T10:00:00.000Z",
     "end": "2025-07-29T06:59:00.000Z",
     "version": "5.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "a_thousand_blazing_suns",
@@ -1826,6 +1864,7 @@
     "start": "2025-07-29T22:00:00.000Z",
     "end": "2025-08-19T09:59:00.000Z",
     "version": "5.8",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "ineffa",
@@ -1858,6 +1897,7 @@
     "start": "2025-07-29T22:00:00.000Z",
     "end": "2025-08-19T09:59:00.000Z",
     "version": "5.8",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "citlali",
@@ -1890,6 +1930,7 @@
     "start": "2025-07-29T22:00:00.000Z",
     "end": "2025-08-19T09:59:00.000Z",
     "version": "5.8",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "fractured_halo",
@@ -1937,6 +1978,7 @@
     "start": "2025-08-19T10:00:00.000Z",
     "end": "2025-09-09T06:59:00.000Z",
     "version": "5.8",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "mualani",
@@ -1969,6 +2011,7 @@
     "start": "2025-08-19T10:00:00.000Z",
     "end": "2025-09-09T06:59:00.000Z",
     "version": "5.8",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "chasca",
@@ -2001,6 +2044,7 @@
     "start": "2025-08-19T10:00:00.000Z",
     "end": "2025-09-09T06:59:00.000Z",
     "version": "5.8",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "surfs_up",
@@ -2048,6 +2092,7 @@
     "start": "2025-09-09T22:00:00.000Z",
     "end": "2025-09-30T09:59:00.000Z",
     "version": "6.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "lauma",
@@ -2080,6 +2125,7 @@
     "start": "2025-09-09T22:00:00.000Z",
     "end": "2025-09-30T09:59:00.000Z",
     "version": "6.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "nahida",
@@ -2112,6 +2158,7 @@
     "start": "2025-09-09T22:00:00.000Z",
     "end": "2025-09-30T09:59:00.000Z",
     "version": "6.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "nightweavers_looking_glass",
@@ -2159,6 +2206,7 @@
     "start": "2025-09-09T22:00:00.000Z",
     "end": "2025-09-30T09:59:00.000Z",
     "version": "6.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "dehya",
@@ -2371,6 +2419,7 @@
     "start": "2025-09-30T10:00:00.000Z",
     "end": "2025-10-21T09:59:00.000Z",
     "version": "6.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "flins",
@@ -2403,6 +2452,7 @@
     "start": "2025-09-30T10:00:00.000Z",
     "end": "2025-10-21T09:59:00.000Z",
     "version": "6.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "yelan",
@@ -2435,6 +2485,7 @@
     "start": "2025-09-30T10:00:00.000Z",
     "end": "2025-10-21T09:59:00.000Z",
     "version": "6.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "bloodsoaked_ruins",
@@ -2482,6 +2533,7 @@
     "start": "2025-10-21T22:00:00.000Z",
     "end": "2025-11-11T09:59:00.000Z",
     "version": "6.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "nefer",
@@ -2514,6 +2566,7 @@
     "start": "2025-10-21T22:00:00.000Z",
     "end": "2025-11-11T09:59:00.000Z",
     "version": "6.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "furina",
@@ -2546,6 +2599,7 @@
     "start": "2025-10-21T22:00:00.000Z",
     "end": "2025-11-11T09:59:00.000Z",
     "version": "6.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "reliquary_of_truth",
@@ -2593,6 +2647,7 @@
     "start": "2025-11-11T10:00:00.000Z",
     "end": "2025-12-02T06:59:00.000Z",
     "version": "6.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "arlecchino",
@@ -2625,6 +2680,7 @@
     "start": "2025-11-11T10:00:00.000Z",
     "end": "2025-12-02T06:59:00.000Z",
     "version": "6.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "zhongli",
@@ -2657,6 +2713,7 @@
     "start": "2025-11-11T10:00:00.000Z",
     "end": "2025-12-02T06:59:00.000Z",
     "version": "6.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "crimson_moons_semblance",
@@ -2704,6 +2761,7 @@
     "start": "2025-12-02T22:00:00.000Z",
     "end": "2025-12-23T09:59:00.000Z",
     "version": "6.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "durin",
@@ -2736,6 +2794,7 @@
     "start": "2025-12-02T22:00:00.000Z",
     "end": "2025-12-23T09:59:00.000Z",
     "version": "6.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "venti",
@@ -2768,6 +2827,7 @@
     "start": "2025-12-02T22:00:00.000Z",
     "end": "2025-12-23T09:59:00.000Z",
     "version": "6.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "athame_artis",
@@ -2815,6 +2875,7 @@
     "start": "2025-12-23T10:00:00.000Z",
     "end": "2026-01-13T06:59:00.000Z",
     "version": "6.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "varesa",
@@ -2847,6 +2908,7 @@
     "start": "2025-12-23T10:00:00.000Z",
     "end": "2026-01-13T06:59:00.000Z",
     "version": "6.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "xilonen",
@@ -2879,6 +2941,7 @@
     "start": "2025-12-23T10:00:00.000Z",
     "end": "2026-01-13T06:59:00.000Z",
     "version": "6.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "vivid_notions",
@@ -2926,6 +2989,7 @@
     "start": "2026-01-13T22:00:00.000Z",
     "end": "2026-02-03T09:59:00.000Z",
     "version": "6.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "columbina",
@@ -2958,6 +3022,7 @@
     "start": "2026-01-13T22:00:00.000Z",
     "end": "2026-02-03T09:59:00.000Z",
     "version": "6.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "ineffa",
@@ -2990,6 +3055,7 @@
     "start": "2026-01-13T22:00:00.000Z",
     "end": "2026-02-03T09:59:00.000Z",
     "version": "6.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "nocturnes_curtain_call",
@@ -3037,6 +3103,7 @@
     "start": "2026-02-03T10:00:00.000Z",
     "end": "2026-02-24T06:59:00.000Z",
     "version": "6.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "zibai",
@@ -3069,6 +3136,7 @@
     "start": "2026-02-03T10:00:00.000Z",
     "end": "2026-02-24T06:59:00.000Z",
     "version": "6.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "neuvillette",
@@ -3101,6 +3169,7 @@
     "start": "2026-02-03T10:00:00.000Z",
     "end": "2026-02-24T06:59:00.000Z",
     "version": "6.3",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "lightbearing_moonshard",
@@ -3148,6 +3217,7 @@
     "start": "2026-02-24T22:00:00.000Z",
     "end": "2026-03-17T09:59:00.000Z",
     "version": "6.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "varka",
@@ -3180,6 +3250,7 @@
     "start": "2026-02-24T22:00:00.000Z",
     "end": "2026-03-17T09:59:00.000Z",
     "version": "6.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "flins",
@@ -3212,6 +3283,7 @@
     "start": "2026-02-24T22:00:00.000Z",
     "end": "2026-03-17T09:59:00.000Z",
     "version": "6.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "gest_of_the_mighty_wolf",
@@ -3259,6 +3331,7 @@
     "start": "2026-02-24T22:00:00.000Z",
     "end": "2026-03-17T09:59:00.000Z",
     "version": "6.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "eula",
@@ -3526,6 +3599,7 @@
     "start": "2026-03-17T10:00:00.000Z",
     "end": "2026-04-07T06:59:00.000Z",
     "version": "6.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "skirk",
@@ -3558,6 +3632,7 @@
     "start": "2026-03-17T10:00:00.000Z",
     "end": "2026-04-07T06:59:00.000Z",
     "version": "6.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "escoffier",
@@ -3590,6 +3665,7 @@
     "start": "2026-03-17T10:00:00.000Z",
     "end": "2026-04-07T06:59:00.000Z",
     "version": "6.4",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "azurelight",
@@ -3637,6 +3713,7 @@
     "start": "2026-04-07T22:00:00.000Z",
     "end": "2026-04-28T09:59:00.000Z",
     "version": "6.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "linnea",
@@ -3669,6 +3746,7 @@
     "start": "2026-04-07T22:00:00.000Z",
     "end": "2026-04-28T09:59:00.000Z",
     "version": "6.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "chasca",
@@ -3701,6 +3779,7 @@
     "start": "2026-04-07T22:00:00.000Z",
     "end": "2026-04-28T09:59:00.000Z",
     "version": "6.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "golden_frostbound_oath",
@@ -3748,6 +3827,7 @@
     "start": "2026-04-28T10:00:00.000Z",
     "end": "2026-05-19T06:59:00.000Z",
     "version": "6.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "lauma",
@@ -3780,6 +3860,7 @@
     "start": "2026-04-28T10:00:00.000Z",
     "end": "2026-05-19T06:59:00.000Z",
     "version": "6.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "nefer",
@@ -3812,6 +3893,7 @@
     "start": "2026-04-28T10:00:00.000Z",
     "end": "2026-05-19T06:59:00.000Z",
     "version": "6.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "nightweavers_looking_glass",
@@ -3859,6 +3941,7 @@
     "start": "2026-04-28T10:00:00.000Z",
     "end": "2026-05-19T06:59:00.000Z",
     "version": "6.5",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "emilie",
@@ -4051,6 +4134,7 @@
     "start": "2026-05-19T22:00:00.000Z",
     "end": "2026-06-09T09:59:00.000Z",
     "version": "6.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "nicole",
@@ -4083,6 +4167,7 @@
     "start": "2026-05-19T22:00:00.000Z",
     "end": "2026-06-09T09:59:00.000Z",
     "version": "6.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "durin",
@@ -4115,6 +4200,7 @@
     "start": "2026-05-19T22:00:00.000Z",
     "end": "2026-06-09T09:59:00.000Z",
     "version": "6.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "angelos_heptades",
@@ -4162,6 +4248,7 @@
     "start": "2026-06-09T10:00:00.000Z",
     "end": "2026-06-30T06:59:00.000Z",
     "version": "6.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "lohen",
@@ -4194,6 +4281,7 @@
     "start": "2026-06-09T10:00:00.000Z",
     "end": "2026-06-30T06:59:00.000Z",
     "version": "6.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "mavuika",
@@ -4226,6 +4314,7 @@
     "start": "2026-06-09T10:00:00.000Z",
     "end": "2026-06-30T06:59:00.000Z",
     "version": "6.6",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "disaster_and_remorse",
@@ -4273,6 +4362,7 @@
     "start": "2026-06-30T22:00:00.000Z",
     "end": "2026-07-21T09:59:00.000Z",
     "version": "6.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "sandrone",
@@ -4305,6 +4395,7 @@
     "start": "2026-06-30T22:00:00.000Z",
     "end": "2026-07-21T09:59:00.000Z",
     "version": "6.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "sandrone",
@@ -4337,6 +4428,7 @@
     "start": "2026-06-30T22:00:00.000Z",
     "end": "2026-07-21T09:59:00.000Z",
     "version": "6.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "a_teaspoon_of_transcendence",
@@ -4384,6 +4476,7 @@
     "start": "2026-06-30T22:00:00.000Z",
     "end": "2026-07-21T09:59:00.000Z",
     "version": "6.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "yumemizuki_mizuki",
@@ -4786,6 +4879,7 @@
     "start": "2026-07-21T10:00:00.000Z",
     "end": "2026-08-11T06:59:00.000Z",
     "version": "6.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "columbina",
@@ -4818,6 +4912,7 @@
     "start": "2026-07-21T10:00:00.000Z",
     "end": "2026-08-11T06:59:00.000Z",
     "version": "6.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "raiden_shogun",
@@ -4850,6 +4945,7 @@
     "start": "2026-07-21T10:00:00.000Z",
     "end": "2026-08-11T06:59:00.000Z",
     "version": "6.7",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "nocturnes_curtain_call",
@@ -4897,6 +4993,7 @@
     "start": "2026-08-11T22:00:00.000Z",
     "end": "2026-09-01T09:59:00.000Z",
     "version": "7.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "odette",
@@ -4929,6 +5026,7 @@
     "start": "2026-08-11T22:00:00.000Z",
     "end": "2026-09-01T09:59:00.000Z",
     "version": "7.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "arlecchino",
@@ -4961,6 +5059,7 @@
     "start": "2026-08-11T22:00:00.000Z",
     "end": "2026-09-01T09:59:00.000Z",
     "version": "7.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "whitelake_frostfeather",
@@ -5008,6 +5107,7 @@
     "start": "2026-09-01T10:00:00.000Z",
     "end": "2026-09-22T06:59:00.000Z",
     "version": "7.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "flins",
@@ -5040,6 +5140,7 @@
     "start": "2026-09-01T10:00:00.000Z",
     "end": "2026-09-22T06:59:00.000Z",
     "version": "7.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "ineffa",
@@ -5072,6 +5173,7 @@
     "start": "2026-09-01T10:00:00.000Z",
     "end": "2026-09-22T06:59:00.000Z",
     "version": "7.0",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "bloodsoaked_ruins",
@@ -5119,6 +5221,7 @@
     "start": "2026-09-22T22:00:00.000Z",
     "end": "2026-10-13T09:59:59.000Z",
     "version": "7.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "vesna",
@@ -5151,6 +5254,7 @@
     "start": "2026-09-22T22:00:00.000Z",
     "end": "2026-10-13T09:59:59.000Z",
     "version": "7.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "vodyanitsa",
@@ -5183,6 +5287,7 @@
     "start": "2026-09-22T22:00:00.000Z",
     "end": "2026-10-13T09:59:59.000Z",
     "version": "7.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "beyond_the_chrysalis",
@@ -5230,6 +5335,7 @@
     "start": "2026-10-13T10:00:00.000Z",
     "end": "2026-11-03T06:59:59.000Z",
     "version": "7.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "skirk",
@@ -5262,6 +5368,7 @@
     "start": "2026-10-13T10:00:00.000Z",
     "end": "2026-11-03T06:59:59.000Z",
     "version": "7.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "skirk",
@@ -5299,6 +5406,7 @@
     "start": "2026-10-13T10:00:00.000Z",
     "end": "2026-11-03T06:59:59.000Z",
     "version": "7.1",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "azurelight",
@@ -5346,6 +5454,7 @@
     "start": "2026-11-03T22:00:00.000Z",
     "end": "2026-11-24T09:59:59.000Z",
     "version": "7.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "mitya",
@@ -5378,6 +5487,7 @@
     "start": "2026-11-03T22:00:00.000Z",
     "end": "2026-11-24T09:59:59.000Z",
     "version": "7.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "furina",
@@ -5410,6 +5520,7 @@
     "start": "2026-11-03T22:00:00.000Z",
     "end": "2026-11-24T09:59:59.000Z",
     "version": "7.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "starsealed_edict",
@@ -5457,6 +5568,7 @@
     "start": "2026-11-24T10:00:00.000Z",
     "end": "2026-12-15T06:59:59.000Z",
     "version": "7.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "zibai",
@@ -5489,6 +5601,7 @@
     "start": "2026-11-24T10:00:00.000Z",
     "end": "2026-12-15T06:59:59.000Z",
     "version": "7.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "linnea",
@@ -5521,6 +5634,7 @@
     "start": "2026-11-24T10:00:00.000Z",
     "end": "2026-12-15T06:59:59.000Z",
     "version": "7.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "lightbearing_moonshard",
@@ -5568,6 +5682,7 @@
     "start": "2026-11-24T10:00:00.000Z",
     "end": "2026-12-15T06:59:59.000Z",
     "version": "7.2",
+    "source": "paimon.moe (팬 정리 자료)",
     "featured": [
      {
       "id": "varesa",
@@ -5773,6 +5888,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    },
@@ -5789,6 +5905,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": []
    },
    {
@@ -5804,6 +5921,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "endApprox": true
    },
@@ -5820,6 +5938,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    },
@@ -5836,6 +5955,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "endApprox": true
    },
@@ -5852,6 +5972,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    },
@@ -5868,6 +5989,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    },
@@ -5884,6 +6006,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "endApprox": true
    },
@@ -5900,6 +6023,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    },
@@ -5916,6 +6040,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "endApprox": true
    },
@@ -5932,6 +6057,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    },
@@ -5948,6 +6074,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "endApprox": true
    },
@@ -5964,6 +6091,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    },
@@ -5980,6 +6108,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": []
    },
    {
@@ -5995,6 +6124,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "endApprox": true
    },
@@ -6011,6 +6141,7 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    },
@@ -6027,12 +6158,671 @@
      }
     ],
     "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
    }
   ],
-  "arknights": [],
-  "limbus": []
+  "limbus": [
+   {
+    "id": "limbus:official:2025-02-20",
+    "group": "limbus-extraction",
+    "name": "남부 리우 협회 3과 이상 · 흉통 파우스트 특정 추출",
+    "start": "2025-02-19T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-03-05T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:남부 리우 협회 3과 이상",
+      "ko": "남부 리우 협회 3과 이상",
+      "grade": "000"
+     },
+     {
+      "id": "ko:흉통 파우스트",
+      "ko": "흉통 파우스트",
+      "grade": "HE"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-03-06",
+    "group": "limbus-extraction",
+    "name": "불주먹 사무소 생존자 그레고르 · 동부 섕크 협회 3과 돈키호테 특정 추출",
+    "start": "2025-03-05T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-04-02T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:불주먹 사무소 생존자 그레고르",
+      "ko": "불주먹 사무소 생존자 그레고르",
+      "grade": "000"
+     },
+     {
+      "id": "ko:동부 섕크 협회 3과 돈키호테",
+      "ko": "동부 섕크 협회 3과 돈키호테",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-04-03",
+    "group": "limbus-extraction",
+    "name": "중지 작은 아우 싱클레어 특정 추출",
+    "start": "2025-04-02T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-04-16T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:중지 작은 아우 싱클레어",
+      "ko": "중지 작은 아우 싱클레어",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-04-17",
+    "group": "limbus-extraction",
+    "name": "지정 재판 로쟈 특정 추출",
+    "start": "2025-04-16T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-04-29T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:지정 재판 로쟈",
+      "ko": "지정 재판 로쟈",
+      "grade": "WAW"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-04-30",
+    "group": "limbus-extraction",
+    "name": "R사 제 4무리 순록팀 홍루 특정 추출",
+    "start": "2025-04-29T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-05-21T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:R사 제 4무리 순록팀 홍루",
+      "ko": "R사 제 4무리 순록팀 홍루",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-05-22",
+    "group": "limbus-extraction",
+    "name": "흑수-묘 필두 파우스트 특정 추출",
+    "start": "2025-05-21T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-06-04T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:흑수-묘 필두 파우스트",
+      "ko": "흑수-묘 필두 파우스트",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-06-05",
+    "group": "limbus-extraction",
+    "name": "가주 후보 이스마엘 특정 추출",
+    "start": "2025-06-04T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-06-18T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:가주 후보 이스마엘",
+      "ko": "가주 후보 이스마엘",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-06-19",
+    "group": "limbus-extraction",
+    "name": "동부 엄지 카포 IIII 뫼르소 · 동부 엄지 솔다토 II 싱클레어 특정 추출",
+    "start": "2025-06-18T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-07-02T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:동부 엄지 카포 IIII 뫼르소",
+      "ko": "동부 엄지 카포 IIII 뫼르소",
+      "grade": "000"
+     },
+     {
+      "id": "ko:동부 엄지 솔다토 II 싱클레어",
+      "ko": "동부 엄지 솔다토 II 싱클레어",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-07-03",
+    "group": "limbus-extraction",
+    "name": "N사 E.G.O::흉탄 이상 특정 추출",
+    "start": "2025-07-02T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-08-13T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:N사 E.G.O::흉탄 이상",
+      "ko": "N사 E.G.O::흉탄 이상",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-08-14",
+    "group": "limbus-extraction",
+    "name": "홍원 군주 홍루 특정 추출",
+    "start": "2025-08-13T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-09-10T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:홍원 군주 홍루",
+      "ko": "홍원 군주 홍루",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-09-11",
+    "group": "limbus-extraction",
+    "name": "N사 E.G.O::경멸, 경외 료슈 특정 추출",
+    "start": "2025-09-10T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-10-08T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:N사 E.G.O::경멸, 경외 료슈",
+      "ko": "N사 E.G.O::경멸, 경외 료슈",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-10-09",
+    "group": "limbus-extraction",
+    "name": "동부 시 협회 3과 파우스트 특정 추출",
+    "start": "2025-10-08T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-11-19T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:동부 시 협회 3과 파우스트",
+      "ko": "동부 시 협회 3과 파우스트",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-11-20",
+    "group": "limbus-extraction",
+    "name": "흑수-유 필두 히스클리프 · 흑수-미 돈키호테 특정 추출",
+    "start": "2025-11-19T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-12-03T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:흑수-유 필두 히스클리프",
+      "ko": "흑수-유 필두 히스클리프",
+      "grade": "000"
+     },
+     {
+      "id": "ko:흑수-미 돈키호테",
+      "ko": "흑수-미 돈키호테",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-12-04",
+    "group": "limbus-extraction",
+    "name": "홍원 방랑무사 료슈 특정 추출",
+    "start": "2025-12-03T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2025-12-17T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:홍원 방랑무사 료슈",
+      "ko": "홍원 방랑무사 료슈",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2025-12-18",
+    "group": "limbus-extraction",
+    "name": "R사 제 4무리 순록팀 로쟈 특정 추출",
+    "start": "2025-12-17T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-01-07T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:R사 제 4무리 순록팀 로쟈",
+      "ko": "R사 제 4무리 순록팀 로쟈",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-01-08",
+    "group": "limbus-extraction",
+    "name": "검지 대행자 - 개화 E.G.O::대행 돈키호테 · 검지 @#$#:【단말기】 돈키호테 특정 추출",
+    "start": "2026-01-07T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-01-21T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:검지 대행자 - 개화 E.G.O::대행 돈키호테",
+      "ko": "검지 대행자 - 개화 E.G.O::대행 돈키호테",
+      "grade": "000"
+     },
+     {
+      "id": "ko:검지 @#$#:【단말기】 돈키호테",
+      "ko": "검지 @#$#:【단말기】 돈키호테",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-01-22",
+    "group": "limbus-extraction",
+    "name": "거미집 중지 제자 이스마엘 특정 추출",
+    "start": "2026-01-21T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-02-04T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:거미집 중지 제자 이스마엘",
+      "ko": "거미집 중지 제자 이스마엘",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-02-05",
+    "group": "limbus-extraction",
+    "name": "로보토미 E.G.O::램프 그레고르 · 거미집 소지 제자 싱클레어 특정 추출",
+    "start": "2026-02-04T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-02-18T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:로보토미 E.G.O::램프 그레고르",
+      "ko": "로보토미 E.G.O::램프 그레고르",
+      "grade": "000"
+     },
+     {
+      "id": "ko:거미집 소지 제자 싱클레어",
+      "ko": "거미집 소지 제자 싱클레어",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-02-19",
+    "group": "limbus-extraction",
+    "name": "거미집 검지 아비 이상 특정 추출",
+    "start": "2026-02-18T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-04-01T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:거미집 검지 아비 이상",
+      "ko": "거미집 검지 아비 이상",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-04-02",
+    "group": "limbus-extraction",
+    "name": "거미집 약지 아비 홍루 · 거미집 약지 제자 파우스트 특정 추출",
+    "start": "2026-04-01T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-05-13T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:거미집 약지 아비 홍루",
+      "ko": "거미집 약지 아비 홍루",
+      "grade": "000"
+     },
+     {
+      "id": "ko:거미집 약지 제자 파우스트",
+      "ko": "거미집 약지 제자 파우스트",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-05-14",
+    "group": "limbus-extraction",
+    "name": "거미집의 검 료슈 특정 추출",
+    "start": "2026-05-13T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-05-27T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:거미집의 검 료슈",
+      "ko": "거미집의 검 료슈",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-05-28",
+    "group": "limbus-extraction",
+    "name": "거미집 중지 아비 오티스 특정 추출",
+    "start": "2026-05-27T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-06-24T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:거미집 중지 아비 오티스",
+      "ko": "거미집 중지 아비 오티스",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-06-25",
+    "group": "limbus-extraction",
+    "name": "거미집 엄지 아비 로쟈 · 거미집 엄지 제자 히스클리프 특정 추출",
+    "start": "2026-06-24T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-07-22T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:거미집 엄지 아비 로쟈",
+      "ko": "거미집 엄지 아비 로쟈",
+      "grade": "000"
+     },
+     {
+      "id": "ko:거미집 엄지 제자 히스클리프",
+      "ko": "거미집 엄지 제자 히스클리프",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-07-23",
+    "group": "limbus-extraction",
+    "name": "LCE E.G.O::차원찢개 이상 특정 추출",
+    "start": "2026-07-22T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-08-05T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:LCE E.G.O::차원찢개 이상",
+      "ko": "LCE E.G.O::차원찢개 이상",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-08-06",
+    "group": "limbus-extraction",
+    "name": "난 가위를 낼게, 너는? 돈키호테 특정 추출",
+    "start": "2026-08-05T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-08-19T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:난 가위를 낼게, 너는? 돈키호테",
+      "ko": "난 가위를 낼게, 너는? 돈키호테",
+      "grade": "ZAYIN"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-08-20",
+    "group": "limbus-extraction",
+    "name": "동부 섕크 협회 3과 홍루 특정 추출",
+    "start": "2026-08-19T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-09-02T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:동부 섕크 협회 3과 홍루",
+      "ko": "동부 섕크 협회 3과 홍루",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-09-03",
+    "group": "limbus-extraction",
+    "name": "입주 신고 그레고르 특정 추출",
+    "start": "2026-09-02T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-09-23T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:입주 신고 그레고르",
+      "ko": "입주 신고 그레고르",
+      "grade": "TETH"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-09-24",
+    "group": "limbus-extraction",
+    "name": "오트쿠튀르::수선실 로쟈 특정 추출",
+    "start": "2026-09-23T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-09-30T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:오트쿠튀르::수선실 로쟈",
+      "ko": "오트쿠튀르::수선실 로쟈",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-10-01",
+    "group": "limbus-extraction",
+    "name": "오트쿠튀르::르누아르 브랜드 매니저 돈키호테 특정 추출",
+    "start": "2026-09-30T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-10-14T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:오트쿠튀르::르누아르 브랜드 매니저 돈키호테",
+      "ko": "오트쿠튀르::르누아르 브랜드 매니저 돈키호테",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-10-15",
+    "group": "limbus-extraction",
+    "name": "오트쿠튀르::르루주 붉은 신 싱클레어 특정 추출",
+    "start": "2026-10-14T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-10-28T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:오트쿠튀르::르루주 붉은 신 싱클레어",
+      "ko": "오트쿠튀르::르루주 붉은 신 싱클레어",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-10-29",
+    "group": "limbus-extraction",
+    "name": "오트쿠튀르::르루주 바느질의 왕 히스클리프 · 오트쿠튀르::르누아르 3F 방송실 홍루 특정 추출",
+    "start": "2026-10-28T15:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-11-25T15:00:00.000Z",
+    "endApprox": true,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:오트쿠튀르::르루주 바느질의 왕 히스클리프",
+      "ko": "오트쿠튀르::르루주 바느질의 왕 히스클리프",
+      "grade": "000"
+     },
+     {
+      "id": "ko:오트쿠튀르::르누아르 3F 방송실 홍루",
+      "ko": "오트쿠튀르::르누아르 3F 방송실 홍루",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   },
+   {
+    "id": "limbus:official:2026-11-26",
+    "group": "limbus-extraction",
+    "name": "오트쿠튀르::르루주 B2F 타래둥지 그레고르 · 오트쿠튀르::르누아르 B3F 건조장 이상 특정 추출",
+    "start": "2026-11-25T15:00:00.000Z",
+    "startApprox": true,
+    "end": null,
+    "version": null,
+    "source": "림버스 스팀 공식 공지",
+    "featured": [
+     {
+      "id": "ko:오트쿠튀르::르루주 B2F 타래둥지 그레고르",
+      "ko": "오트쿠튀르::르루주 B2F 타래둥지 그레고르",
+      "grade": "000"
+     },
+     {
+      "id": "ko:오트쿠튀르::르누아르 B3F 건조장 이상",
+      "ko": "오트쿠튀르::르누아르 B3F 건조장 이상",
+      "grade": "000"
+     }
+    ],
+    "featuredRare": []
+   }
+  ],
+  "arknights": []
  },
  "errors": {}
 }

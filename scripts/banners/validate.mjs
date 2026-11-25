@@ -29,6 +29,7 @@ for (const [game, list] of Object.entries(pack.games ?? {})) {
 // A source that worked last time should not silently vanish.
 if (!pack.games?.genshin?.length) problems.push("genshin: no banners (source failed?)");
 if (!pack.games?.endfield?.length) problems.push("endfield: no banners (source failed?)");
+if (!pack.games?.limbus?.length) problems.push("limbus: no banners (source failed?)");
 
 if (problems.length) {
   console.error(problems.join("\n"));

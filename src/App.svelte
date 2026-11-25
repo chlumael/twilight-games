@@ -464,7 +464,7 @@
         </nav>
         {/if}
 
-        <GroupPanel {status} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} {banners} onBanner={setBanner} />
+        <GroupPanel {status} groupLabel={group.name} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} {banners} onBanner={setBanner} />
 
 
         {#if view === "top"}

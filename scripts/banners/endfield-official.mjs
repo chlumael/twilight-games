@@ -75,6 +75,7 @@ export function resolveSchedule(parsed) {
   return out.map(({ announced, startApprox, endApprox, ...b }) => ({
     ...b,
     version: null,
+    source: "엔드필드 한국어 공식 홈페이지 공지",
     featuredRare: [],
     ...(startApprox ? { startApprox: true } : {}),
     ...(endApprox ? { endApprox: true } : {}),
