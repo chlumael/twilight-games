@@ -4,7 +4,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import JSON5 from "json5";
 import { arknightsOfficial as arknights } from "./arknights-official.mjs";
-import { endfieldOfficial as endfield } from "./endfield-official.mjs";
+import { collectedSixStars, endfieldOfficial as endfield } from "./endfield-official.mjs";
 import { applyKoreanNames, fetchWishAnnouncements } from "./genshin-official.mjs";
 import { limbusOfficial as limbus } from "./limbus-official.mjs";
 
@@ -157,6 +157,14 @@ games.arknights ??= [];
 games.limbus ??= [];
 games.genshin ??= [];
 games.endfield ??= [];
+
+if (collectedSixStars.size >= 5) {
+  // 엔드필드 6성 이름 (공식 기록 화면 읽기에서 6성 판별용). 예전에 모은 이름도 지우지 않고 합친다.
+  const file = new URL("../../data/names/endfield-6star.json", import.meta.url);
+  const old = await readFile(file, "utf8").then((t) => JSON.parse(t).names ?? []).catch(() => []);
+  const names = [...new Set([...old, ...collectedSixStars])].sort();
+  await writeFile(file, JSON.stringify({ _comment: "엔드필드 6성 오퍼레이터 한국어 이름. 공식 공지에서 모은다(build.mjs).", names }, null, 1) + "\n");
+}
 
 try {
   const table = await genshinItems();

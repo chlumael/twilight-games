@@ -4,6 +4,7 @@
   import GroupPanel from "./components/GroupPanel.svelte";
   import PityRing from "./components/PityRing.svelte";
   import DetectionCard from "./components/DetectionCard.svelte";
+  import HistoryCard from "./components/HistoryCard.svelte";
   import ScreenPanel from "./components/ScreenPanel.svelte";
   import SettingsPanel from "./components/SettingsPanel.svelte";
   import StatsPanel from "./components/StatsPanel.svelte";
@@ -23,6 +24,8 @@
   import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading } from "./lib/recognize";
   import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "./lib/detect";
   import genshinItemsFile from "../data/genshin-items.json";
+  import endfieldSixFile from "../data/names/endfield-6star.json";
+  import { importHistory, mergePages, parseEndfieldHistory, type HistoryRow } from "./lib/history";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
@@ -71,6 +74,14 @@
       genshinItems,
       newId: () => `det-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     });
+    // 두 번 연속 같게 읽힌 재화는 앱에 바로 반영한다(사용자 요청 2026-11-25)
+    for (const g of GAME_IDS) {
+      const now = out.state.stable[g];
+      if (!now || JSON.stringify(now) === JSON.stringify(detectState.stable[g])) continue;
+      const cur = records.games[g].currency;
+      const diff = Object.fromEntries(Object.entries(now).filter(([k, v]) => cur[k] !== v));
+      if (Object.keys(diff).length) update(setCurrency(records, g, diff));
+    }
     if (out.state.stable !== detectState.stable && JSON.stringify(out.state.stable) !== JSON.stringify(detectState.stable)) {
       try { localStorage.setItem(DETECT_STATE_KEY, JSON.stringify({ stable: out.state.stable, stableAt: out.state.stableAt })); } catch { /* 무시 */ }
     }
@@ -80,6 +91,29 @@
       notify(`${GAMES[out.detection.game].shortName} ${out.detection.count}회 뽑기 감지 — "확인"에서 기록하세요`);
     }
   }
+  // ---- 공식 기록 화면 (엔드필드 헤드헌팅 기록) ----
+  const HISTORY_KEY = "tg-history-endfield";
+  const endfieldSix = new Set<string>((endfieldSixFile as { names?: string[] }).names ?? []);
+  let historyStore = $state.raw<Record<string, HistoryRow>>(loadHistory());
+  const historyRows = $derived(Object.values(historyStore));
+  function loadHistory(): Record<string, HistoryRow> {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "{}"); } catch { return {}; }
+  }
+  function saveHistory(store: Record<string, HistoryRow>) {
+    historyStore = store;
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(store)); } catch { /* 무시 */ }
+  }
+  function applyHistory() {
+    const out = importHistory(records, "endfield", historyRows, {
+      banners: pack?.games.endfield ?? [],
+      isTop: (n) => endfieldSix.has(n),
+      newId: () => `off-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    });
+    if (out.added) update(out.records);
+    saveHistory({});
+    notify(`공식 기록 ${out.added}개 반영${out.replaced ? `, 기존 ${out.replaced}개 교체` : ""}${out.skipped ? `, ${out.skipped}개 제외` : ""}`);
+  }
+
   function saveDetection(d: Detection, gid: string, count: number) {
     const top = d.game === "genshin" ? 5 : 6;
     const banner = groupBanners(pack, d.game, gid).find((b) => b.id === records.games[d.game].currentBanner[gid]);
@@ -113,7 +147,7 @@
     def.currencies.filter((c) => c.manualOnly).map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
   );
   const pending = $derived(
-    detections.length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
+    detections.length + (Object.keys(historyStore).length ? 1 : 0) + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
   );
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
@@ -419,6 +453,8 @@
         // (화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으므로, 다른 앱 글자를 붙잡아 두지 않는다)
         if (r || looksLikeGacha(f)) screenFrame = f;
         onScreenFrame(f, r);
+        const hist = r ? null : parseEndfieldHistory(f);
+        if (hist?.rows.length) saveHistory(mergePages(historyStore, hist));
         if (r) {
           // 이번에 일부를 못 읽었으면(가려짐 등) 같은 게임에서 직전에 읽은 값을 남겨 둔다
           if (screenResult?.game === r.game) r.currency = { ...screenResult.currency, ...r.currency };
@@ -552,6 +588,9 @@
           <strong>확인 대기</strong>
           {#if pending === 0}
             <p class="muted">확인할 기록이 없습니다.</p>
+          {/if}
+          {#if historyRows.length}
+            <HistoryCard rows={historyRows} isTop={(n) => endfieldSix.has(n)} onApply={applyHistory} onClear={() => saveHistory({})} />
           {/if}
           {#each detections as d (d.id)}
             <DetectionCard detection={d} defaultGroup={settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id}

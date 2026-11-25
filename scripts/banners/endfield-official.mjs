@@ -91,6 +91,23 @@ async function get(url) {
 }
 
 /** 공식 공지 전체에서 헤드헌팅 배너 목록을 만든다. */
+/**
+ * 공지 본문에서 6성 오퍼레이터 이름을 모은다: "획득 가능 6성 오퍼레이터 목록: 케르/명하/…"와 픽업 6성.
+ * 공식 기록 화면에는 등급이 글자로 안 나와서, 이름으로 6성인지 판단하는 데 쓴다.
+ */
+export function sixStarNames(html) {
+  const text = plainText(html);
+  const names = new Set();
+  for (const m of text.matchAll(/6성 오퍼레이터 목록\s*[:：]\s*([^\n]+)/g)) {
+    for (const n of m[1].split("/")) if (n.trim()) names.add(n.trim());
+  }
+  for (const m of text.matchAll(/6성 오퍼레이터\s*\[([^\]]+)\]/g)) names.add(m[1].trim());
+  return [...names];
+}
+
+/** 마지막으로 모은 6성 이름 (build.mjs가 파일로 저장) */
+export const collectedSixStars = new Set();
+
 export async function endfieldOfficial() {
   const notices = [];
   for (let page = 1; page <= 20; page++) {
@@ -101,7 +118,9 @@ export async function endfieldOfficial() {
   const parsed = [];
   const skipped = [];
   for (const n of notices.filter((n) => n.title?.includes("헤드헌팅"))) {
-    const b = parseNotice(await get(`${API}/${n.cid}?${QUERY}`));
+    const detail = await get(`${API}/${n.cid}?${QUERY}`);
+    for (const name of sixStarNames(detail.data)) collectedSixStars.add(name);
+    const b = parseNotice(detail);
     if (b) parsed.push(b);
     else skipped.push(n.title);
   }

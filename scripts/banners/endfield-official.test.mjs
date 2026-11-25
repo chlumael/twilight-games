@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseNotice, plainText, resolveSchedule } from "./endfield-official.mjs";
+import { parseNotice, plainText, resolveSchedule, sixStarNames } from "./endfield-official.mjs";
 
 const notice = (cid, title, displayTime, lines) => ({
   cid, title, displayTime, data: lines.map((l) => `<p>${l}</p>`).join(""),
@@ -70,5 +70,10 @@ describe("엔드필드 공식 공지 해석", () => {
   it("뒤따르는 배너가 없으면 종료일은 미정", () => {
     const [only] = resolveSchedule([parseNotice(refactor)]);
     expect(only.end).toBeNull();
+  });
+
+  it("공지에서 6성 이름 모으기", () => {
+    expect(sixStarNames("<p>6성 오퍼레이터 [케르]의 획득 확률이 증가합니다!</p><p>· 획득 가능 6성 오퍼레이터 목록: 케르/명하/라스트 라이트</p>").sort())
+      .toEqual(["라스트 라이트", "명하", "케르"]);
   });
 });
