@@ -51,9 +51,27 @@ SendUserFile(display: attach)로 보내고, 답변에는 다음을 적는다.
 - 설치 방법: 파일 받기 → 설치 → (처음이면) 출처를 알 수 없는 앱 허용
 - 실기 테스트를 못 한 부분은 못 했다고 명시
 
-## 서명 키 (현재 상태와 다음 할 일)
+## 정식 배포: 태그를 올리면 자동 업데이트까지 (0.2.0부터)
 
-지금은 디버그 키(`~/.android/debug.keystore`)로 서명한다. 클라우드 세션이 바뀌면 이 키가 새로 만들어져 SHA-256이 달라진다. 고정 키로 옮기는 작업(로드맵 M2)은 `references/signing.md`를 따른다. 키 파일과 비밀번호는 저장소에 커밋하지 않는다.
+설치된 앱은 GitHub Releases의 최신 버전을 6시간마다 확인해서 알림·대화상자로 업데이트를 안내한다(`Updater.kt`). 그래서 **새 버전은 태그로 배포하는 것이 기본**이다.
+
+1. `versionCode` +1, `versionName` 올리기 → 커밋·푸시
+2. 변경 내용을 담은 주석 태그를 올린다. 태그 메시지가 그대로 앱의 업데이트 안내문이 되니 **사용자가 읽을 한국어**로 쓴다.
+   ```bash
+   git tag -a v<versionName> -m "- 바뀐 점 1
+   - 바뀐 점 2"
+   git push origin v<versionName>
+   ```
+3. `.github/workflows/android-release.yml`이 고정 키로 빌드 → 서명 지문 검사 → Release 게시. 결과는 `twilight-ship`의 CI 확인 방법으로 본다.
+4. 태그와 `versionName`이 다르면, 또는 Secrets가 없으면 워크플로가 실패한다.
+
+## 서명 키
+
+- 고정 키 지문: `21724c02904a68f70e6fa90d05e9aa03c0978cff848551f080bfe86b4389f0dc` (워크플로가 이 값과 다르면 배포를 막는다)
+- CI는 Secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`를 쓴다. 별칭은 `androiddebugkey`(첫 테스트 키를 그대로 고정한 것).
+- 세션에서 직접 빌드할 때 키는 `TWILIGHT_KEYSTORE`, `TWILIGHT_KEYSTORE_PASSWORD` 환경 변수로 준다. 키 파일이 세션에 없으면 사용자에게 받거나, 직접 전달 대신 태그 배포를 쓴다.
+- 키 없이 빌드하면 세션 디버그 키로 서명돼 **지문이 달라질 수 있다.** 그런 APK는 사용자에게 보내지 않는다.
+- 키 파일과 비밀번호는 저장소에 커밋하지 않는다. 자세한 내용은 `references/signing.md`.
 
 ## 화면만 빠르게 확인하고 싶을 때
 

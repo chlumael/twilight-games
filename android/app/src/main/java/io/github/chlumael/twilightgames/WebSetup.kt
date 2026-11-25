@@ -57,6 +57,7 @@ class WebBridge(
     private val onClose: () -> Unit = {},
     private val onSaveFile: (name: String, content: String) -> Unit = { _, _ -> },
     private val onSummary: (json: String) -> Unit = {},
+    private val onCheckUpdate: () -> Unit = {},
 ) {
     private val main = Handler(Looper.getMainLooper())
 
@@ -66,4 +67,6 @@ class WebBridge(
     @JavascriptInterface fun closeOverlay() { main.post(onClose) }
     @JavascriptInterface fun saveFile(name: String, content: String) { main.post { onSaveFile(name, content) } }
     @JavascriptInterface fun updateSummary(json: String) { main.post { onSummary(json) } }
+    @JavascriptInterface fun appVersion(): String = BuildConfig.VERSION_NAME
+    @JavascriptInterface fun checkUpdate() { main.post(onCheckUpdate) }
 }

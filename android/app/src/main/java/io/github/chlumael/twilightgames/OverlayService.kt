@@ -69,6 +69,8 @@ class OverlayService : Service() {
         if (!created) {
             created = true
             createViews()
+            // While playing, an update shows up as a notification instead of a dialog.
+            Updater.check(this) { release -> if (release != null) Updater.notify(this, release) }
         }
         return START_STICKY
     }

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { GAMES, GAME_IDS } from "../lib/games";
   import { emptyBaseline } from "../lib/ledger";
-  import { listProcesses } from "../lib/api";
+  import { android, androidMode, listProcesses } from "../lib/api";
   import type { Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
 
@@ -108,6 +108,17 @@
     {/each}
   </section>
 
+  {/if}
+
+  {#if androidMode === "app" && android?.appVersion}
+    <section>
+      <h4>앱</h4>
+      <div class="row">
+        <span class="muted">버전 {android.appVersion()}</span>
+        <button onclick={() => android?.checkUpdate?.()}>업데이트 확인</button>
+      </div>
+      <p class="muted hint">앱을 켤 때 6시간마다 새 버전을 확인하고, 있으면 알려줍니다.</p>
+    </section>
   {/if}
 
   <section>

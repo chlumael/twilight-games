@@ -3,6 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Release signing comes from the environment (GitHub Secrets in CI, a local file
+// in a dev session). Without it the build falls back to the debug key.
+val releaseKeystore = System.getenv("TWILIGHT_KEYSTORE")?.let { file(it) }?.takeIf { it.exists() }
+
 android {
     namespace = "io.github.chlumael.twilightgames"
     compileSdk = 35
@@ -11,16 +15,29 @@ android {
         applicationId = "io.github.chlumael.twilightgames"
         minSdk = 26 // TYPE_APPLICATION_OVERLAY
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.2.0"
+    }
+
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = releaseKeystore
+                storePassword = System.getenv("TWILIGHT_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("TWILIGHT_KEY_ALIAS") ?: "androiddebugkey"
+                keyPassword = System.getenv("TWILIGHT_KEYSTORE_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Test builds are signed with the debug key; a real release key comes later.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
+    }
+    buildFeatures {
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

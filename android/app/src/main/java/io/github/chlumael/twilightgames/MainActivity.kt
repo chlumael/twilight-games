@@ -31,8 +31,10 @@ class MainActivity : Activity() {
                 mode = "app",
                 onStartOverlay = ::startOverlay,
                 onSaveFile = ::saveFile,
+                onCheckUpdate = { checkUpdate(force = true) },
             ),
         )
+        checkUpdate(force = intent.getBooleanExtra(Updater.EXTRA_SHOW_UPDATE, false))
         webView.webChromeClient = object : WebChromeClient() {
             // <input type=file> for backup import.
             override fun onShowFileChooser(
@@ -47,8 +49,24 @@ class MainActivity : Activity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        if (intent.getBooleanExtra(Updater.EXTRA_SHOW_UPDATE, false)) checkUpdate(force = true)
+    }
+
+    private fun checkUpdate(force: Boolean) {
+        Updater.check(this, force) { release ->
+            when {
+                release != null -> Updater.showDialog(this, release)
+                force -> Toast.makeText(this, "최신 버전입니다 (${BuildConfig.VERSION_NAME})", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+        Updater.resumePendingInstall(this)
         WebSetup.reload(webView)
         // Came back from the overlay permission screen.
         if (wantOverlay && Settings.canDrawOverlays(this)) {
