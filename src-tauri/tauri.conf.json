@@ -27,7 +27,7 @@
         "skipTaskbar": false
       }
     ],
-    "security": { "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://raw.githubusercontent.com" }
+    "security": { "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://raw.githubusercontent.com https://*.googleapis.com https://twilight-games.firebaseapp.com; frame-src https://twilight-games.firebaseapp.com https://accounts.google.com" }
   },
   "bundle": {
     "active": true,
