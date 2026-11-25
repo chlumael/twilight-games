@@ -67,7 +67,6 @@ export const GAMES: Record<GameId, GameDef> = {
     currencies: [
       { key: "primogem", label: "원석" },
       { key: "intertwined", label: "뒤엉킨 인연" },
-      { key: "acquaint", label: "만남의 인연" },
     ],
     groups: [
       {
@@ -99,19 +98,6 @@ export const GAMES: Record<GameId, GameDef> = {
         featuredRule: "fate-point",
         bannerCounters: [],
         spend: genshinEventSpend,
-      },
-      {
-        id: "genshin-standard",
-        name: "상시",
-        hardPity: 90,
-        softFrom: 74,
-        carryOver: true,
-        featuredRule: "none",
-        bannerCounters: [],
-        spend: [
-          { key: "acquaint", cost: 1, pulls: 1 },
-          { key: "primogem", cost: 160, pulls: 1 },
-        ],
       },
     ],
     processNames: ["GenshinImpact.exe", "YuanShen.exe"],
@@ -163,7 +149,6 @@ export const GAMES: Record<GameId, GameDef> = {
       { key: "origeometry", label: "파생 오리지늄" },
       { key: "charteredPermit", label: "한정 헤드헌팅 허가증" },
       { key: "limitedPermit", label: "기간 한정 허가증" },
-      { key: "basicPermit", label: "헤드헌팅 허가증" },
       { key: "arsenalTicket", label: "무기고 증표" },
     ],
     groups: [
@@ -193,19 +178,6 @@ export const GAMES: Record<GameId, GameDef> = {
         featuredRule: "none",
         bannerCounters: [{ at: 120, label: "픽업 확정", untilFeatured: true }],
         spend: [{ key: "oroberyl", cost: 500, pulls: 1 }],
-      },
-      {
-        id: "endfield-basic",
-        name: "상시",
-        hardPity: 80,
-        softFrom: 66,
-        carryOver: true,
-        featuredRule: "none",
-        bannerCounters: [{ at: 300, label: "선택 영입" }],
-        spend: [
-          { key: "basicPermit", cost: 1, pulls: 1 },
-          { key: "oroberyl", cost: 500, pulls: 1 },
-        ],
       },
     ],
     // Unconfirmed: verify on a real install.

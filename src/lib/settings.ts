@@ -25,10 +25,15 @@ export function normalizeSettings(raw: unknown): Settings {
   const d = defaultSettings();
   if (!raw || typeof raw !== "object") return d;
   const r = raw as Partial<Settings>;
+  const activeGroup = { ...d.activeGroup, ...(r.activeGroup ?? {}) };
+  // Drop groups that no longer exist (e.g. removed standard banners).
+  for (const id of GAME_IDS) {
+    if (!GAMES[id].groups.some((g) => g.id === activeGroup[id])) activeGroup[id] = d.activeGroup[id];
+  }
   return {
     ...d,
     ...r,
-    activeGroup: { ...d.activeGroup, ...(r.activeGroup ?? {}) },
+    activeGroup,
     processNames: { ...d.processNames, ...(r.processNames ?? {}) },
   };
 }
