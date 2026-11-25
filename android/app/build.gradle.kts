@@ -15,8 +15,8 @@ android {
         applicationId = "io.github.chlumael.twilightgames"
         minSdk = 26 // TYPE_APPLICATION_OVERLAY
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.3.5"
+        versionCode = 10
+        versionName = "0.4.0"
     }
 
     signingConfigs {
@@ -55,4 +55,7 @@ dependencies {
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    // 화면 읽기: 기기 안에서 도는 한국어 글자 인식. 모델을 앱에 넣는 방식은 APK가 3MB → 47MB로
+    // 커져서, 구글 플레이 서비스가 모델을 한 번 내려받아 두는 방식을 쓴다(인식은 기기 안에서 한다).
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition-korean:16.0.1")
 }

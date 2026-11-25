@@ -21,6 +21,9 @@ interface AndroidBridge {
   /** Native Google account picker; answers via window.__twilightAuth(idToken | null, error?). */
   signIn?(webClientId: string): void;
   signOut?(): void;
+  /** 오버레이 전용: 화면 읽기 켜기/끄기. 결과는 window.__twilightScreen(json), __twilightScreenState(json) */
+  screenRead?(start: boolean): void;
+  screenReading?(): boolean;
 }
 const androidBridge = (window as unknown as { TwilightAndroid?: AndroidBridge }).TwilightAndroid;
 export const android = androidBridge ?? null;

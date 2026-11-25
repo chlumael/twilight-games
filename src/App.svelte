@@ -3,6 +3,7 @@
   import CurrencyBar from "./components/CurrencyBar.svelte";
   import GroupPanel from "./components/GroupPanel.svelte";
   import PityRing from "./components/PityRing.svelte";
+  import ScreenPanel from "./components/ScreenPanel.svelte";
   import SettingsPanel from "./components/SettingsPanel.svelte";
   import StatsPanel from "./components/StatsPanel.svelte";
   import TopForm from "./components/TopForm.svelte";
@@ -458,8 +459,10 @@
         <section class="review">
           <strong>확인 대기</strong>
           {#if pending === 0}
-            <p class="muted">확인할 기록이 없습니다. 화면 인식이 추가되면 여기에 쌓입니다.</p>
+            <p class="muted">확인할 기록이 없습니다.</p>
           {/if}
+          <ScreenPanel {game} currency={rec.currency} onGame={(id) => { game = id; settings = { ...settings, lastGame: id }; }}
+            onCurrency={(values) => update(setCurrency(records, game, values))} />
           <button onclick={() => (view = "main")}>닫기</button>
         </section>
       {:else}

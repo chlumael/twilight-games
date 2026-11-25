@@ -60,6 +60,7 @@ class WebBridge(
     private val onCheckUpdate: () -> Unit = {},
     private val onSignIn: (webClientId: String) -> Unit = {},
     private val onSignOut: () -> Unit = {},
+    private val onScreenRead: (start: Boolean) -> Unit = {},
 ) {
     private val main = Handler(Looper.getMainLooper())
 
@@ -73,4 +74,7 @@ class WebBridge(
     @JavascriptInterface fun checkUpdate() { main.post(onCheckUpdate) }
     @JavascriptInterface fun signIn(webClientId: String) { main.post { onSignIn(webClientId) } }
     @JavascriptInterface fun signOut() { main.post(onSignOut) }
+    /** 화면 읽기 켜기/끄기 (오버레이 전용). 결과는 window.__twilightScreen / __twilightScreenState 로 온다. */
+    @JavascriptInterface fun screenRead(start: Boolean) { main.post { onScreenRead(start) } }
+    @JavascriptInterface fun screenReading(): Boolean = ScreenReadService.running
 }
