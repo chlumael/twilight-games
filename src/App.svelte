@@ -10,7 +10,7 @@
     availablePulls, emptyRecords, groupStatus, lastSessionSize, markTopInLastSession,
     normalizeRecords, recentPulls, recordSession, setCurrency, topHistory, undo, type TopInfo,
   } from "./lib/ledger";
-  import { themeStyle } from "./lib/themes";
+  import { SKINS, skinStyle } from "./lib/themes";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
@@ -30,6 +30,7 @@
   let toast = $state<string | null>(null);
 
   const def = $derived(GAMES[game]);
+  const skin = $derived(SKINS[game]);
   const rec = $derived(records.games[game]);
   const groupId = $derived(settings.activeGroup[game] ?? def.groups[0].id);
   const group = $derived(findGroup(game, groupId));
@@ -191,11 +192,11 @@
   });
 </script>
 
-<main class:collapsed style={themeStyle(game)}>
+<main class:collapsed data-skin={game} style={skinStyle(game)}>
   {#if collapsed}
     <div class="line" data-tauri-drag-region ondblclick={() => (collapsed = false)} role="presentation">
       <span class="stripe" data-tauri-drag-region></span>
-      <PityRing pity={status.pity} hard={status.hardPity} soft={status.softFrom} size={30} />
+      <PityRing value={status.pity} max={status.hardPity} soft={status.softFrom} label="" size={30} />
       <strong class="gname" data-tauri-drag-region>{def.shortName}</strong>
       <span class="muted" data-tauri-drag-region>{group.name}</span>
       {#if status.guaranteed}<span class="good" data-tauri-drag-region>확정</span>{/if}
@@ -206,13 +207,19 @@
     </div>
   {:else}
     <header data-tauri-drag-region>
-      <select value={manualGame ? game : "auto"} onchange={(e) => selectGame((e.currentTarget as HTMLSelectElement).value)}>
-        <option value="auto">자동: {def.name}</option>
-        {#each GAME_IDS as id}<option value={id}>{GAMES[id].name}</option>{/each}
-      </select>
+      <div class="brand" data-tauri-drag-region>
+        <span class="brand-title" data-tauri-drag-region>{skin.title}</span>
+        <span class="brand-sub" data-tauri-drag-region>
+          {skin.sub} ·
+          <select class="game-select" value={manualGame ? game : "auto"} onchange={(e) => selectGame((e.currentTarget as HTMLSelectElement).value)}>
+            <option value="auto">{def.name} (자동)</option>
+            {#each GAME_IDS as id}<option value={id}>{GAMES[id].name}</option>{/each}
+          </select>
+        </span>
+      </div>
       <span class="spacer" data-tauri-drag-region></span>
-      {#if clickThrough}<span class="muted small">클릭 통과</span>{/if}
-      <button class="icon" onclick={() => (view = view === "review" ? "main" : "review")} title="확인 대기">
+      {#if clickThrough}<span class="muted small">통과</span>{/if}
+      <button class="icon pend" class:has={pending > 0} onclick={() => (view = view === "review" ? "main" : "review")} title="확인 대기">
         확인 {pending}
       </button>
       <button class="icon" onclick={() => (view = view === "settings" ? "main" : "settings")} aria-label="설정">⚙</button>
@@ -235,15 +242,17 @@
           <button onclick={() => (view = "main")}>닫기</button>
         </section>
       {:else}
+        {#if def.groups.length > 1}
         <nav class="tabs">
           {#each def.groups as g (g.id)}
             <button class:active={g.id === groupId} onclick={() => selectGroup(g.id)}>{g.name}</button>
           {/each}
         </nav>
+        {/if}
 
-        <GroupPanel {status} topLabel={def.topLabel} {recent} {hits} onBanner={setBanner} />
+        <GroupPanel {status} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} onBanner={setBanner} />
 
-        <section class="currency">
+        <section class="currency card">
           <div class="head">
             <span class="muted">보유 재화</span>
             <span class="can"><b>{canPull}</b>뽑 가능</span>
@@ -272,7 +281,7 @@
           <section class="actions">
             <button class="primary" onclick={() => pull(1)}>+1</button>
             <button class="primary" onclick={() => pull(10)}>+10</button>
-            <button class="top-btn" onclick={() => (view = "top")}>★ {def.topLabel}</button>
+            <button class="act-top" onclick={() => (view = "top")}>★ {def.topLabel}</button>
             <button class="undo" onclick={doUndo} title="되돌리기 (Ctrl+Alt+Z)" aria-label="되돌리기">↶</button>
           </section>
         {/if}
@@ -287,52 +296,45 @@
 <style>
   main {
     height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden;
-    background: linear-gradient(180deg, var(--tint), transparent 40%), var(--bg);
-    border: 1px solid var(--line); border-radius: 12px;
+    background: rgba(var(--bg-rgb), var(--bg-alpha));
+    border: 1px solid var(--line); border-radius: var(--radius);
   }
   .line { height: 100%; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 0; white-space: nowrap; cursor: move; }
-  .stripe { align-self: stretch; width: 4px; background: linear-gradient(180deg, var(--a1), var(--a2)); }
+  .stripe { align-self: stretch; width: 4px; background: linear-gradient(180deg, var(--a2), var(--top)); }
   .line :global(.ring .center) { display: none; }
   .line :global(circle) { stroke-width: 5; }
-  .gname { color: var(--a1); }
-  .have { font-weight: 700; margin-left: auto; }
+  .gname { font-family: var(--title-font); }
+  .have { font-family: var(--num-font); font-weight: 700; font-size: 15px; margin-left: auto; }
   .have small { font-size: 10px; color: var(--muted); margin-left: 1px; }
-  header {
-    display: flex; align-items: center; gap: 4px; padding: 7px 6px 7px 10px; cursor: move;
-    background: linear-gradient(90deg, color-mix(in srgb, var(--a1) 22%, transparent), transparent 70%);
-    border-bottom: 1px solid color-mix(in srgb, var(--a1) 35%, transparent);
-  }
-  header select { max-width: 170px; font-weight: 700; color: var(--a1); background: rgba(0, 0, 0, 0.35); border-color: transparent; }
+  header { display: flex; align-items: center; gap: 6px; padding: 7px 6px 7px 10px; cursor: move; position: relative; }
+  .game-select { font-size: 11px; padding: 0 2px; border: none; background: transparent; color: inherit; cursor: pointer; max-width: 150px; }
+  .pend { white-space: nowrap; font-size: 12px; }
+  .pend.has { color: var(--warn); font-weight: 700; }
   .spacer { flex: 1; align-self: stretch; }
   .small { font-size: 11px; }
   .body { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
-  .tabs { display: flex; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.3); border-radius: 9px; }
-  .tabs button { flex: 1; border: none; background: transparent; color: var(--muted); padding: 5px 4px; font-size: 12px; }
-  .tabs button.active { background: color-mix(in srgb, var(--a1) 22%, transparent); color: var(--a1); font-weight: 700; }
-  .currency { padding: 10px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+  .tabs { display: flex; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.3); border-radius: var(--radius); }
+  .tabs button { flex: 1; border: none; background: transparent; color: var(--muted); padding: 5px 4px; font-size: 12px; border-radius: calc(var(--radius) * 0.7); }
+  .tabs button.active { background: var(--tab-active-bg); color: var(--tab-active-fg); font-weight: 700; }
+  .currency { padding: 10px; border-radius: var(--radius); background: var(--panel); }
   .currency .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 12px; }
   .can { color: var(--muted); }
-  .can b { font-size: 20px; color: var(--a1); margin-right: 2px; }
+  .can b { font-family: var(--num-font); font-size: 22px; color: var(--text); margin-right: 3px; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .cur { display: grid; grid-template-columns: 14px 1fr; grid-template-rows: auto auto; gap: 2px 6px; align-items: center; }
   .cur input { grid-column: 1 / -1; font-weight: 600; font-variant-numeric: tabular-nums; }
   .cname { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .glyph { width: 10px; height: 10px; transform: rotate(45deg); border-radius: 2px; }
-  .glyph.g0 { background: var(--a1); }
+  .glyph { width: 9px; height: 9px; transform: rotate(45deg); }
+  .glyph.g0 { background: var(--top); }
   .glyph.g1 { background: var(--a2); }
-  .glyph.g2 { background: transparent; border: 2px solid var(--a1); }
+  .glyph.g2 { border: 2px solid var(--a2); }
   .actions { display: grid; grid-template-columns: 1fr 1fr 1.3fr 40px; gap: 6px; }
-  .actions button { padding: 10px 4px; font-weight: 700; border-radius: 9px; }
-  .actions button.primary {
-    color: #14110a; border: none;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--a1) 100%, white 10%), color-mix(in srgb, var(--a1) 75%, black 25%));
-  }
-  .top-btn { color: var(--top); border-color: color-mix(in srgb, var(--top) 50%, transparent); background: color-mix(in srgb, var(--top) 10%, transparent); }
+  .actions button { padding: 10px 4px; font-weight: 700; }
+  .actions button.primary { background: var(--btn-bg); color: var(--btn-fg); border: var(--btn-border); clip-path: var(--btn-clip); }
   .undo { color: var(--muted); font-size: 16px; }
   .review { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
   .toast {
-    position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85);
-    border: 1px solid color-mix(in srgb, var(--a1) 40%, transparent);
+    position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); color: #fff;
     padding: 5px 12px; border-radius: 999px; font-size: 12px; white-space: nowrap;
   }
   main.collapsed .toast { display: none; }

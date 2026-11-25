@@ -19,8 +19,8 @@
 
 <style>
   .strip { display: grid; grid-template-columns: repeat(calc(var(--slots) / 2), 1fr); gap: 3px; }
-  .cell { aspect-ratio: 1; border-radius: 3px; background: rgba(255, 255, 255, 0.16); }
-  .cell.empty { background: rgba(255, 255, 255, 0.04); }
+  .cell { aspect-ratio: 1; border-radius: min(3px, var(--radius)); background: var(--cell); }
+  .cell.empty { background: var(--cell-empty); }
   .cell.top { background: var(--top); box-shadow: 0 0 6px var(--glow); }
   .cell.lost { background: repeating-linear-gradient(135deg, var(--top) 0 3px, rgba(0, 0, 0, 0.35) 3px 5px); }
 </style>

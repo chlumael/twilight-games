@@ -1,11 +1,13 @@
 <script lang="ts">
   import type { GroupStatus, TopHit } from "../lib/ledger";
   import type { Pull } from "../lib/types";
+  import PityBar from "./PityBar.svelte";
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, recent, hits, onBanner }: {
+  let { status, topLabel, recent, hits, gauge, onBanner }: {
     status: GroupStatus;
+    gauge: "ring" | "bar";
     topLabel: string;
     recent: Pull[];
     hits: TopHit[];
@@ -15,10 +17,20 @@
   const inSoft = $derived(status.softFrom !== null && status.pity + 1 >= status.softFrom);
   const toSoft = $derived(status.softFrom !== null ? Math.max(0, status.softFrom - 1 - status.pity) : null);
   const lastHits = $derived(hits.slice(-4).reverse());
+  // Without hard pity (Limbus) the ring tracks the first banner counter (200 exchange).
+  const ringCounter = $derived(status.hardPity === null ? status.counters[0] : undefined);
+  const counters = $derived(status.counters.filter((c) => c !== ringCounter));
 </script>
 
-<section class="hero">
-  <PityRing pity={status.pity} hard={status.hardPity} soft={status.softFrom} size={100} />
+<section class="hero" class:wide={gauge === "bar" && status.hardPity}>
+  {#if gauge === "bar" && status.hardPity}
+    <PityBar value={status.pity} max={status.hardPity} soft={status.softFrom} />
+  {:else if ringCounter}
+    <PityRing value={ringCounter.at - ringCounter.remaining} max={ringCounter.at} label={String(status.pity)}
+      sub={`${ringCounter.label}까지 ${ringCounter.remaining}`} size={100} />
+  {:else}
+    <PityRing value={status.pity} max={status.hardPity} soft={status.softFrom} sub={status.hardPity ? `/ ${status.hardPity}` : undefined} size={100} />
+  {/if}
   <div class="side">
     <span class="caption">{topLabel} 이후 뽑기</span>
     {#if status.guaranteed !== null}
@@ -37,11 +49,11 @@
   </div>
 </section>
 
-{#if status.counters.length}
+{#if counters.length}
   <section class="counters">
-    {#each status.counters as c}
+    {#each counters as c}
       {@const done = c.done}
-      <div class="counter">
+      <div class="counter card">
         <div class="ctop">
           <span>{c.label}</span>
           <span class:ok={done}>{done ? "완료" : `${c.remaining}회 남음`}</span>
@@ -82,21 +94,23 @@
 
 <style>
   .hero { display: flex; align-items: center; gap: 14px; }
+  .hero.wide { flex-direction: column; align-items: stretch; gap: 8px; }
+  .hero.wide .side { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
   .side { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
   .caption { font-size: 12px; color: var(--muted); }
   .chip {
-    font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08); border: 1px solid var(--line);
+    font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: var(--btn-radius);
+    background: var(--panel); border: 1px solid var(--line);
   }
-  .chip.on { color: #10140f; background: var(--good); border-color: transparent; }
+  .chip.on { color: #0e140f; background: var(--good); border-color: transparent; }
   .chip.hot { color: #fff; background: rgba(255, 110, 90, 0.85); border-color: transparent; }
   .hint { font-size: 11px; color: var(--muted); }
 
   .counters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .counter { padding: 7px 8px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); }
+  .counter { padding: 7px 8px; border-radius: var(--radius); background: var(--panel); }
   .ctop { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
   .ok { color: var(--good); }
-  .mini { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .mini { height: 4px; background: var(--track); overflow: hidden; }
   .mini div { height: 100%; background: var(--a2); }
 
   .history { display: flex; flex-direction: column; gap: 5px; }
@@ -109,13 +123,13 @@
   .hits { display: flex; flex-direction: column; gap: 4px; }
   .hit {
     display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 8px;
-    padding: 5px 8px; border-radius: 8px; background: linear-gradient(90deg, rgba(255, 255, 255, 0.07), transparent);
+    padding: 5px 8px; border-radius: var(--radius); background: linear-gradient(90deg, var(--panel), transparent);
     border-left: 3px solid var(--top);
   }
   .hit.lost { border-left-style: dashed; }
-  .count { font-size: 18px; font-weight: 800; color: var(--top); font-variant-numeric: tabular-nums; }
+  .count { font-family: var(--num-font); font-size: 19px; font-weight: 700; color: var(--top); font-variant-numeric: tabular-nums; }
   .count small { font-size: 10px; font-weight: 500; margin-left: 1px; color: var(--muted); }
   .name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); color: var(--muted); }
+  .badge { font-size: 10px; padding: 2px 6px; border-radius: var(--btn-radius); background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
   .badge.win { background: var(--top); color: #1a1408; font-weight: 700; }
 </style>
