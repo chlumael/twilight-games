@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
-import { frameText, looksLikeGacha, numberTokens, parseFrameText, parseNumber, readScreen, type ScreenLine } from "./recognize";
+import { frameText, looksLikeGacha, numberTokens, parseFrameText, parseNumber, readScreen, steadyCounts, type ScreenLine } from "./recognize";
 
 /** 사용자 휴대폰에서 "읽은 글자 복사"로 받은 실제 인식 결과 */
 const phone = (name: string) => parseFrameText(readFileSync(new URL(`./fixtures/${name}.txt`, import.meta.url), "utf8"));
@@ -146,5 +146,19 @@ describe("화면 읽기", () => {
     expect(readScreen(phone("limbus-main-phone"))).toMatchObject({
       game: "limbus", currency: { lunacy: 598 }, banner: "제10회 발푸르기스의 밤 특정 추출", until: null,
     });
+  });
+
+  it("천장까지 남은 횟수: 한 번만 다르게 읽힌 값은 보여 주지 않는다", () => {
+    const r = (toTop: number | null) => ({ toTop, toFeatured: 100 });
+    let st = steadyCounts(null, r(53));
+    expect(st.shown.toTop).toBe(53);
+    st = steadyCounts(st, r(3)); // 한 번 잘못 읽힘
+    expect(st.shown.toTop).toBe(53);
+    st = steadyCounts(st, r(53));
+    st = steadyCounts(st, r(null)); // 못 읽은 화면
+    expect(st.shown.toTop).toBe(53);
+    st = steadyCounts(st, r(43));
+    st = steadyCounts(st, r(43)); // 10회 뽑은 뒤 두 번 연속 → 반영
+    expect(st.shown).toEqual({ toTop: 43, toFeatured: 100 });
   });
 });

@@ -246,3 +246,18 @@ export function parseFrameText(text: string): ScreenFrame {
 export function looksLikeGacha(frame: ScreenFrame): boolean {
   return frame.lines.some((l) => /헤드헌팅|기원|추출|회진행|LUNACY|UID|획득결과/i.test(fixWords(l.t).replace(/\s+/g, "")));
 }
+
+/**
+ * 화면에 적힌 "천장까지 N회" 같은 숫자는 가끔 한 글자가 빠져 읽힌다("53" → "3").
+ * 그래서 새 값은 두 번 연속 같게 읽혔을 때만 받아들이고, 그 전까지는 앞서 보여 주던 값을 유지한다.
+ */
+export interface SteadyCounts {
+  shown: { toTop: number | null; toFeatured: number | null };
+  last: { toTop: number | null; toFeatured: number | null };
+}
+export function steadyCounts(prev: SteadyCounts | null, reading: Pick<ScreenReading, "toTop" | "toFeatured">): SteadyCounts {
+  const now = { toTop: reading.toTop, toFeatured: reading.toFeatured };
+  if (!prev) return { shown: now, last: now };
+  const pick = (k: "toTop" | "toFeatured") => (now[k] !== null && now[k] === prev.last[k] ? now[k] : prev.shown[k] ?? now[k]);
+  return { shown: { toTop: pick("toTop"), toFeatured: pick("toFeatured") }, last: now };
+}

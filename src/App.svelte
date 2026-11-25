@@ -22,7 +22,7 @@
   import bundledPack from "../data/banners.json";
   import { autoBanner, bannerLabel, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
-  import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading, normalizeFrame } from "./lib/recognize";
+  import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading, type SteadyCounts, normalizeFrame, steadyCounts } from "./lib/recognize";
   import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "./lib/detect";
   import genshinItemsFile from "../data/genshin-items.json";
   import endfieldSixFile from "../data/names/endfield-6star.json";
@@ -230,6 +230,7 @@
   let screenMessage = $state("");
   let screenFrame = $state.raw<ScreenFrame | null>(null);
   let screenResult = $state.raw<ScreenReading | null>(null);
+  let steady: { game: GameId; counts: SteadyCounts } | null = null;
   let pack = $state.raw<BannerPack | null>(isPack(bundledPack) ? bundledPack : null);
 
   const def = $derived(GAMES[game]);
@@ -555,6 +556,11 @@
         if (r) {
           // 이번에 일부를 못 읽었으면(가려짐 등) 같은 게임에서 직전에 읽은 값을 남겨 둔다
           if (screenResult?.game === r.game) r.currency = { ...screenResult.currency, ...r.currency };
+          // 천장까지 남은 횟수는 두 번 연속 같게 읽힌 값만 보여 준다 ("53"이 "3"으로 읽혀 왔다 갔다 하던 문제)
+          const counts = steadyCounts(steady?.game === r.game ? steady.counts : null, r);
+          steady = { game: r.game, counts };
+          r.toTop = counts.shown.toTop;
+          r.toFeatured = counts.shown.toFeatured;
           screenResult = r;
           // 읽은 화면이 다른 게임이면 그 게임으로 바꾼다 (기록은 건드리지 않는다)
           if (r.game !== game) { game = r.game; settings = { ...settings, lastGame: r.game }; }
