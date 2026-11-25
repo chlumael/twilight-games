@@ -143,11 +143,21 @@ class ScreenReadService : Service() {
         old?.close()
     }
 
+    /** 마지막으로 게임 가챠 화면(또는 공개 화면)으로 보이는 글자를 본 시각 */
+    private var lastGachaSeen = 0L
+
+    /**
+     * 읽는 간격: 가챠 화면이 보이면 그 뒤 잠시 동안은 빠르게(1초), 아니면 천천히(2.5초).
+     * 연출을 빠르게 넘겨도 덜 놓치고, 다른 화면에서는 배터리를 아낀다(사용자 선택 2026-11-25).
+     */
+    private fun interval(): Long =
+        if (System.currentTimeMillis() - lastGachaSeen < FAST_WINDOW_MS) FAST_INTERVAL_MS else INTERVAL_MS
+
     private val tick = object : Runnable {
         override fun run() {
             if (!running) return
             readOnce()
-            main.postDelayed(this, INTERVAL_MS)
+            main.postDelayed(this, interval())
         }
     }
 
@@ -191,6 +201,7 @@ class ScreenReadService : Service() {
                             .put("w", (box.width() / w).toDouble()).put("h", (box.height() / h).toDouble()),
                     )
                 }
+                if (text.text.contains(GACHA_WORDS)) lastGachaSeen = System.currentTimeMillis()
                 val payload = JSONObject()
                     .put("time", System.currentTimeMillis())
                     .put("landscape", w > h)
@@ -233,6 +244,10 @@ class ScreenReadService : Service() {
         private const val CHANNEL = "screen-read"
         private const val NOTIFICATION_ID = 2
         private const val INTERVAL_MS = 2500L
+        private const val FAST_INTERVAL_MS = 1000L
+        private const val FAST_WINDOW_MS = 20_000L
+        /** 네 게임의 가챠 메인·뽑기 화면에 나오는 글자 (원신 공개 화면은 UID가 늘 보인다) */
+        private val GACHA_WORDS = Regex("헤드헌팅|기원|추출|회\\s*진행|LUNACY|UID", RegexOption.IGNORE_CASE)
         private const val FIRST_DELAY_MS = 800L
         const val ACTION_STOP = "io.github.chlumael.twilightgames.SCREEN_STOP"
         const val EXTRA_CODE = "code"
