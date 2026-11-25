@@ -16,6 +16,9 @@ cargo check --manifest-path src-tauri/Cargo.toml   # Rust를 고쳤을 때 (리�
 ## 커밋·푸시
 
 - 작업 브랜치에서 한다(현재 `phase1-foundation`). `main`에 직접 푸시하지 않는다.
+- **자동 합치기(2026-11-25 사용자 승인)**: 작업 브랜치에 올리면 `auto-merge.yml`이 테스트·타입 검사 통과 후 main에 합치고 웹앱 배포를 실행한다. 사용자에게 PR 합치기를 부탁할 필요가 없다.
+  - 예외: `.github/workflows/` 파일이 바뀐 푸시는 GitHub 기본 토큰이 올릴 수 없어 건너뛴다(경고만 남음). **워크플로를 고쳤을 때만** 사용자에게 PR 합치기를 부탁하고, 합쳐진 뒤에는 다시 자동으로 돈다.
+  - main과 충돌하면 실패한다 → 작업 브랜치에 main을 병합해 풀고 다시 올린다.
 - 커밋 메시지는 **한국어**로: 제목 한 줄 + 무엇이 왜 바뀌었는지 본문, 끝에 세션이 지정한 attribution 줄.
 - `git -c push.negotiate=true push`
 
