@@ -22,7 +22,8 @@ description: 황혼 게임즈 화면(UI)을 고친 뒤 스크린샷으로 확인
 ```bash
 cd <repo>
 npm run build:web
-(npx vite preview --port 4175 --strictPort >/dev/null 2>&1 &)   # 이미 떠 있으면 생략
+# 미리보기 서버 (이미 떠 있으면 생략). `vite preview`는 브라우저의 스크립트 요청을 404로 거절하는 일이 있어(2026-11-25 확인, 화면이 하얗게 나옴) 파이썬 서버를 쓴다.
+S=<scratchpad>/serve; mkdir -p $S; ln -sfn $PWD/dist $S/twilight-games; (cd $S && python3 -m http.server 4175 >/dev/null 2>&1 &)
 S=.claude/skills/twilight-ui-screens/scripts
 node $S/screens.cjs mobile  <scratchpad>/shots
 node $S/screens.cjs overlay <scratchpad>/shots
