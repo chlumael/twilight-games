@@ -256,7 +256,8 @@
 
   function switchGame(id: GameId) {
     game = id;
-    view = "main";
+    // 확인·통계·설정 화면은 게임을 바꿔도 그대로 둔다. 최고 등급 입력 창만 그 게임 것이라 닫는다.
+    if (view === "top") view = "main";
     settings = { ...settings, lastGame: id };
   }
 
