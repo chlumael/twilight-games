@@ -176,7 +176,7 @@ describe("화면 감지 기록", () => {
   });
 });
 
-import { syncPityFromScreen } from "./ledger";
+import { inferTopFromScreen, syncPityFromScreen } from "./ledger";
 
 describe("화면에 적힌 남은 횟수로 천장 맞추기", () => {
   const status = (r: ReturnType<typeof emptyRecords>) => groupStatus(r.games.endfield, "endfield", "endfield-chartered");
@@ -220,5 +220,29 @@ describe("엔드필드 무기고", () => {
     expect(st.hardPity).toBe(40);
     expect(st.pity).toBe(10);
     expect(st.counters[0]).toMatchObject({ at: 80, remaining: 70 });
+  });
+});
+
+describe("화면 천장 숫자로 최고 등급 나온 자리 찾기", () => {
+  const G = "endfield-chartered";
+  const status = (r: ReturnType<typeof emptyRecords>) => groupStatus(r.games.endfield, "endfield", G);
+  it("10회 뽑고 화면이 '77회 내 6성'으로 바뀌면 = 3회 전에 6성(픽업 문구가 남아 있으니 픽뚫)", () => {
+    let r = syncPityFromScreen(emptyRecords(), "endfield", G, 53, 100); // 27회 쌓임
+    r = recordSession(r, "endfield", G, 10, new Map(), t(0));
+    expect(status(r).pity).toBe(37);
+    r = inferTopFromScreen(r, "endfield", G, 77, 90, t(1));
+    const session = r.games.endfield.pulls.filter((p) => p.group === G);
+    const top = session.find((p) => p.top)!;
+    expect(top.indexInSession).toBe(6);
+    expect(top.featured).toBe(false);
+    expect(status(r).pity).toBe(3);
+    expect(syncPityFromScreen(r, "endfield", G, 77, 90)).toBe(r); // 이미 맞음
+    expect(inferTopFromScreen(r, "endfield", G, 77, 90, t(1))).toBe(r); // 두 번 붙이지 않음
+  });
+  it("천장이 그대로 늘었거나, 오래전 묶음이면 손대지 않는다", () => {
+    let r = recordSession(emptyRecords(), "endfield", G, 10, new Map(), t(0));
+    expect(inferTopFromScreen(r, "endfield", G, 70, 110, t(1))).toBe(r); // 10회 쌓임 = 정상
+    r = recordSession(r, "endfield", G, 10, new Map(), t(0));
+    expect(inferTopFromScreen(r, "endfield", G, 78, 100, t(50))).toBe(r); // 50분 지남
   });
 });

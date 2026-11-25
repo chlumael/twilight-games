@@ -14,7 +14,7 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, syncPityFromScreen } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
@@ -562,8 +562,14 @@
           r.toFeatured = counts.shown.toFeatured;
           // 엔드필드 한정 배너 화면(픽업 확정 문구가 함께 보일 때)에 적힌 남은 횟수로 앱의 천장 수치를 맞춘다
           // (사용자 요청 2026-11-25). 두 번 연속 같게 읽힌 값만 쓴다.
-          if (r.game === "endfield" && counts.settled && r.toFeatured !== null) {
-            const synced = syncPityFromScreen(records, "endfield", "endfield-chartered", r.toTop, r.toFeatured);
+          // 재화 변화가 아직 확인 중이면(방금 뽑은 것이 기록되기 전) 기다린다. 먼저 맞추면 직전 묶음에 잘못 붙는다.
+          const stableNow = detectState.stable.endfield ?? {};
+          const currencySettled = Object.entries(r.currency).every(([k, v]) => stableNow[k] === v);
+          if (r.game === "endfield" && counts.settled && r.toFeatured !== null && currencySettled) {
+            // 천장이 다시 시작됐으면(6성 나옴) 방금 뽑은 묶음에서 그 자리를 표시하고, 남은 차이는 기준값으로 맞춘다
+            const marked = inferTopFromScreen(records, "endfield", "endfield-chartered", r.toTop, r.toFeatured);
+            if (marked !== records) notify("6성 획득을 화면 천장 숫자로 기록했습니다 (이름은 헤드헌팅 기록 화면에서 채워집니다)");
+            const synced = syncPityFromScreen(marked, "endfield", "endfield-chartered", r.toTop, r.toFeatured);
             if (synced !== records) update(synced);
           }
           screenResult = r;

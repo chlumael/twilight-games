@@ -393,3 +393,33 @@ export function syncPityFromScreen(
   next.games[game].updatedAt = new Date().toISOString();
   return next;
 }
+
+/**
+ * 화면의 "N회 내 최고 등급 확정"이 줄어든 것(=천장이 다시 시작됨)을 보고, 직전에 기록한 뽑기 안에서 최고 등급이 나온 자리를 찾아 표시한다.
+ * 화면 값으로 계산한 지금 천장(newPity)이 직전 묶음 크기보다 작으면, 그 묶음의 뒤에서 newPity+1번째가 최고 등급이다.
+ * 픽업 확정 문구가 아직 보이면(toFeatured) 픽업이 아니다(픽뚫). 이름은 모른다(기록 화면에서 채운다).
+ * 바꿀 것이 없으면 받은 records를 그대로 돌려준다.
+ */
+export function inferTopFromScreen(
+  records: Records,
+  game: GameId,
+  groupId: string,
+  toTop: number | null,
+  toFeatured: number | null,
+  now: Date = new Date(),
+): Records {
+  const group = findGroup(game, groupId);
+  if (toTop === null || group.hardPity === null || toTop < 1 || toTop > group.hardPity) return records;
+  const rec = records.games[game];
+  const newPity = group.hardPity - toTop;
+  const status = groupStatus(rec, game, groupId);
+  if (newPity >= status.pity) return records; // 천장이 다시 시작되지 않았다
+  const last = rec.pulls.filter((p) => p.group === groupId).sort(byTime).at(-1);
+  if (!last) return records;
+  // 오래전 묶음에는 붙이지 않는다 (방금 뽑은 것만)
+  if (now.getTime() - new Date(last.time).getTime() > 30 * 60 * 1000) return records;
+  const session = rec.pulls.filter((p) => p.sessionId === last.sessionId);
+  if (session.some((p) => p.top) || newPity >= session.length) return records;
+  const position = session.length - newPity - 1;
+  return markTopInLastSession(records, game, groupId, position, { name: null, featured: toFeatured !== null ? false : null });
+}
