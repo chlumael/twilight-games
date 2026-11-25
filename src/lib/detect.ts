@@ -41,6 +41,8 @@ export interface DetectState {
   stableAt: Partial<Record<GameId, number>>;
   /** 바로 전 프레임에서 읽은 재화 (두 번 연속 같아야 믿는다) */
   candidate: Partial<Record<GameId, Record<string, number>>>;
+  /** candidate가 연속으로 같게 읽힌 횟수 */
+  repeats?: Partial<Record<GameId, number>>;
   /** 마지막 메인 화면 이후 본 공개 화면 */
   seen: SeenItem[];
   /** 바로 전 프레임의 공개 이름 (같은 화면을 여러 번 세지 않게) */
@@ -49,6 +51,11 @@ export interface DetectState {
 
 /** 뽑기 전 재화가 이보다 오래된 값이면 "확실하지 않음"으로 표시한다 */
 export const STALE_MS = 10 * 60 * 1000;
+
+/** 10배 넘게 뛴 값은 이만큼 연속으로 같게 읽혀야 믿는다 */
+export const JUMP_REPEATS = 5;
+/** 한 번의 감지로 기록할 수 있는 최대 횟수 (이보다 크면 잘못 읽은 값을 바로잡는 것으로 본다) */
+export const MAX_PULLS_AT_ONCE = 100;
 
 export function emptyDetectState(): DetectState {
   return { stable: {}, stableAt: {}, candidate: {}, seen: [], lastReveal: null };
@@ -123,6 +130,7 @@ export function step(
     stable: { ...state.stable },
     stableAt: { ...state.stableAt },
     candidate: { ...state.candidate },
+    repeats: state.repeats,
     seen: state.seen,
     lastReveal: state.lastReveal,
   };
@@ -142,6 +150,15 @@ export function step(
   if (Object.keys(currency).length === 0) return { state: next, detection: null };
   if (!same(state.candidate[game], currency)) {
     next.candidate[game] = currency;
+    next.repeats = { ...state.repeats, [game]: 1 };
+    return { state: next, detection: null };
+  }
+  const repeats = (state.repeats?.[game] ?? 1) + 1;
+  next.repeats = { ...state.repeats, [game]: repeats };
+  // 직전 값의 10배 이상으로 뛴 재화는 잘못 읽은 것일 가능성이 높다(숫자 옆 무늬가 숫자로 붙어 읽힘).
+  // 그런 값은 여러 번(5번) 연속 같게 읽힐 때만 믿는다.
+  const prev = state.stable[game];
+  if (prev && repeats < JUMP_REPEATS && Object.keys(currency).some((k) => prev[k] !== undefined && currency[k] >= 1000 && currency[k] >= Math.max(prev[k], 1) * 10)) {
     return { state: next, detection: null };
   }
   // 두 번 연속 같게 읽혔다 → 믿을 수 있는 값
@@ -154,6 +171,11 @@ export function step(
     return { state: next, detection: null };
   }
   const { count, uncertain, spent } = countPulls(before, currency, ctx.spendOf(game));
+  // 한 번에 이렇게 많이 뽑을 수는 없다 → 앞서 잘못 읽은 값을 바로잡는 중이므로 기록하지 않는다
+  if (count > MAX_PULLS_AT_ONCE) {
+    next.seen = [];
+    return { state: next, detection: null };
+  }
   if (count <= 0 && !(game === "genshin" && state.seen.length && uncertain)) {
     next.seen = [];
     return { state: next, detection: null };

@@ -104,6 +104,19 @@ describe("화면 읽기", () => {
     });
   });
 
+  it("엔드필드(PC): 숫자 하나를 빠뜨리고 구분선을 1로 읽어도 교환 칸을 허가증으로 넣지 않는다", () => {
+    const base = [L("1회 헤드헌팅", 0.74, 0.91), L("10회 헤드헌팅", 0.89, 0.91)];
+    const n = (t: string, x: number, w: number) => L(t, x, 0.03, 0.02, w);
+    // 허가증 "0"을 못 읽고, 구분선이 따로 "1"로 읽힌 경우 → 허가증은 비워 두고 오로베릴·교환 칸만
+    expect(readScreen(frame([...base, n("5", 0.6, 0.01), n("10500", 0.775, 0.035), n("55025", 0.873, 0.036), n("1", 0.912, 0.006)]))?.currency)
+      .toEqual({ oroberyl: 55025, origeometry: 140 });
+    // 다 읽힌 경우
+    expect(readScreen(frame([...base, n("5", 0.6, 0.01), n("0", 0.68, 0.01), n("10500", 0.775, 0.035), n("55025 1", 0.873, 0.044)]))?.currency)
+      .toEqual({ oroberyl: 55025, origeometry: 140, charteredPermit: 5, limitedPermit: 0 });
+    // 교환 칸이 75의 배수가 아니면(무언가 잘못 읽힘) 재화를 믿지 않는다
+    expect(readScreen(frame([...base, n("5", 0.6, 0.01), n("10500", 0.775, 0.035), n("55025", 0.873, 0.036), n("7", 0.95, 0.006)]))?.currency).toEqual({});
+  });
+
   it("가챠 메인 화면이 아니면 null, 글자가 덜 읽혀도 멈추지 않는다", () => {
     expect(readScreen(frame([L("설정", 0.5, 0.5), L("10회 헤드헌팅", 0.9, 0.92)]))).toBeNull();
     const partial = readScreen(frame(endfield.filter((l) => !/^\d+$/.test(l.t) && !/종료/.test(l.t))));

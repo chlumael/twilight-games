@@ -59,22 +59,25 @@ function endfield(lines: ScreenLine[]): ScreenReading | null {
   // 위쪽 오른편 숫자: [허가증들…] [파생 오리지늄 교환 칸] 오로베릴[+].
   // 사용자 확인(2026-11-25): 교환 칸은 보유 파생 오리지늄이 아니라 "전부 오로베릴로 바꾸면 받는 양"(× 75)이다.
   // 맨 오른쪽 숫자 뒤의 "+" 때문에 숫자만으로 된 줄로 읽히지 않으므로 줄 안의 숫자 조각으로 읽는다.
-  // PC(윈도우 글자 인식)는 오로베릴 뒤의 "+" 단추를 "1"로, 교환 칸의 "00"을 "%"로 읽는 일이 있다(실기·사용자 확인 2026-11-25).
+  // PC(윈도우 글자 인식)는 오로베릴 뒤의 세로 구분선·"+" 단추를 "1"로, 교환 칸의 "00"을 "%"로 읽는 일이 있다(실기·사용자 확인 2026-11-25).
   const topLines = lines
     .filter((l) => l.y < 0.1 && l.x > 0.4)
-    .map((l) => ({ ...l, t: l.t.replace(/(\d{2,})\s+[1lI|]$/, "$1+").replace(/(\d)%/g, (_, d: string) => `${d}00`) }));
-  const top = numberTokens(topLines);
+    .map((l) => ({ ...l, t: l.t.replace(/(\d{2,})\s+[1lI|](\s*[+＋⊕\S])?$/, "$1+").replace(/(\d)%/g, (_, d: string) => `${d}00`) }));
+  // 숫자 바로 옆(화면 가로의 4.5% 안)에 붙은 한 글자짜리 "1"은 구분선·단추를 잘못 읽은 것이므로 버린다.
+  const top = numberTokens(topLines).filter((t, i, all) => !(i > 0 && t.n === 1 && t.x - all[i - 1].x < 0.045 && all[i - 1].n >= 10));
   const currency: Record<string, number> = {};
-  if (top.length >= 2) {
+  // 맨 오른쪽 = 오로베릴, 그 왼쪽 = 교환 칸(반드시 75의 배수). 교환 칸이 75의 배수가 아니면 숫자를 빠뜨렸거나
+  // 엉뚱한 것을 읽은 화면이므로 이번 화면의 재화는 통째로 믿지 않는다(교환 칸 10500을 허가증으로 넣던 문제, 2026-11-25).
+  const exchange = top.length >= 2 ? top[top.length - 2].n : null;
+  if (exchange !== null && exchange % ORIGEOMETRY_TO_OROBERYL === 0) {
     currency.oroberyl = top[top.length - 1].n;
-    const exchange = top[top.length - 2].n;
-    if (exchange % ORIGEOMETRY_TO_OROBERYL === 0) currency.origeometry = exchange / ORIGEOMETRY_TO_OROBERYL;
-  }
-  // 허가증이 정확히 2칸일 때만: 앞 칸 = 특별 허가 헤드헌팅 허가증(한정 헤드헌팅 허가증), 뒤 칸 = 이번 배너 전용
-  // 허가증(기간 한정 허가증). 배너 전용을 먼저 쓴다(사용자 확인 2026-11-25).
-  if (top.length === 4) {
-    currency.charteredPermit = top[0].n;
-    currency.limitedPermit = top[1].n;
+    currency.origeometry = exchange / ORIGEOMETRY_TO_OROBERYL;
+    // 허가증이 정확히 2칸일 때만: 앞 칸 = 특별 허가 헤드헌팅 허가증(한정 헤드헌팅 허가증), 뒤 칸 = 이번 배너 전용
+    // 허가증(기간 한정 허가증). 배너 전용을 먼저 쓴다(사용자 확인 2026-11-25).
+    if (top.length === 4) {
+      currency.charteredPermit = top[0].n;
+      currency.limitedPermit = top[1].n;
+    }
   }
   const before = (re: RegExp) => {
     for (const l of lines) {

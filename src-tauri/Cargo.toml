@@ -1,6 +1,6 @@
 [package]
 name = "twilight-games"
-version = "0.7.6"
+version = "0.7.7"
 description = "황혼 게임즈 - 가챠 오버레이 트래커"
 edition = "2021"
 

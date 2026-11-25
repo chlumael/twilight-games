@@ -91,4 +91,32 @@ describe("뽑기 감지", () => {
     expect(out).toHaveLength(1);
     expect(out[0]).toMatchObject({ count: 10, uncertain: true });
   });
+
+  it("10배 넘게 뛴 값은 다섯 번 연속 읽혀야 믿고, 100회가 넘는 감지는 기록하지 않는다", () => {
+    const ef = (oro: number, time: number) => {
+      const f = { time, landscape: true, lines: [
+        L("10500", 0.775, 0.03, 0.02, 0.035), L(String(oro), 0.873, 0.03, 0.02, 0.036),
+        L("1회 헤드헌팅", 0.74, 0.91), L("10회 헤드헌팅", 0.89, 0.91),
+      ] };
+      return { frame: f, reading: readScreen(f) };
+    };
+    const play = (frames: ReturnType<typeof ef>[]) => {
+      let st = emptyDetectState();
+      const found = [];
+      for (const f of frames) {
+        const r = step(st, f.frame, f.reading, { ...ctx, spendOf: () => GAMES.endfield.groups[0].spend });
+        st = r.state;
+        if (r.detection) found.push(r.detection);
+      }
+      return { found, stable: st.stable.endfield };
+    };
+    // 55025 → 550251(잘못 읽음) 두 번: 믿지 않는다 → 다시 55025 → 감지 없음
+    let out = play([ef(55025, 1), ef(55025, 2), ef(550251, 3), ef(550251, 4), ef(55025, 5), ef(55025, 6)]);
+    expect(out.found).toEqual([]);
+    expect(out.stable).toMatchObject({ oroberyl: 55025 });
+    // 이미 잘못된 값(550251)이 들어가 있다가 바로잡히는 경우: 990회 같은 감지를 만들지 않는다
+    out = play([ef(550251, 1), ef(550251, 2), ef(55025, 3), ef(55025, 4)]);
+    expect(out.found).toEqual([]);
+    expect(out.stable).toMatchObject({ oroberyl: 55025 });
+  });
 });

@@ -217,15 +217,21 @@ mod imp {
             let (mut l, mut t, mut r, mut b) = (f64::MAX, f64::MAX, 0f64, 0f64);
             let mut text = String::new();
             let mut prev_right: Option<f64> = None;
+            let mut prev_ascii = false;
             for word in line.Words().map_err(err("결과"))? {
                 let rect = word.BoundingRect().map_err(err("결과"))?;
                 let (x, y, ww, hh) = (rect.X as f64, rect.Y as f64, rect.Width as f64, rect.Height as f64);
+                let word_text = word.Text().map_err(err("결과"))?.to_string();
                 if let Some(pr) = prev_right {
-                    if x - pr > hh * 0.3 {
+                    // 낱말을 붙이는 것은 한글끼리만. 숫자·영문은 인식기가 나눈 그대로 띄운다
+                    // (엔드필드: 오로베릴 숫자 옆의 세로 구분선이 "1"로 읽혀 "55025"+"1" → "550251"로 붙던 문제, 2026-11-25).
+                    let ascii_pair = prev_ascii && word_text.is_ascii();
+                    if ascii_pair || x - pr > hh * 0.3 {
                         text.push(' ');
                     }
                 }
-                text.push_str(&word.Text().map_err(err("결과"))?.to_string());
+                prev_ascii = word_text.is_ascii();
+                text.push_str(&word_text);
                 prev_right = Some(x + ww);
                 l = l.min(x);
                 t = t.min(y);
