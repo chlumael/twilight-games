@@ -1,7 +1,8 @@
 <script lang="ts">
   import { GAMES, GAME_IDS } from "../lib/games";
   import { emptyBaseline } from "../lib/ledger";
-  import { android, androidMode, listProcesses } from "../lib/api";
+  import { android, androidMode, inTauri, listProcesses, openPcDownload, pcVersion } from "../lib/api";
+  import { isNewer, latestRelease } from "../lib/version";
   import type { Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
 
@@ -48,6 +49,20 @@
   function editBaseline(groupId: string, patch: Partial<Baseline>) {
     onBaseline(groupId, { ...baseline(groupId), ...patch });
   }
+  // PC판 버전 확인: 설정을 열 때 한 번 확인하고, 버튼으로 다시 확인할 수 있다
+  let pcVer = $state<string | null>(null);
+  let pcUpdate = $state<"" | "checking" | "latest" | "new" | "wait" | "fail">("");
+  let pcLatest = $state("");
+  async function checkPcUpdate() {
+    if (!pcVer) return;
+    pcUpdate = "checking";
+    const r = await latestRelease();
+    if (!r) { pcUpdate = "fail"; return; }
+    pcLatest = r.version;
+    pcUpdate = !isNewer(r.version, pcVer) ? "latest" : r.hasPc ? "new" : "wait";
+  }
+  if (inTauri) void pcVersion().then((v) => { pcVer = v; void checkPcUpdate(); });
+
   let autoRead = $state(android?.autoScreenRead?.() ?? true);
 </script>
 
@@ -119,6 +134,31 @@
     {/each}
   </section>
 
+  {/if}
+
+  {#if pcVer}
+    <section>
+      <h4>프로그램</h4>
+      <div class="row">
+        <span class="muted">버전 {pcVer}</span>
+        <button onclick={checkPcUpdate} disabled={pcUpdate === "checking"}>업데이트 확인</button>
+      </div>
+      {#if pcUpdate === "new"}
+        <div class="row">
+          <span>새 버전 {pcLatest}이 있습니다.</span>
+          <button onclick={() => openPcDownload()}>설치 파일 받기</button>
+        </div>
+        <p class="muted hint">브라우저로 설치 파일을 받습니다. 받은 파일을 실행하면 기록은 그대로 두고 새 버전으로 바뀝니다.</p>
+      {:else if pcUpdate === "latest"}
+        <p class="muted hint">최신 버전입니다.</p>
+      {:else if pcUpdate === "wait"}
+        <p class="muted hint">새 버전 {pcLatest}의 PC 설치 파일을 만드는 중입니다. 10분쯤 뒤에 다시 확인해 주세요.</p>
+      {:else if pcUpdate === "checking"}
+        <p class="muted hint">확인하는 중…</p>
+      {:else if pcUpdate === "fail"}
+        <p class="muted hint">새 버전을 확인하지 못했습니다. 인터넷 연결을 확인하고 다시 눌러 주세요.</p>
+      {/if}
+    </section>
   {/if}
 
   {#if androidMode === "app" && android?.appVersion}

@@ -128,3 +128,15 @@ export async function googleLoginPc(): Promise<string> {
     }).catch((err) => { off?.(); reject(new Error(String(err))); });
   });
 }
+
+/** PC판 버전 (PC가 아니면 null) */
+export async function pcVersion(): Promise<string | null> {
+  if (!inTauri) return null;
+  const { getVersion } = await import("@tauri-apps/api/app");
+  return getVersion();
+}
+
+/** PC판 새 설치 파일을 기본 브라우저로 내려받는다 */
+export async function openPcDownload(): Promise<void> {
+  if (inTauri) await invoke("open_download");
+}

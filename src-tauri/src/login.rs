@@ -82,3 +82,11 @@ pub fn google_login(app: AppHandle) -> Result<(), String> {
     });
     Ok(())
 }
+
+const DOWNLOAD: &str = "https://github.com/chlumael/twilight-games/releases/latest/download/twilight-games-pc-setup.exe";
+
+/// 새 버전 설치 파일을 기본 브라우저로 내려받게 한다 (주소는 고정).
+#[tauri::command]
+pub fn open_download() -> Result<(), String> {
+    open_browser(DOWNLOAD)
+}
