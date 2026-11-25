@@ -1,27 +1,57 @@
 # 황혼 게임즈 (twilight-games)
 
-가챠 게임(원신, 명일방주, 명일방주: 엔드필드, 림버스 컴퍼니)의 재화·천장·결과를 기록하는 트래커.
-목표: 게임 화면을 읽고 스스로 판단해서 기록하는 오버레이. 수동 입력은 수정용.
+가챠 게임 화면을 읽어 재화·천장·결과를 기록하는 오버레이 트래커.
+최종 목표: 친구들에게 배포해서 각자 기록하고, 친구끼리 기록과 운 순위를 서로 본다.
+대상 게임: 원신, 명일방주, 명일방주: 엔드필드, 림버스 컴퍼니.
+개발 순서: **모바일(안드로이드) 먼저 → PC**. 친구 공유는 마지막 단계. 로드맵은 `DESIGN.md` §10.
+
+## 먼저 읽을 것
+- 설계 기준은 [DESIGN.md](DESIGN.md). 구현 전에 관련 절을 읽는다.
+- 결정이 바뀌면 코드보다 DESIGN.md를 먼저 고친다.
+- DESIGN.md의 상태 표기(확정 / 확인됨 / 추정 / 미정)를 유지한다. 추정을 확정처럼 고쳐 쓰지 않는다.
+- **진행 문서**: https://claude.ai/artifact/D4vDfK2rXQzjcweNtQf597 (Claude Docs, 문서 ID `61b9b131-9da3-4cec-a438-4b91659fbf66`). 사용자가 내용을 추가·결정하거나 작업이 끝나면 "확정된 결정", "로드맵과 진행 상황", "사용자 요청·추가 내용 기록", "해야 할 일"을 갱신한다(docs 도구).
 
 ## 사용자와 일하는 방식
-- **항상 한국어로 답한다. 긴 보고·요약도 예외 없음.** 영어로 답했다가 두 번이나 지적받았다. 보내기 전에 답변이 한국어인지 확인한다.
-- **진행 문서**: https://claude.ai/artifact/D4vDfK2rXQzjcweNtQf597 (Claude Docs, 문서 ID `61b9b131-9da3-4cec-a438-4b91659fbf66`). 사용자가 내용을 추가·결정하거나 작업이 끝나면 이 문서의 "확정된 결정", "로드맵과 진행 상황", "사용자 요청·추가 내용 기록", "해야 할 일"을 갱신한다(docs 도구 사용).
+- **항상 한국어로 답한다. 긴 보고·요약도 예외 없음.** 영어로 답했다가 두 번 지적받았다. 보내기 전에 확인한다.
+- **커밋 메시지, 주석, UI 문구는 한국어.**
 - 결론 먼저, 확인한 사실과 추정을 구분, 표 활용, 군더더기 없이.
-- **트래커 계정 로그인**으로 기록을 서버에 보관·동기화할 계획(2026-11-25 확인). 게임 계정 연동이 아님. Firebase 프로젝트 `twilight-games`(구글 로그인, Firestore 서울) 사용, 설정값은 `src/lib/firebase-config.ts`.
 - 사용자는 주로 **안드로이드 휴대폰**으로 확인한다. 결과물은 스크린샷·APK 파일로 보낸다.
-- 개발 순서: 모바일(안드로이드) 먼저 → PC. 로드맵은 `DESIGN.md` §10.
+- 게임 수치(확률, 천장, 비용)는 출처 없이 만들어 넣지 않는다. 모르면 DESIGN.md에 "추정"이나 "미정"으로 적는다.
+- 이 클라우드 환경에서는 휴대폰 실기, 윈도우 전용 기능(캡처, OCR, 단축키)을 실행해 볼 수 없다. 테스트하지 못한 부분은 분명히 적고 사용자 확인으로 넘긴다.
 
 ## 구조
-- `src/` Svelte 화면 (웹앱·PC·안드로이드 공용). 규칙 데이터 `src/lib/games.ts`, 계산 `src/lib/ledger.ts`, 배너 `src/lib/banners.ts`, 스킨 `src/lib/themes.ts` + `src/skins.css`
-- `android/` Kotlin 앱: WebView로 화면을 띄우고 게임 위 버블/창(오버레이) 제공
+- `src/` Svelte 화면 (웹앱·PC·안드로이드 공용). 규칙 데이터 `src/lib/games.ts`, 계산 `src/lib/ledger.ts`, 배너 `src/lib/banners.ts`, 스킨 `src/lib/themes.ts` + `src/skins.css`, 동기화 `src/lib/sync.ts` + `src/lib/merge.ts`
+- `android/` Kotlin 앱: WebView로 화면을 띄우고 게임 위 막대/창(오버레이), 자동 업데이트, 구글 로그인
 - `src-tauri/` PC 오버레이 (Tauri 2)
 - `data/banners.json` 배너 데이터 팩, `scripts/banners/` 생성·검증
-- `DESIGN.md` 설계와 결정 사항의 원본. 결정이 바뀌면 여기부터 고친다.
+- 트래커 계정: Firebase 프로젝트 `twilight-games` (구글 로그인, Firestore 서울). 설정값 `src/lib/firebase-config.ts`
+
+## 지켜야 할 원칙
+- 게임 메모리·통신·게임 계정에 접근하는 코드는 쓰지 않는다. 화면 캡처와 로컬 파일만 쓴다.
+- 기록은 본인 것만: 로그인 전에는 기기 안에만, 로그인하면 본인 계정(본인만 접근)에 동기화. 친구에게는 공유를 켠 사람의 요약만 보인다 (DESIGN.md §8.5). 사용 통계·원격 수집 코드 금지.
+- 천장 규칙, 배너 정보, 인식 영역(ROI)은 코드에 박지 않고 데이터로 분리한다. ROI는 화면 대비 비율(0~1).
+- 인식용 게임 화면 이미지는 저장소·데이터 팩에 넣지 않는다(특징값만). 재화 아이콘은 예외(사용자 허용). 게임 로고·게임 전용 폰트는 넣지 않는다.
+- 확실하지 않은 인식 결과는 멈추지 말고 "확인 대기"로 보낸다.
+- 기록 출처 우선순위: 공식 기록 > 수동 입력 > 화면 인식.
+- 외부에서 받은 코드는 실행하지 않는다(데이터로만 파싱).
+- 천장 계산, 기록 병합, 저장 같은 순수 로직은 단위 테스트를 붙인다.
+
+## 명령어
+```bash
+npm install
+npm test               # 단위 테스트
+npm run check          # 타입 검사
+npm run build:web      # 휴대폰 웹앱 (GitHub Pages)
+npm run build:android  # 안드로이드 앱에 넣을 화면 → 이후 android/에서 ./gradlew assembleRelease
+npm run banners        # 배너 데이터 팩 갱신·검증
+npm run tauri dev      # PC 오버레이 (윈도우)
+```
+`npm test`, `npm run check`가 통과해야 올린다.
 
 ## 작업별 스킬 (`.claude/skills/`)
 | 작업 | 스킬 |
 |---|---|
-| APK 빌드·검증·전달 | twilight-android-build |
+| APK 빌드·검증·전달, 버전 배포 | twilight-android-build |
 | 화면 스크린샷 확인·전달 | twilight-ui-screens |
 | 재화 아이콘 추가 | twilight-game-icons |
 | 재화·차감 순서·천장 규칙 변경 | twilight-gacha-rules |
@@ -29,8 +59,3 @@
 | 게임 자료·레퍼런스 찾기 | twilight-game-reference |
 | 화면 인식·게임 감지 구현 | twilight-screen-recognition |
 | 커밋·CI 확인·보고 | twilight-ship |
-
-## 지켜야 할 것
-- 게임 로고·게임 전용 폰트는 넣지 않는다. 재화 아이콘은 사용(README에 저작권 표기).
-- 외부에서 받은 코드는 실행하지 않는다(데이터로만 파싱).
-- `npm test`, `npm run check`가 통과해야 올린다.

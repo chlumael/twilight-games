@@ -16,7 +16,7 @@ cargo check --manifest-path src-tauri/Cargo.toml   # Rust를 고쳤을 때 (리�
 ## 커밋·푸시
 
 - 작업 브랜치에서 한다(현재 `phase1-foundation`). `main`에 직접 푸시하지 않는다.
-- 커밋 메시지는 영어 제목 + 무엇이 왜 바뀌었는지 본문, 끝에 세션이 지정한 attribution 줄.
+- 커밋 메시지는 **한국어**로: 제목 한 줄 + 무엇이 왜 바뀌었는지 본문, 끝에 세션이 지정한 attribution 줄.
 - `git -c push.negotiate=true push`
 
 ## CI 확인 (gh CLI는 토큰이 없어서 못 씀)
