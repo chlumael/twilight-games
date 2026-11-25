@@ -91,8 +91,10 @@
     }
     detectState = out.state;
     if (out.detection) {
-      saveDetections([...loadDetections(), out.detection]);
-      notify(`${GAMES[out.detection.game].shortName} ${out.detection.count}회 뽑기 감지 — "확인"에서 기록하세요`);
+      // 감지되면 바로 기록한다(사용자 요청 2026-11-25). 확실하지 않은 것은 "확인"에 표시해 취소할 수 있게 한다.
+      const d = out.detection;
+      const gid = settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id;
+      saveDetection(d, gid, d.count, true);
     }
   }
   // ---- 공식 기록 화면 (엔드필드 헤드헌팅 기록, 원신 기원 기록, 명일방주 요스타 가챠 기록) ----
@@ -118,14 +120,28 @@
   const historyRowsOf = (g: GameId) => Object.values(historyStore[g] ?? {});
   const topRarityOf = (g: GameId) => (g === "genshin" ? 5 : 6);
   const isTopRow = (g: GameId) => (r: HistoryRow) => (r.rarity != null ? r.rarity >= topRarityOf(g) : !!sixStars[g]?.has(r.name));
+  let lastHistoryAt = 0;
+  /** 기록 화면을 떠난 뒤 몇 초 지나면 읽어 둔 기록을 자동으로 반영한다(사용자 요청 2026-11-25) */
+  function autoApplyHistories() {
+    if (!lastHistoryAt || Date.now() - lastHistoryAt < 4000) return;
+    lastHistoryAt = 0;
+    for (const g of HISTORY_GAMES) {
+      const rows = historyRowsOf(g);
+      if (!rows.length) continue;
+      const choices = Object.fromEntries([...new Set(rows.map((r) => r.banner))].map((b) => [b, g === "arknights" ? arknightsDefault(b) : ""]));
+      applyHistory(g, choices);
+    }
+    if (limbusRows.length) applyLimbus();
+  }
   function readHistory(f: ScreenFrame) {
     const page =
       parseEndfieldHistory(f) ??
       parseGenshinHistory(f, (n) => (genshinItems[n]?.rarity ?? null)) ??
       parseArknightsHistory(f);
-    if (page?.rows.length) saveHistory(page.game, mergePages(historyStore[page.game] ?? {}, page));
+    if (page?.rows.length) { saveHistory(page.game, mergePages(historyStore[page.game] ?? {}, page)); lastHistoryAt = Date.now(); }
     const lb = page ? null : parseLimbusHistory(f, limbusKnown());
-    if (lb?.length) saveLimbus(mergeSequence(limbusRows, lb));
+    if (lb?.length) { saveLimbus(mergeSequence(limbusRows, lb)); lastHistoryAt = Date.now(); }
+    if (!page && !lb?.length) autoApplyHistories();
   }
   // 림버스 추출 이력: 시각이 없어 순서로 맞춘다 (limbus-history.ts)
   const LIMBUS_KEY = "tg-history-limbus";
@@ -158,16 +174,43 @@
     notify(`${GAMES[game].shortName} 공식 기록 ${out.added}개 반영${out.replaced ? `, 기존 ${out.replaced}개 교체` : ""}${out.skipped ? `, ${out.skipped}개 제외` : ""}`);
   }
 
-  function saveDetection(d: Detection, gid: string, count: number) {
+  // ---- 자동 기록 목록 (취소·확인용) ----
+  interface AutoEntry { id: string; game: GameId; label: string; pullIds: string[]; uncertain: boolean; time: number }
+  const AUTO_KEY = "tg-auto-log";
+  let autoLog = $state.raw<AutoEntry[]>((() => { try { return JSON.parse(localStorage.getItem(AUTO_KEY) ?? "[]"); } catch { return []; } })());
+  function saveAutoLog(list: AutoEntry[]) {
+    autoLog = list.slice(-20);
+    try { localStorage.setItem(AUTO_KEY, JSON.stringify(autoLog)); } catch { /* 무시 */ }
+  }
+  /** 자동 기록 취소: 그때 넣은 뽑기를 지운다(재화는 화면에서 읽은 값 그대로 둔다) */
+  function cancelAuto(e: AutoEntry) {
+    const next = structuredClone(records);
+    const ids = new Set(e.pullIds);
+    next.games[e.game].pulls = next.games[e.game].pulls.filter((p) => !ids.has(p.id));
+    update(next);
+    saveAutoLog(autoLog.filter((x) => x.id !== e.id));
+    notify(`${e.label} 취소`);
+  }
+
+  function saveDetection(d: Detection, gid: string, count: number, auto = false) {
     const top = d.game === "genshin" ? 5 : 6;
     const banner = groupBanners(pack, d.game, gid).find((b) => b.id === records.games[d.game].currentBanner[gid]);
     // 3성은 기록하지 않는다(사용자 요청). 4성 이상만 이름·등급을 남긴다.
     const items = d.items.filter((i) => i.rarity >= 4).map((i) => ({
       name: i.name, rarity: i.rarity, top: i.rarity >= top, featured: i.rarity >= top ? matchFeatured(banner, i.name) : null,
     }));
-    update(recordDetected(records, d.game, gid, count, items, d.after, new Date(d.time)));
+    const next = recordDetected(records, d.game, gid, count, items, d.after, new Date(d.time));
+    update(next);
     saveDetections(loadDetections().filter((x) => x.id !== d.id));
-    notify(`${GAMES[d.game].shortName} ${count}회 기록 완료`);
+    const label = `${GAMES[d.game].shortName} ${findGroup(d.game, gid).name} ${count}회`;
+    if (auto) {
+      saveAutoLog([...autoLog, {
+        id: d.id, game: d.game, label, pullIds: next.undo[next.undo.length - 1]?.addedPullIds ?? [], uncertain: d.uncertain, time: d.time,
+      }]);
+      notify(`${label} 자동 기록${d.uncertain ? " (확실하지 않음 — \"확인\"에서 취소 가능)" : ""}`);
+    } else {
+      notify(`${label} 기록 완료`);
+    }
   }
   function guessFeaturedFor(g: GameId, gid: string, name: string): boolean | null {
     const banner = groupBanners(pack, g, gid).find((b) => b.id === records.games[g].currentBanner[gid]);
@@ -191,7 +234,7 @@
     def.currencies.filter((c) => c.manualOnly).map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
   );
   const pending = $derived(
-    detections.length + (limbusRows.length ? 1 : 0) + HISTORY_GAMES.filter((g) => Object.keys(historyStore[g] ?? {}).length).length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
+    detections.length + autoLog.filter((e) => e.uncertain).length + (limbusRows.length ? 1 : 0) + HISTORY_GAMES.filter((g) => Object.keys(historyStore[g] ?? {}).length).length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
   );
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
@@ -637,6 +680,21 @@
               defaultGroup={g === "arknights" ? arknightsDefault : undefined}
               onApply={(choices) => applyHistory(g, choices)} onClear={() => saveHistory(g, {})} />
           {/each}
+          {#if autoLog.length}
+            <div class="card autolog">
+              <b>자동으로 기록한 뽑기</b>
+              {#each [...autoLog].reverse() as e (e.id)}
+                <div class="arow" class:unsure={e.uncertain}>
+                  <span>{new Date(e.time).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} {e.label}{e.uncertain ? " · 확실하지 않음" : ""}</span>
+                  <span class="abtn">
+                    <button onclick={() => cancelAuto(e)}>취소</button>
+                    <button onclick={() => saveAutoLog(autoLog.filter((x) => x.id !== e.id))}>확인</button>
+                  </span>
+                </div>
+              {/each}
+              <p class="muted lbsmall">잘못 잡힌 것만 "취소"하세요. "확인"은 목록에서 지우기만 합니다(기록은 그대로).</p>
+            </div>
+          {/if}
           {#if limbusRows.length}
             <div class="card lbhist">
               <div class="lbhead"><b>림버스 추출 이력 {limbusRows.length}개 읽음</b><span class="muted">000 {limbusRows.filter((r) => r.top).length}개</span></div>
@@ -739,6 +797,11 @@
   .actions button.primary { background: var(--btn-bg); color: var(--btn-fg); border: var(--btn-border); clip-path: var(--btn-clip); }
   .undo { color: var(--muted); font-size: 16px; }
   .review { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+  .autolog { display: flex; flex-direction: column; gap: 6px; padding: 10px; font-size: 12px; align-self: stretch; }
+  .arow { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: var(--text); }
+  .arow.unsure { color: var(--warn); }
+  .abtn { display: inline-flex; gap: 4px; flex: none; }
+  .abtn button { padding: 2px 8px; font-size: 11px; }
   .lbhist { display: flex; flex-direction: column; gap: 6px; padding: 10px; font-size: 12px; align-self: stretch; }
   .lbhead { display: flex; justify-content: space-between; }
   .lbsmall { font-size: 11px; margin: 0; line-height: 1.45; }
