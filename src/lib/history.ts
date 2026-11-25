@@ -1,6 +1,7 @@
 // 공식 기록 화면 읽기: 게임 안(또는 공식 웹) 뽑기 기록 화면의 글자를 줄 단위 기록으로 바꾸고,
 // 앱 기록에 반영한다. 공식 기록은 화면 인식·수동 입력보다 우선한다(CLAUDE.md 원칙).
-// 지금은 엔드필드 "헤드헌팅 기록" (사용자 실기 자료 2026-11-25).
+// 엔드필드 "헤드헌팅 기록", 원신 "기원 기록", 명일방주 요스타 계정 사이트 (사용자 실기 자료 2026-11-25).
+// 림버스 "추출 이력"은 최근 15일 20건만, 시각 없이 보여서 기록 반영 대상에서 뺐다.
 import type { PackBanner } from "./banners";
 import type { ScreenFrame, ScreenLine } from "./recognize";
 import type { GameId, Pull, Records } from "./types";
@@ -13,6 +14,10 @@ export interface HistoryRow {
   time: string;
   /** 긴급 모집(무료 10회): 천장·누적 횟수에 들어가지 않는다 */
   emergency: boolean;
+  /** 화면에서 바로 알 수 있는 종류(원신 기원 유형). 없으면 배너 이름으로 찾는다 */
+  group?: string | null;
+  /** 화면에서 바로 알 수 있는 등급(원신 "이름(4)"). 없으면 이름 목록으로 판단 */
+  rarity?: number | null;
 }
 
 export interface HistoryPage {
@@ -65,6 +70,78 @@ export function parseEndfieldHistory(frame: ScreenFrame): HistoryPage | null {
   return { game: "endfield", page: pageLine ? Number(pageLine.t.trim()) : null, rows };
 }
 
+const nearY = (a: ScreenLine, b: ScreenLine, d = 0.025) => Math.abs(a.y - b.y) < d;
+const tzOf = (text: string | undefined, fallback: number) =>
+  Number(text?.match(/UTC\s*([+-]\s*\d+)/)?.[1].replace(/\s/g, "") ?? fallback);
+
+/** 원신 기원 유형 → 종류. 상시·초심자 기원은 다루지 않아 null */
+export function genshinGroup(kind: string): string | null {
+  if (/캐릭터\s*이벤트/.test(kind)) return "genshin-char";
+  if (/무기/.test(kind)) return "genshin-weapon";
+  if (/집록/.test(kind)) return "genshin-chronicled";
+  return null;
+}
+
+/**
+ * 원신 기원 기록 화면 → 기록 줄. 열: 아이템 유형 / 아이템 이름(4성·5성은 "이름(4)") / 기원 유형 / 뽑기 시간.
+ * 시각은 서버 시간이라 아시아 서버(UTC+8)로 본다(한국 사용자 기준, 추정).
+ */
+export function parseGenshinHistory(frame: ScreenFrame, rarityOf: (name: string) => number | null): HistoryPage | null {
+  const lines = frame.lines;
+  const nameHead = lines.find((l) => /아이템\s*이름/.test(l.t));
+  const timeHead = lines.find((l) => /뽑기\s*시간/.test(l.t));
+  const kindHead = lines.find((l) => /기원\s*유형/.test(l.t) && l.y > (nameHead?.y ?? 1) - 0.02);
+  if (!nameHead || !timeHead || !kindHead) return null;
+  const rows: HistoryRow[] = [];
+  const times = lines
+    .filter((l) => l.y > timeHead.y + 0.02 && Math.abs(l.x - timeHead.x) < 0.1)
+    .map((l) => ({ l, time: parseRecordTime(l.t.replace(/-/g, "."), 8) }))
+    .filter((v): v is { l: ScreenLine; time: string } => !!v.time)
+    .sort((a, b) => a.l.y - b.l.y);
+  for (const { l, time } of times) {
+    const nameLine = lines.find((n) => nearY(n, l) && Math.abs(n.x - nameHead.x) < 0.06 && /[가-힣]/.test(n.t));
+    const kindLine = lines.find((k) => nearY(k, l) && Math.abs(k.x - kindHead.x) < 0.08 && /기원/.test(k.t));
+    if (!nameLine || !kindLine) continue;
+    const m = nameLine.t.trim().match(/^(.*?)\s*\((\d)\)$/);
+    const name = (m ? m[1] : nameLine.t).trim();
+    rows.push({
+      banner: kindLine.t.trim(),
+      name,
+      time,
+      emergency: false,
+      group: genshinGroup(kindLine.t),
+      rarity: m ? Number(m[2]) : (rarityOf(name) ?? 3),
+    });
+  }
+  const pageLine = lines.find((l) => /^\d{1,3}$/.test(l.t.trim()) && l.y > (times.at(-1)?.l.y ?? 0.7) && l.x > 0.4 && l.x < 0.6);
+  return { game: "genshin", page: pageLine ? Number(pageLine.t.trim()) : null, rows };
+}
+
+/**
+ * 명일방주 요스타 계정 사이트의 가챠 기록 → 기록 줄. 열: 배너 / 획득 결과(이름) / 획득 시간(날짜 줄 + 시각 줄).
+ * 등급은 글자로 안 나와서 6성 이름 목록으로 판단한다.
+ */
+export function parseArknightsHistory(frame: ScreenFrame): HistoryPage | null {
+  const lines = frame.lines;
+  const result = lines.find((l) => /획득\s*결과/.test(l.t));
+  const timeHead = lines.find((l) => /획득\s*시간/.test(l.t));
+  if (!result || !timeHead) return null;
+  const tz = tzOf(timeHead.t, 9);
+  const rows: HistoryRow[] = [];
+  const dates = lines.filter((l) => l.y > timeHead.y && /^\d{4}-\d{2}-\d{2}$/.test(digits(l.t.trim()))).sort((a, b) => a.y - b.y);
+  for (const d of dates) {
+    const clock = lines.find((c) => c.y >= d.y && c.y - d.y < 0.035 && Math.abs(c.x - d.x) < 0.08 && /^\d{2}:\d{2}:\d{2}$/.test(digits(c.t.trim())));
+    if (!clock) continue;
+    const time = parseRecordTime(`${digits(d.t.trim()).replace(/-/g, ".")} ${digits(clock.t.trim())}`, tz);
+    const band = (l: ScreenLine) => l.y > d.y - 0.02 && l.y < clock.y + 0.02;
+    const banner = lines.find((b) => band(b) && b.x < result.x - 0.1 && /[가-힣]/.test(b.t));
+    const name = lines.find((n) => band(n) && Math.abs(n.x - result.x) < 0.08 && /[가-힣]/.test(n.t));
+    if (!time || !banner || !name) continue;
+    rows.push({ banner: banner.t.trim(), name: name.t.trim(), time, emergency: false });
+  }
+  return { game: "arknights", page: null, rows };
+}
+
 /** 여러 화면(쪽)에서 읽은 줄을 합친다. 같은 쪽을 여러 번 읽어도 한 번만 남는다. */
 export function mergePages(store: Record<string, HistoryRow>, page: HistoryPage): Record<string, HistoryRow> {
   const next = { ...store };
@@ -87,7 +164,7 @@ export interface ImportResult {
 
 /**
  * 공식 기록을 앱 기록에 반영한다.
- * - 배너 이름으로 배너 자료에서 종류(한정/재구축)를 찾는다. 못 찾으면(기초 헤드헌팅 등) 건너뛴다.
+ * - 종류: 줄에 적힌 종류(원신) → 없으면 groupOf(배너 이름). 못 찾으면(상시·커널 등) 건너뛴다.
  * - 긴급 모집은 천장·누적 횟수에 안 들어가므로 넣지 않는다.
  * - 기록이 덮는 시간 구간 안의 기존 뽑기(화면 감지·수동)는 공식 기록으로 바꾼다.
  */
@@ -95,21 +172,37 @@ export function importHistory(
   records: Records,
   game: GameId,
   rows: HistoryRow[],
-  ctx: { banners: PackBanner[]; isTop: (name: string) => boolean; newId: () => string },
+  ctx: {
+    banners: PackBanner[];
+    /** 최고 등급 (원신 5, 그 외 6) */
+    topRarity: number;
+    /** 이름으로 최고 등급인지 (등급이 화면에 없을 때) */
+    isTop: (name: string) => boolean;
+    /** 배너 이름 → 종류. null이면 제외 */
+    groupOf?: (banner: string) => string | null;
+    /** 이 등급보다 낮으면 이름·등급을 남기지 않는다 (원신 3성 — 사용자 요청) */
+    minNamedRarity?: number;
+    newId: () => string;
+  },
 ): ImportResult {
   const next = structuredClone(records);
   const rec = next.games[game];
-  const findBanner = (name: string) => ctx.banners.find((b) => b.name.includes(`「${name}」`) || b.name === name);
+  const byName = (name: string) => ctx.banners.find((b) => b.name.includes(`「${name}」`) || b.name === name);
+  const groupFor = (r: HistoryRow) => r.group ?? byName(r.banner)?.group ?? ctx.groupOf?.(r.banner) ?? null;
+  // 배너 ID: 이름이 맞는 배너 → 그 시각에 진행 중이던 같은 종류 배너 → 없으면 빈칸
+  const bannerFor = (r: HistoryRow, group: string) =>
+    byName(r.banner) ??
+    ctx.banners.find((b) => b.group === group && b.start && b.start <= r.time && (!b.end || r.time <= b.end));
   const usable = rows
     .filter((r) => !r.emergency)
-    .map((r) => ({ r, b: findBanner(r.banner) }))
-    .filter((v): v is { r: HistoryRow; b: PackBanner } => !!v.b);
+    .map((r) => ({ r, group: groupFor(r) }))
+    .filter((v): v is { r: HistoryRow; group: string } => !!v.group);
   const skipped = rows.length - usable.length;
   if (!usable.length) return { records, added: 0, replaced: 0, skipped };
 
   // 같은 초의 줄은 목록에서 위쪽이 나중이므로 뒤집어서 오래된 것부터
   const ordered = usable.map((v, i) => ({ ...v, i })).sort((a, b) => a.r.time.localeCompare(b.r.time) || b.i - a.i);
-  const groups = new Set(ordered.map((v) => v.b.group));
+  const groups = new Set(ordered.map((v) => v.group));
   const from = Date.parse(ordered[0].r.time) - 60_000;
   const to = Date.parse(ordered[ordered.length - 1].r.time) + 60_000;
   const inRange = (p: Pull) => groups.has(p.group) && Date.parse(p.time) >= from && Date.parse(p.time) <= to;
@@ -118,23 +211,26 @@ export function importHistory(
 
   const added: Pull[] = [];
   let session = "";
-  let lastTime = "";
+  let lastKey = "";
   let index = 0;
-  for (const { r, b } of ordered) {
-    if (r.time !== lastTime) { session = ctx.newId(); lastTime = r.time; index = 0; }
-    const top = ctx.isTop(r.name);
+  for (const { r, group } of ordered) {
+    const key = `${group}|${r.time}`;
+    if (key !== lastKey) { session = ctx.newId(); lastKey = key; index = 0; }
+    const b = bannerFor(r, group);
+    const top = r.rarity != null ? r.rarity >= ctx.topRarity : ctx.isTop(r.name);
+    const unnamed = r.rarity != null && ctx.minNamedRarity != null && r.rarity < ctx.minNamedRarity;
     added.push({
       id: ctx.newId(),
       time: r.time,
       game,
-      group: b.group,
-      banner: b.id,
+      group,
+      banner: b?.id ?? "",
       sessionId: session,
       indexInSession: index++,
       top,
-      name: r.name,
-      featured: top ? b.featured.some((f) => f.ko === r.name) : null,
-      rarity: top ? 6 : null,
+      name: unnamed ? null : r.name,
+      featured: top && b ? b.featured.some((f) => f.ko === r.name) : null,
+      rarity: unnamed ? null : (r.rarity ?? (top ? ctx.topRarity : null)),
       source: "official",
       confidence: 1,
       status: "confirmed",

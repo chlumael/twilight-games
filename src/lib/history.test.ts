@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PackBanner } from "./banners";
-import { importHistory, mergePages, parseEndfieldHistory, parseRecordTime } from "./history";
+import { importHistory, mergePages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, parseRecordTime } from "./history";
 import { emptyRecords, recordSession, topHistory } from "./ledger";
 import { parseFrameText } from "./recognize";
 
@@ -12,7 +12,8 @@ const banner: PackBanner = {
   featured: [{ id: "ko:명하", ko: "명하" }], featuredRare: [],
 };
 let n = 0;
-const ctx = { banners: [banner], isTop: (name: string) => ["명하", "케르"].includes(name), newId: () => `id${++n}` };
+const ctx = { banners: [banner], topRarity: 6, isTop: (name: string) => ["명하", "케르"].includes(name), newId: () => `id${++n}` };
+const fixture = (f: string) => parseFrameText(readFileSync(new URL(`./fixtures/${f}.txt`, import.meta.url), "utf8"));
 
 describe("엔드필드 공식 기록 읽기", () => {
   it("시각: 서버 시간(UTC+8), OCR이 1을 l로 읽어도", () => {
@@ -62,5 +63,42 @@ describe("엔드필드 공식 기록 읽기", () => {
   it("배너를 못 찾으면(기초 헤드헌팅 등) 건너뛴다", () => {
     const out = importHistory(emptyRecords(), "endfield", [{ banner: "기초 헤드헌팅", name: "가", time: "2026-11-01T00:00:00.000Z", emergency: false }], ctx);
     expect(out).toMatchObject({ added: 0, skipped: 1 });
+  });
+});
+
+describe("원신 기원 기록 읽기", () => {
+  const rarity = (n: string) => ({ 혹술창: 3, 흑술창: 3, "마도 서론": 3, 비천어검: 3 } as Record<string, number>)[n] ?? null;
+  it("실기: 이름(4) 표시로 등급, 기원 유형으로 종류, 시각은 아시아 서버", () => {
+    const p = parseGenshinHistory(fixture("genshin-history-phone"), rarity)!;
+    expect(p.page).toBe(1);
+    expect(p.rows.map((r) => [r.name, r.rarity, r.group])).toEqual([
+      ["혹술창", 3, "genshin-char"], ["마도 서론", 3, "genshin-char"], ["비천어검", 3, "genshin-char"],
+      ["흑술창", 3, "genshin-char"], ["발레리", 4, "genshin-char"],
+    ]);
+    expect(p.rows[0].time).toBe("2026-11-08T11:25:56.000Z");
+  });
+  it("반영: 등급은 줄의 값, 4성 이름도 남김", () => {
+    const rows = parseGenshinHistory(fixture("genshin-history-phone"), rarity)!.rows;
+    const out = importHistory(emptyRecords(), "genshin", rows, { banners: [], topRarity: 5, isTop: () => false, minNamedRarity: 4, newId: () => `g${++n}` });
+    expect(out.added).toBe(5);
+    expect(out.records.games.genshin.pulls.filter((p) => p.name === null)).toHaveLength(4); // 3성은 이름 없이 횟수만
+    const four = out.records.games.genshin.pulls.find((p) => p.name === "발레리");
+    expect(four).toMatchObject({ rarity: 4, top: false, group: "genshin-char", source: "official" });
+  });
+});
+
+describe("명일방주 요스타 가챠 기록 읽기", () => {
+  it("실기: 날짜 줄 + 시각 줄, 배너·이름, UTC+9", () => {
+    const p = parseArknightsHistory(fixture("arknights-history-phone"))!;
+    expect(p.rows).toHaveLength(10);
+    expect(p.rows.map((r) => r.name)).toEqual(["미르", "시라유키", "라바", "메이", "애쉬락", "크루스", "캐터펄트", "포푸카", "비글", "휴머스"]);
+    expect(p.rows[0]).toMatchObject({ banner: "커널 헤드헌팅", time: "2026-11-04T12:21:59.000Z" });
+  });
+  it("반영: 커널 헤드헌팅처럼 종류를 못 정한 배너는 건너뛴다", () => {
+    const rows = parseArknightsHistory(fixture("arknights-history-phone"))!.rows;
+    const out = importHistory(emptyRecords(), "arknights", rows, {
+      banners: [], topRarity: 6, isTop: () => false, groupOf: (b) => (/커널/.test(b) ? null : "arknights-limited"), newId: () => `a${++n}`,
+    });
+    expect(out).toMatchObject({ added: 0, skipped: 10 });
   });
 });

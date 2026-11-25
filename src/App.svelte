@@ -25,7 +25,10 @@
   import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "./lib/detect";
   import genshinItemsFile from "../data/genshin-items.json";
   import endfieldSixFile from "../data/names/endfield-6star.json";
-  import { importHistory, mergePages, parseEndfieldHistory, type HistoryRow } from "./lib/history";
+  import arknightsSixFile from "../data/names/arknights-6star.json";
+  import {
+    importHistory, mergePages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow,
+  } from "./lib/history";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
@@ -91,27 +94,50 @@
       notify(`${GAMES[out.detection.game].shortName} ${out.detection.count}회 뽑기 감지 — "확인"에서 기록하세요`);
     }
   }
-  // ---- 공식 기록 화면 (엔드필드 헤드헌팅 기록) ----
-  const HISTORY_KEY = "tg-history-endfield";
-  const endfieldSix = new Set<string>((endfieldSixFile as { names?: string[] }).names ?? []);
-  let historyStore = $state.raw<Record<string, HistoryRow>>(loadHistory());
-  const historyRows = $derived(Object.values(historyStore));
-  function loadHistory(): Record<string, HistoryRow> {
-    try { return JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "{}"); } catch { return {}; }
+  // ---- 공식 기록 화면 (엔드필드 헤드헌팅 기록, 원신 기원 기록, 명일방주 요스타 가챠 기록) ----
+  const HISTORY_KEY = "tg-history";
+  const HISTORY_GAMES: GameId[] = ["genshin", "endfield", "arknights"];
+  const sixStars: Partial<Record<GameId, Set<string>>> = {
+    endfield: new Set((endfieldSixFile as { names?: string[] }).names ?? []),
+    arknights: new Set((arknightsSixFile as { names?: string[] }).names ?? []),
+  };
+  let historyStore = $state.raw<Partial<Record<GameId, Record<string, HistoryRow>>>>(loadHistory());
+  function loadHistory(): Partial<Record<GameId, Record<string, HistoryRow>>> {
+    try {
+      const all = JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "{}");
+      const oldEndfield = JSON.parse(localStorage.getItem("tg-history-endfield") ?? "null"); // 0.6.0 저장분
+      if (oldEndfield && !all.endfield) all.endfield = oldEndfield;
+      return all;
+    } catch { return {}; }
   }
-  function saveHistory(store: Record<string, HistoryRow>) {
-    historyStore = store;
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(store)); } catch { /* 무시 */ }
+  function saveHistory(game: GameId, store: Record<string, HistoryRow>) {
+    historyStore = { ...historyStore, [game]: store };
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(historyStore)); localStorage.removeItem("tg-history-endfield"); } catch { /* 무시 */ }
   }
-  function applyHistory() {
-    const out = importHistory(records, "endfield", historyRows, {
-      banners: pack?.games.endfield ?? [],
-      isTop: (n) => endfieldSix.has(n),
+  const historyRowsOf = (g: GameId) => Object.values(historyStore[g] ?? {});
+  const topRarityOf = (g: GameId) => (g === "genshin" ? 5 : 6);
+  const isTopRow = (g: GameId) => (r: HistoryRow) => (r.rarity != null ? r.rarity >= topRarityOf(g) : !!sixStars[g]?.has(r.name));
+  function readHistory(f: ScreenFrame) {
+    const page =
+      parseEndfieldHistory(f) ??
+      parseGenshinHistory(f, (n) => (genshinItems[n]?.rarity ?? null)) ??
+      parseArknightsHistory(f);
+    if (page?.rows.length) saveHistory(page.game, mergePages(historyStore[page.game] ?? {}, page));
+  }
+  /** 명일방주 요스타 기록의 배너 이름 → 종류 처음 값 (커널·상시는 넣지 않음, 사용자가 바꿀 수 있음) */
+  const arknightsDefault = (b: string) => (/커널|상시|기초|초심자/.test(b) ? "" : "arknights-limited");
+  function applyHistory(game: GameId, choices: Record<string, string>) {
+    const out = importHistory(records, game, historyRowsOf(game), {
+      banners: pack?.games[game] ?? [],
+      topRarity: topRarityOf(game),
+      isTop: (n) => !!sixStars[game]?.has(n),
+      groupOf: (b) => choices[b] || null,
+      minNamedRarity: game === "genshin" ? 4 : undefined,
       newId: () => `off-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     });
     if (out.added) update(out.records);
-    saveHistory({});
-    notify(`공식 기록 ${out.added}개 반영${out.replaced ? `, 기존 ${out.replaced}개 교체` : ""}${out.skipped ? `, ${out.skipped}개 제외` : ""}`);
+    saveHistory(game, {});
+    notify(`${GAMES[game].shortName} 공식 기록 ${out.added}개 반영${out.replaced ? `, 기존 ${out.replaced}개 교체` : ""}${out.skipped ? `, ${out.skipped}개 제외` : ""}`);
   }
 
   function saveDetection(d: Detection, gid: string, count: number) {
@@ -147,7 +173,7 @@
     def.currencies.filter((c) => c.manualOnly).map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
   );
   const pending = $derived(
-    detections.length + (Object.keys(historyStore).length ? 1 : 0) + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
+    detections.length + HISTORY_GAMES.filter((g) => Object.keys(historyStore[g] ?? {}).length).length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
   );
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
@@ -453,8 +479,7 @@
         // (화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으므로, 다른 앱 글자를 붙잡아 두지 않는다)
         if (r || looksLikeGacha(f)) screenFrame = f;
         onScreenFrame(f, r);
-        const hist = r ? null : parseEndfieldHistory(f);
-        if (hist?.rows.length) saveHistory(mergePages(historyStore, hist));
+        if (!r) readHistory(f);
         if (r) {
           // 이번에 일부를 못 읽었으면(가려짐 등) 같은 게임에서 직전에 읽은 값을 남겨 둔다
           if (screenResult?.game === r.game) r.currency = { ...screenResult.currency, ...r.currency };
@@ -589,9 +614,11 @@
           {#if pending === 0}
             <p class="muted">확인할 기록이 없습니다.</p>
           {/if}
-          {#if historyRows.length}
-            <HistoryCard rows={historyRows} isTop={(n) => endfieldSix.has(n)} onApply={applyHistory} onClear={() => saveHistory({})} />
-          {/if}
+          {#each HISTORY_GAMES.filter((g) => historyRowsOf(g).length) as g (g)}
+            <HistoryCard game={g} rows={historyRowsOf(g)} hideBelow={g === "genshin" ? 4 : 0} isTop={isTopRow(g)} needsChoice={g === "arknights"}
+              defaultGroup={g === "arknights" ? arknightsDefault : undefined}
+              onApply={(choices) => applyHistory(g, choices)} onClear={() => saveHistory(g, {})} />
+          {/each}
           {#each detections as d (d.id)}
             <DetectionCard detection={d} defaultGroup={settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id}
               guessFeatured={(gid, name) => guessFeaturedFor(d.game, gid, name)}

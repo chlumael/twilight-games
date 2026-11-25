@@ -166,6 +166,26 @@ if (collectedSixStars.size >= 5) {
   await writeFile(file, JSON.stringify({ _comment: "엔드필드 6성 오퍼레이터 한국어 이름. 공식 공지에서 모은다(build.mjs).", names }, null, 1) + "\n");
 }
 
+// 명일방주 6성 한국어 이름 (요스타 가챠 기록 화면 읽기에서 6성 판별용):
+// 한국 서버 게임 데이터(Kengxxiao/ArknightsGameData_YoStar, 데이터로만 읽음) + 배너 자료의 6성 픽업
+try {
+  const table = await get("https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/main/ko_KR/gamedata/excel/character_table.json", "json");
+  const names = new Set(
+    Object.entries(table)
+      .filter(([id, c]) => id.startsWith("char_") && (c.rarity === "TIER_6" || c.rarity === 5))
+      .map(([, c]) => c.name),
+  );
+  for (const b of games.arknights ?? []) for (const f of b.featured ?? []) if (f.ko) names.add(f.ko);
+  const file = new URL("../../data/names/arknights-6star.json", import.meta.url);
+  const old = await readFile(file, "utf8").then((t) => JSON.parse(t).names ?? []).catch(() => []);
+  if (names.size > 50) {
+    const all = [...new Set([...old, ...names])].sort();
+    await writeFile(file, JSON.stringify({ _comment: "명일방주 6성 오퍼레이터 한국어 이름. 한국 서버 게임 데이터 + 배너 픽업(build.mjs).", names: all }, null, 1) + "\n");
+  }
+} catch (e) {
+  console.warn(`명일방주 6성 이름 표를 만들지 못함 (${e.message})`);
+}
+
 try {
   const table = await genshinItems();
   if (Object.keys(table.items).length > 100) {

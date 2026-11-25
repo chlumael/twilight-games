@@ -223,5 +223,5 @@ export function parseFrameText(text: string): ScreenFrame {
 
 /** 게임 가챠 화면으로 보이는지 (규칙에 안 맞아도 "읽은 글자 복사"용으로 남길지 판단) */
 export function looksLikeGacha(frame: ScreenFrame): boolean {
-  return frame.lines.some((l) => /헤드헌팅|기원|추출|회\s*진행|LUNACY|UID/i.test(l.t));
+  return frame.lines.some((l) => /헤드헌팅|기원|추출|회\s*진행|LUNACY|UID|획득\s*결과/i.test(l.t));
 }

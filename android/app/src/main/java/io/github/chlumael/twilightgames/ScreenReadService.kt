@@ -247,7 +247,7 @@ class ScreenReadService : Service() {
         private const val FAST_INTERVAL_MS = 1000L
         private const val FAST_WINDOW_MS = 20_000L
         /** 네 게임의 가챠 메인·뽑기 화면에 나오는 글자 (원신 공개 화면은 UID가 늘 보인다) */
-        private val GACHA_WORDS = Regex("헤드헌팅|기원|추출|회\\s*진행|LUNACY|UID", RegexOption.IGNORE_CASE)
+        private val GACHA_WORDS = Regex("헤드헌팅|기원|추출|회\\s*진행|LUNACY|UID|획득\\s*결과", RegexOption.IGNORE_CASE)
         private const val FIRST_DELAY_MS = 800L
         const val ACTION_STOP = "io.github.chlumael.twilightgames.SCREEN_STOP"
         const val EXTRA_CODE = "code"
