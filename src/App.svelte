@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { isNewer, latestRelease } from "./lib/version";
   import CurrencyBar from "./components/CurrencyBar.svelte";
   import GroupPanel from "./components/GroupPanel.svelte";
   import PityRing from "./components/PityRing.svelte";
@@ -50,6 +51,7 @@
   let view = $state<"main" | "settings" | "review" | "top" | "stats">("main");
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
+  let newVersion = $state<string | null>(null); // PC판: 켤 때 찾은 새 버전
   // ---- 뽑기 감지 (화면 읽기 결과 → 확인 대기) ----
   const DETECT_KEY = "tg-detections";
   const genshinItems = ((genshinItemsFile as { items?: ItemTable }).items ?? {}) as ItemTable;
@@ -599,6 +601,11 @@
       unlisten.push(api.onEvent<ScreenFrame>("screen-text", (f) => sw.__twilightScreen?.(JSON.stringify(f))));
       unlisten.push(api.onEvent<{ state: string; message: string }>("screen-state", (st) => sw.__twilightScreenState?.(JSON.stringify(st))));
       api.screenRead(true);
+      // 켤 때 새 버전을 확인하고, 있으면 창을 펼쳐 알린다
+      void api.pcVersion().then(async (cur) => {
+        const r = cur ? await latestRelease() : null;
+        if (cur && r && r.hasPc && isNewer(r.version, cur)) { newVersion = r.version; collapsed = false; }
+      });
     }
     unlisten.push(api.onEvent<string>("hotkey", (action) => {
       if (action === "toggle-collapse") collapsed = !collapsed;
@@ -623,10 +630,18 @@
       {#if status.guaranteed}<span class="good" data-tauri-drag-region>확정</span>{/if}
       <span class="have" data-tauri-drag-region>{canPull}<small>뽑</small></span>
       {#if pending}<span class="warn" data-tauri-drag-region>확인 {pending}</span>{/if}
+      {#if newVersion}<span class="warn" data-tauri-drag-region>새 버전</span>{/if}
       {#if clickThrough}<span class="muted" data-tauri-drag-region title="클릭 통과 중 (Ctrl+Alt+T)">⇣</span>{/if}
       <button class="icon expand" onclick={() => (collapsed = false)} aria-label="펼치기">▾</button>
     </div>
   {:else}
+    {#if newVersion}
+      <div class="update">
+        <span>새 버전 {newVersion}이 있습니다</span>
+        <button onclick={() => api.openPcDownload()}>설치 파일 받기</button>
+        <button class="later" onclick={() => (newVersion = null)}>나중에</button>
+      </div>
+    {/if}
     <header data-tauri-drag-region>
       <div class="brand" data-tauri-drag-region>
         <span class="brand-title" data-tauri-drag-region>{skin.title}</span>
@@ -816,6 +831,9 @@
   .lblist .top { font-weight: 700; color: var(--top); }
   .lbact { display: flex; gap: 6px; }
   .lbact .save { flex: 1; }
+  .update { display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 12px; background: rgba(0, 0, 0, 0.45); border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.15)); }
+  .update span { flex: 1; font-weight: 700; }
+  .update .later { opacity: 0.7; }
   .toast {
     position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); color: #fff;
     padding: 5px 12px; border-radius: 999px; font-size: 12px; white-space: nowrap;

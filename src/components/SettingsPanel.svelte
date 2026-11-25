@@ -150,7 +150,7 @@
         </div>
         <p class="muted hint">브라우저로 설치 파일을 받습니다. 받은 파일을 실행하면 기록은 그대로 두고 새 버전으로 바뀝니다.</p>
       {:else if pcUpdate === "latest"}
-        <p class="muted hint">최신 버전입니다.</p>
+        <p class="muted hint">최신 버전입니다. 프로그램을 켤 때마다 새 버전을 확인해서 있으면 알려줍니다.</p>
       {:else if pcUpdate === "wait"}
         <p class="muted hint">새 버전 {pcLatest}의 PC 설치 파일을 만드는 중입니다. 10분쯤 뒤에 다시 확인해 주세요.</p>
       {:else if pcUpdate === "checking"}
