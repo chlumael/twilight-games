@@ -30,6 +30,7 @@ for (const [game, list] of Object.entries(pack.games ?? {})) {
 if (!pack.games?.genshin?.length) problems.push("genshin: no banners (source failed?)");
 if (!pack.games?.endfield?.length) problems.push("endfield: no banners (source failed?)");
 if (!pack.games?.limbus?.length) problems.push("limbus: no banners (source failed?)");
+if (!pack.games?.arknights?.length) problems.push("arknights: no banners (source failed?)");
 
 if (problems.length) {
   console.error(problems.join("\n"));

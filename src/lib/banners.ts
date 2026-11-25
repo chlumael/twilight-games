@@ -23,6 +23,8 @@ export interface PackBanner {
   /** 공지에 날짜 대신 "버전 업데이트 후/전까지"로 적혀 있어 근사값으로 채운 경우 */
   startApprox?: boolean;
   endApprox?: boolean;
+  /** 그림 글자를 확신 있게 읽지 못해 사람 확인이 필요한 배너 */
+  needsReview?: boolean;
   /** 이 정보를 읽어 온 곳 (예: "공식 홈페이지 공지") */
   source?: string;
   version: string | null;

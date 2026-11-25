@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-25T03:34:36.827Z",
+ "generatedAt": "2026-11-25T03:55:05.853Z",
  "games": {
   "genshin": [
    {
@@ -6870,7 +6870,62 @@
     "featuredRare": []
    }
   ],
-  "arknights": []
+  "arknights": [
+   {
+    "id": "arknights:official:LINKAGE_KR_42_0_5",
+    "group": "arknights-limited",
+    "name": "한정 헤드헌팅",
+    "start": "2026-11-16T07:00:00.000Z",
+    "end": "2026-11-29T18:59:00.000Z",
+    "version": null,
+    "source": "명일방주 게임 내 공식 공지",
+    "featured": [
+     {
+      "id": "ko:염호룡 오키드",
+      "ko": "염호룡 오키드"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ko:진오우S 캐터펄트",
+      "ko": "진오우S 캐터펄트"
+     }
+    ]
+   },
+   {
+    "id": "arknights:official:DOUBLE_KR_42_0_6",
+    "group": "arknights-standard",
+    "name": "일반 헤드헌팅",
+    "start": "2026-11-19T19:00:00.000Z",
+    "end": "2026-12-03T18:59:00.000Z",
+    "version": null,
+    "source": "명일방주 게임 내 공식 공지",
+    "featured": [
+     {
+      "id": "ko:치우바이",
+      "ko": "치우바이"
+     },
+     {
+      "id": "ko:스테인리스",
+      "ko": "스테인리스"
+     }
+    ],
+    "featuredRare": [
+     {
+      "id": "ko:윈드차임스",
+      "ko": "윈드차임스"
+     },
+     {
+      "id": "ko:샌드레코너",
+      "ko": "샌드레코너"
+     },
+     {
+      "id": "ko:멜라나이트",
+      "ko": "멜라나이트"
+     }
+    ]
+   }
+  ]
  },
  "errors": {}
 }

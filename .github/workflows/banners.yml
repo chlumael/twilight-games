@@ -22,6 +22,8 @@ jobs:
       - run: npm ci --ignore-scripts
       # 림버스 정기 업데이트 공지(그림)의 추출 기간을 읽는 글자 인식 도구
       - run: sudo apt-get update -q && sudo apt-get install -y -q tesseract-ocr tesseract-ocr-kor
+      # 명일방주 공지 배너 그림의 글자를 읽는 도구
+      - run: pip install --quiet rapidocr onnxruntime
       - run: node scripts/banners/build.mjs data/banners.new.json
       - run: node scripts/banners/validate.mjs data/banners.new.json
       - uses: actions/upload-artifact@v4

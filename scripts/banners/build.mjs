@@ -3,6 +3,7 @@
 // Upstream files are never executed: JS data modules are parsed as JSON5 text.
 import { readFile, writeFile } from "node:fs/promises";
 import JSON5 from "json5";
+import { arknightsOfficial as arknights } from "./arknights-official.mjs";
 import { endfieldOfficial as endfield } from "./endfield-official.mjs";
 import { applyKoreanNames, fetchWishAnnouncements } from "./genshin-official.mjs";
 import { limbusOfficial as limbus } from "./limbus-official.mjs";
@@ -111,15 +112,14 @@ async function genshin() {
 
 const games = {};
 const errors = {};
-for (const [key, fn] of Object.entries({ genshin, endfield, limbus })) {
+for (const [key, fn] of Object.entries({ genshin, endfield, limbus, arknights })) {
   try {
     games[key] = await fn();
   } catch (e) {
     errors[key] = String(e?.message ?? e);
   }
 }
-// 명일방주는 아직 자동 출처가 없다. 앱이 화면의 배너 이름으로 만든다.
-games.arknights = [];
+games.arknights ??= [];
 games.limbus ??= [];
 games.genshin ??= [];
 games.endfield ??= [];
