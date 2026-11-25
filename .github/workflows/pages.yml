@@ -1,7 +1,8 @@
 name: pages
 
-# Publishes the phone/browser web app to GitHub Pages:
+# 휴대폰·브라우저용 웹앱을 GitHub Pages에 배포:
 #   https://chlumael.github.io/twilight-games/
+# GitHub 공식 예제처럼 빌드(결과물 업로드)와 배포를 별도 작업으로 나눔.
 on:
   push:
     branches: [main]
@@ -11,17 +12,15 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read # 배포 작업이 업로드된 결과물(github-pages)을 찾을 때 필요
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -35,5 +34,13 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v5
