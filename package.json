@@ -10,7 +10,8 @@
     "test": "vitest run",
     "tauri": "tauri",
     "banners": "node scripts/banners/build.mjs && node scripts/banners/validate.mjs",
-    "build:web": "WEB_BASE=/twilight-games/ vite build"
+    "build:web": "WEB_BASE=/twilight-games/ vite build",
+    "build:android": "WEB_BASE=./ vite build --outDir android/app/src/main/assets/web --emptyOutDir"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.1.1",

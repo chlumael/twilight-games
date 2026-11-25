@@ -30,6 +30,7 @@
   let detection = $state<api.Detection>({ running: [], foreground: null });
   /** Running as a phone/browser web app instead of the desktop overlay. */
   const web = !api.inTauri;
+  const overlay = api.androidMode === "overlay";
   let collapsed = $state(!web);
   let view = $state<"main" | "settings" | "review" | "top">("main");
   let clickThrough = $state(false);
@@ -225,7 +226,23 @@
     }
   }
 
+  /** Re-read storage: another window (app ↔ overlay) may have saved meanwhile. */
+  async function reloadFromStorage() {
+    try {
+      const [r, s] = await Promise.all([api.readStore("records"), api.readStore("settings")]);
+      if (r) records = normalizeRecords(JSON.parse(r));
+      if (s) settings = normalizeSettings(JSON.parse(s));
+    } catch {
+      /* keep current state */
+    }
+  }
+
   onMount(() => {
+    (window as unknown as { __twilightReload?: () => void }).__twilightReload = () => {
+      if (loaded) reloadFromStorage();
+    };
+    const onVisible = () => document.visibilityState === "visible" && loaded && reloadFromStorage();
+    document.addEventListener("visibilitychange", onVisible);
     const unlisten: Promise<() => void>[] = [];
     (async () => {
       try {
@@ -251,11 +268,14 @@
       else if (action === "open-review") { collapsed = false; view = "review"; }
       else if (action === "undo") doUndo();
     }));
-    return () => unlisten.forEach((p) => p.then((f) => f()));
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      unlisten.forEach((p) => p.then((f) => f()));
+    };
   });
 </script>
 
-<main class:collapsed class:web data-skin={game} style={skinStyle(game)}>
+<main class:collapsed class:web class:overlay data-skin={game} style={skinStyle(game)}>
   {#if collapsed}
     <div class="line" data-tauri-drag-region ondblclick={() => (collapsed = false)} role="presentation">
       <span class="stripe" data-tauri-drag-region></span>
@@ -291,6 +311,9 @@
       </button>
       <button class="icon" onclick={() => (view = view === "settings" ? "main" : "settings")} aria-label="설정">⚙</button>
       {#if !web}<button class="icon" onclick={() => { collapsed = true; view = "main"; }} aria-label="접기">▴</button>{/if}
+      {#if api.androidMode === "app"}
+        <button class="icon launch" onclick={() => api.android?.startOverlay()} title="게임 위에 띄우기">⧉ 띄우기</button>
+      {/if}
     </header>
     {#if web}
       <nav class="games" aria-label="게임 선택">
@@ -429,4 +452,17 @@
   }
   main.web .actions button { padding: 11px 4px; }
   main.web :global(input), main.web :global(select) { font-size: 16px; } /* no zoom-on-focus */
+  .launch { font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+  /* ---- Android floating window: the native frame adds its own handle ---- */
+  main.overlay { height: 100vh; padding-top: 0; }
+  main.overlay header { padding: 6px 8px 4px 10px; }
+  main.overlay .brand-title { font-size: 14px; }
+  main.overlay .games { padding: 3px 6px; }
+  main.overlay .games img { width: 18px; height: 18px; }
+  main.overlay .games span { font-size: 10px; }
+  main.overlay .body { padding: 8px 10px 0; gap: 8px; }
+  main.overlay .actions { margin: 0 -10px; padding: 6px 10px 8px; }
+  main.overlay .actions button { padding: 7px 3px; }
+  main.overlay :global(input), main.overlay :global(select) { font-size: 13px; }
 </style>
