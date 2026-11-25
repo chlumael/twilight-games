@@ -23,9 +23,12 @@ description: 원신·명일방주·엔드필드·림버스의 인게임 화면, 
 
 ```bash
 S=.claude/skills/twilight-game-reference/scripts
-$S/yt_frames.sh <scratchpad>/ref/ak 6 "명일방주 한정 헤드헌팅 가챠"        # 4~20분 영상만
-$S/yt_frames.sh <scratchpad>/ref/lb 5 "림버스 컴퍼니 추출 10연" any        # 쇼츠 포함
+pip install -q yt-dlp
+$S/yt_gacha_frames.sh <scratchpad>/ref/gen 10 "원신 10연차 가챠 뽑기"     # 일반 영상(3~25분)만, 쇼츠 제외
 ```
+
+- **반드시 `yt_gacha_frames.sh`를 쓴다.** 예전 `yt_frames.sh`는 쇼츠·밈 영상이 섞여 쓸 만한 화면이 거의 안 나왔다(2026-11-25 사용자 지적). 일반 영상으로 바꾸니 10연 요약, 개별 공개(이름·별), 엔드필드 등급 연출이 여러 장 잡혔다.
+- 영상 자체 내려받기(yt-dlp)는 403으로 막힌다. 미리보기 묶음(storyboard)은 160×90이라 못 쓴다. 그래서 영상당 자동 장면 3장(480×360)이 한계다.
 
 - 영상마다 25/50/75% 지점 프레임 3장을 받아서 번호 매긴 한 장(`<outdir>.png`)으로 묶는다. Read로 한 번에 훑고, 쓸 만한 번호만 원본(480×360)으로 다시 본다.
 - 한국어 검색어가 한국어 클라이언트 화면을 더 잘 찾는다. "가챠", "10연", "헤드헌팅/기원/추출", 캐릭터 이름을 섞는다.
