@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GAMES } from "./games";
 import {
   availablePulls,
+  convertiblePulls,
   deduct,
   emptyBaseline,
   emptyRecords,
@@ -90,6 +91,20 @@ describe("currency", () => {
       items: [{ key: "permit", amount: 3 }, { key: "orundum", amount: 4200 }],
       shortfall: 0,
     });
+  });
+
+  it("Limbus spends tickets before Lunacy", () => {
+    const spend = GAMES.limbus.groups[0].spend;
+    expect(deduct({ tenTicket: 1, ticket: 2, lunacy: 1300 }, spend, 10).currency).toEqual({ tenTicket: 0, ticket: 2, lunacy: 1300 });
+    expect(deduct({ tenTicket: 0, ticket: 2, lunacy: 1300 }, spend, 10).currency).toEqual({ tenTicket: 0, ticket: 0, lunacy: 260 });
+  });
+
+  it("counts Genesis Crystals only as convertible extra pulls", () => {
+    const g = GAMES.genshin;
+    const cur = { primogem: 100, intertwined: 0, genesis: 300 };
+    expect(availablePulls(cur, g.groups[0].spend)).toBe(0);
+    expect(convertiblePulls(cur, g.currencies, g.groups[0].spend)).toBe(2);
+    expect(deduct(cur, g.groups[0].spend, 1).currency.genesis).toBe(300);
   });
 
   it("reports shortfall when currency runs out", () => {

@@ -140,6 +140,20 @@ export function availablePulls(currency: Record<string, number>, spend: SpendSte
   return spend.reduce((sum, s) => sum + Math.floor((currency[s.key] ?? 0) / s.cost) * s.pulls, 0);
 }
 
+/** Extra pulls available if convertible currencies (e.g. 창세의 결정 → 원석) were converted. */
+export function convertiblePulls(
+  currency: Record<string, number>,
+  defs: { key: string; convertsTo?: { key: string; rate: number } }[],
+  spend: SpendStep[],
+): number {
+  const converted = { ...currency };
+  for (const d of defs) {
+    if (!d.convertsTo) continue;
+    converted[d.convertsTo.key] = (converted[d.convertsTo.key] ?? 0) + (currency[d.key] ?? 0) * d.convertsTo.rate;
+  }
+  return availablePulls(converted, spend) - availablePulls(currency, spend);
+}
+
 /**
  * Deduct currency for `n` pulls in spend order. Multi-pull items (10-pull permits)
  * are only used while at least that many pulls remain.

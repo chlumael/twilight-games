@@ -34,6 +34,10 @@ export interface PityGroup {
 export interface CurrencyDef {
   key: string;
   label: string;
+  /** Only ever entered by hand: never read from the screen or spent automatically. */
+  manualOnly?: boolean;
+  /** Can be converted 1:rate into another currency (shown as extra pulls, never auto-converted). */
+  convertsTo?: { key: string; rate: number };
 }
 
 export interface GameDef {
@@ -67,6 +71,7 @@ export const GAMES: Record<GameId, GameDef> = {
     currencies: [
       { key: "primogem", label: "원석" },
       { key: "intertwined", label: "뒤엉킨 인연" },
+      { key: "genesis", label: "창세의 결정", manualOnly: true, convertsTo: { key: "primogem", rate: 1 } },
     ],
     groups: [
       {
@@ -202,7 +207,12 @@ export const GAMES: Record<GameId, GameDef> = {
         carryOver: false,
         featuredRule: "none",
         bannerCounters: [{ at: 200, label: "교환" }],
-        spend: [{ key: "lunacy", cost: 130, pulls: 1 }],
+        // Tickets are always spent before Lunacy.
+        spend: [
+          { key: "tenTicket", cost: 1, pulls: 10 },
+          { key: "ticket", cost: 1, pulls: 1 },
+          { key: "lunacy", cost: 130, pulls: 1 },
+        ],
       },
     ],
     processNames: ["LimbusCompany.exe"],
