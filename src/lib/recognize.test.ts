@@ -67,9 +67,29 @@ describe("화면 읽기", () => {
     expect(r).toMatchObject({ game: "genshin", currency: { primogem: 624, intertwined: 2 }, until: "남은 기간 17일 3시간" });
   });
 
-  it("명일방주 메인은 화면 종류만", () => {
-    expect(readScreen(frame([L("1회 진행", 0.7, 0.9), L("10회 진행", 0.85, 0.9), L("49320", 0.8, 0.03)])))
-      .toMatchObject({ game: "arknights", currency: {} });
+  it("실기: 명일방주 메인 — 합성옥, 교환 칸(×180)으로 오리지늄, 배너·종료일", () => {
+    expect(readScreen(phone("arknights-main-phone"))).toMatchObject({
+      game: "arknights",
+      currency: { orundum: 169680, originite: 179 },
+      banner: "비경의 사냥꾼",
+      until: "11월 30일 03:59",
+      notes: ["화면에 적힌 잔여 110회 헤드헌팅"],
+    });
+  });
+
+  it("엔드필드: 파생 오리지늄 뒤 '+', 허가증 2칸", () => {
+    const r = readScreen(frame([
+      L("8", 0.53, 0.04), L("2", 0.61, 0.04), L("10200", 0.73, 0.04), L("52925 (+)", 0.83, 0.04),
+      L("잔여 27일 종료: 12. 23 12: 00 (UTC+8)", 0.73, 0.29, 0.02),
+      L("73 회의 헤드헌팅 내 6성 오퍼레이터 확정 획득./", 0.71, 0.32, 0.02),
+      L("1회 한정 120 회의 헤드헌팅 내 확정 획득", 0.64, 0.52, 0.02),
+      L("1회 헤드헌팅", 0.68, 0.9), L("10회 헤드헌팅", 0.84, 0.9),
+    ]));
+    expect(r).toMatchObject({
+      game: "endfield",
+      currency: { oroberyl: 10200, origeometry: 52925, charteredPermit: 8, limitedPermit: 2 },
+      until: "12. 23 12: 00 (UTC+8)", toTop: 73, toFeatured: 120,
+    });
   });
 
   it("가챠 메인 화면이 아니면 null, 글자가 덜 읽혀도 멈추지 않는다", () => {

@@ -30,6 +30,8 @@ export interface ScreenReading {
   toTop: number | null;
   /** 엔드필드: "N회의 헤드헌팅 내 확정 획득" → 픽업 확정까지 남은 횟수 */
   toFeatured: number | null;
+  /** 그 밖에 화면에 적힌 참고 문구 (예: 명일방주 "잔여 110회 헤드헌팅") */
+  notes?: string[];
 }
 
 const squash = (s: string) => s.replace(/\s+/g, "");
@@ -50,12 +52,19 @@ const numbersIn = (lines: ScreenLine[], area: (l: ScreenLine) => boolean) =>
 
 function endfield(lines: ScreenLine[]): ScreenReading | null {
   if (!has(lines, /10회헤드헌팅/) || !has(lines, /1회헤드헌팅/)) return null;
-  // 위쪽 오른편에 재화 숫자가 가로로 놓인다. 맨 오른쪽 둘이 오로베릴, 파생 오리지늄.
-  const top = numbersIn(lines, (l) => l.y < 0.1 && l.x > 0.4);
+  // 위쪽 오른편 숫자: [허가증들…] 오로베릴, 파생 오리지늄[+]. 실기(2026-11-25): 파생 오리지늄 뒤에 "+"가 붙어
+  // 숫자만으로 된 줄이 아니게 읽힌다 → 줄 안의 숫자 조각으로 읽는다.
+  const top = numberTokens(lines.filter((l) => l.y < 0.1 && l.x > 0.4));
   const currency: Record<string, number> = {};
   if (top.length >= 2) {
     currency.oroberyl = top[top.length - 2].n;
     currency.origeometry = top[top.length - 1].n;
+  }
+  // 허가증이 정확히 2칸일 때만: 앞 칸 = 특별 허가 헤드헌팅 허가증(한정 헤드헌팅 허가증), 뒤 칸 = 이번 배너 전용
+  // 허가증(기간 한정 허가증). 근거: 10회 버튼의 "뒤 칸 ×2, 앞 칸 ×8" — 배너 전용을 먼저 쓴다(추정, 사용자 확인 필요).
+  if (top.length === 4) {
+    currency.charteredPermit = top[0].n;
+    currency.limitedPermit = top[1].n;
   }
   const before = (re: RegExp) => {
     for (const l of lines) {
@@ -152,9 +161,36 @@ function genshin(lines: ScreenLine[]): ScreenReading | null {
 
 function arknights(lines: ScreenLine[]): ScreenReading | null {
   if (!has(lines, /10회진행/) || !has(lines, /1회진행/)) return null;
-  // 재화 위치는 아직 확인하지 못했다(합성옥·오리지늄은 로비 화면 기준). 화면 종류만 알린다.
-  return { game: "arknights", kind: "gacha-main", currency: {}, banner: null, until: null, toTop: null, toFeatured: null };
+  // 위쪽 오른편 숫자: 용문폐, (공개모집 허가증), [오리지늄 → 합성옥 교환 시 받는 양], 합성옥.
+  // 실기(2026-11-25): 교환 칸은 보유 오리지늄이 아니라 "전부 바꾸면 받는 합성옥"(179 × 180 = 32220)이 적혀 있다.
+  const top = numberTokens(lines.filter((l) => l.y < 0.1 && l.x > 0.5));
+  const currency: Record<string, number> = {};
+  if (top.length >= 2) {
+    currency.orundum = top[top.length - 1].n;
+    const exchange = top[top.length - 2].n;
+    if (exchange % ORIGINITE_TO_ORUNDUM === 0) currency.originite = exchange / ORIGINITE_TO_ORUNDUM;
+  }
+  // 배너: "… 에 종료합니다" 바로 위 줄이 배너 이름
+  const endLine = lines.find((l) => /종료합니다/.test(l.t));
+  const title = endLine
+    ? lines.filter((l) => l.y < endLine.y && l.y > endLine.y - 0.08 && Math.abs(l.x - endLine.x) < 0.05 && /[가-힣]/.test(l.t))
+      .sort((a, b) => b.y - a.y)[0]
+    : undefined;
+  const remain = lines.map((l) => squash(l.t).match(/잔여(\d+)회/)).find(Boolean);
+  return {
+    game: "arknights",
+    kind: "gacha-main",
+    currency,
+    banner: title?.t.trim() ?? null,
+    until: endLine ? endLine.t.replace(/\s*에\s*종료합니다.*$/, "").trim() : null,
+    toTop: null,
+    toFeatured: null,
+    notes: remain ? [`화면에 적힌 잔여 ${remain[1]}회 헤드헌팅`] : [],
+  };
 }
+
+/** 명일방주 오리지늄 1개 = 합성옥 180개 */
+const ORIGINITE_TO_ORUNDUM = 180;
 
 /** 가챠 메인 화면이면 읽은 내용을, 아니면 null을 돌려준다. */
 export function readScreen(frame: ScreenFrame): ScreenReading | null {
@@ -178,4 +214,9 @@ export function parseFrameText(text: string): ScreenFrame {
     if (m) lines.push({ x: +m[1], y: +m[2], w: +m[3], h: +m[4], t: m[5] });
   }
   return { time: 0, landscape: true, lines };
+}
+
+/** 게임 가챠 화면으로 보이는지 (규칙에 안 맞아도 "읽은 글자 복사"용으로 남길지 판단) */
+export function looksLikeGacha(frame: ScreenFrame): boolean {
+  return frame.lines.some((l) => /헤드헌팅|기원|추출|회\s*진행|LUNACY|UID/i.test(l.t));
 }

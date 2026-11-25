@@ -41,7 +41,7 @@
   {#if !supported}
     <p class="muted small">게임 위에 띄운 창(안드로이드)에서만 쓸 수 있습니다.</p>
   {:else}
-    <p class="muted small">창을 띄울 때 함께 켜집니다(앱 설정에서 끌 수 있음). <b>창을 펼쳐 둔 동안은 게임을 가려서 읽지 않습니다</b> — 창을 접고 가챠 화면을 2~3초 띄운 뒤 다시 펼쳐 보세요. 화면은 2~3초에 한 번 기기 안에서만 읽고, 그림은 저장하거나 밖으로 보내지 않습니다. 가챠 메인 화면을 띄우면 재화와 배너를 읽어 아래에 보여 줍니다. 자동으로 기록을 바꾸지는 않습니다.</p>
+    <p class="muted small">창을 띄울 때 함께 켜집니다(앱 설정에서 끌 수 있음). <b>창을 펼쳐 둔 동안은 게임을 가려서 읽지 않습니다</b> — 창을 접고 가챠 화면을 2~3초 띄운 뒤 다시 펼쳐 보세요. 화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으니 게임을 마치면 끄세요(알림을 눌러도 꺼짐). 화면은 2~3초에 한 번 기기 안에서만 읽고, 그림은 저장하거나 밖으로 보내지 않습니다. 가챠 메인 화면을 띄우면 재화와 배너를 읽어 아래에 보여 줍니다. 자동으로 기록을 바꾸지는 않습니다.</p>
     {#if message}<p class="warn small">{message}</p>{/if}
     {#if reading && !result}<p class="muted small">읽는 중… 게임의 가챠 화면을 열어 주세요.</p>{/if}
   {/if}
@@ -53,6 +53,7 @@
       {#if result.until}<div class="row"><span>종료 표시</span><b>{result.until}</b></div>{/if}
       {#if result.toTop !== null}<div class="row"><span>화면에 적힌 천장까지</span><b>{result.toTop}회</b></div>{/if}
       {#if result.toFeatured !== null}<div class="row"><span>화면에 적힌 픽업 확정까지</span><b>{result.toFeatured}회</b></div>{/if}
+      {#each result.notes ?? [] as n (n)}<div class="row"><span>화면 표시</span><b>{n}</b></div>{/each}
       {#each Object.entries(result.currency) as [k, v] (k)}
         <div class="row"><span>{label(result.game, k)}</span><b>{v.toLocaleString()}{#if result.game === game && currency[k] !== v} <small>(기록: {(currency[k] ?? 0).toLocaleString()})</small>{/if}</b></div>
       {/each}
@@ -67,7 +68,7 @@
       <button onclick={copy}>{copied ? "복사됨" : "읽은 글자 복사"}</button>
       <button onclick={() => (showRaw = !showRaw)}>{showRaw ? "글자 숨기기" : `읽은 글자 보기 (${frame.lines.length}줄)`}</button>
     </div>
-    <p class="muted small">인식이 틀리면 "읽은 글자 복사"로 복사해서 보내 주세요. 그 내용으로 규칙을 고칩니다.</p>
+    <p class="muted small">인식이 틀리면 "읽은 글자 복사"로 복사해서 보내 주세요. 그 내용으로 규칙을 고칩니다. 복사되는 것은 마지막으로 본 <b>게임 가챠 화면</b>입니다.</p>
     {#if showRaw}<pre>{frameText(frame)}</pre>{/if}
   {/if}
 </section>

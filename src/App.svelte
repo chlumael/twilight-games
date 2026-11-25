@@ -19,7 +19,7 @@
   import bundledPack from "../data/banners.json";
   import { autoBanner, bannerLabel, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
-  import { readScreen, type ScreenFrame, type ScreenReading } from "./lib/recognize";
+  import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading } from "./lib/recognize";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
@@ -355,8 +355,10 @@
       try {
         const f = JSON.parse(json) as ScreenFrame;
         screenOn = true;
-        screenFrame = f;
         const r = readScreen(f);
+        // "읽은 글자 복사"용으로는 게임 가챠 화면으로 보이는 것만 남긴다.
+        // (화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으므로, 다른 앱 글자를 붙잡아 두지 않는다)
+        if (r || looksLikeGacha(f)) screenFrame = f;
         if (r) {
           // 이번에 일부를 못 읽었으면(가려짐 등) 같은 게임에서 직전에 읽은 값을 남겨 둔다
           if (screenResult?.game === r.game) r.currency = { ...screenResult.currency, ...r.currency };
