@@ -1,16 +1,14 @@
 name: android-release
 
-# Push a tag like v0.2.1 (matching versionName in android/app/build.gradle.kts)
-# to build the signed APK and publish it as a GitHub Release. Installed apps
-# find it through the update check (Updater.kt).
+# Publishes the signed APK as a GitHub Release whenever the app version in
+# android/app/build.gradle.kts has no release yet. The workflow creates the
+# tag v<versionName> itself (the dev session cannot push tags).
+# Release notes come from android/RELEASE_NOTES.md (Korean, shown in the app).
 on:
   push:
-    tags: ["v*"]
+    branches: [main, "phase*"]
+    paths: ["android/app/build.gradle.kts", "android/RELEASE_NOTES.md"]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Existing tag to (re)publish, e.g. v0.2.0"
-        required: true
 
 permissions:
   contents: write
@@ -19,56 +17,68 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      GH_TOKEN: ${{ github.token }}
       # Every release must be signed by this certificate, or installed apps cannot update.
       EXPECTED_CERT_SHA256: 21724c02904a68f70e6fa90d05e9aa03c0978cff848551f080bfe86b4389f0dc
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TAG }}
-      - name: Tag matches app version
+      - name: Version not released yet?
+        id: ver
         run: |
           v=$(grep -oP 'versionName = "\K[^"]+' android/app/build.gradle.kts)
-          [ "v$v" = "$TAG" ] || { echo "::error::tag $TAG does not match versionName $v"; exit 1; }
-      - name: Signing key present
+          echo "TAG=v$v" >> "$GITHUB_ENV"
+          if gh release view "v$v" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "v$v is already released; nothing to do"; echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.ver.outputs.skip != 'true'
+        name: Signing key present
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ] || { echo "::error::Add ANDROID_KEYSTORE_BASE64 and ANDROID_KEYSTORE_PASSWORD secrets"; exit 1; }
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
-      - uses: actions/setup-node@v4
+      - if: steps.ver.outputs.skip != 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - uses: actions/setup-java@v4
+      - if: steps.ver.outputs.skip != 'true'
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-      - run: npm ci
-      - run: npm test
-      - run: npm run build:android
-      - name: Build APK
+      - if: steps.ver.outputs.skip != 'true'
+        run: npm ci
+      - if: steps.ver.outputs.skip != 'true'
+        run: npm test
+      - if: steps.ver.outputs.skip != 'true'
+        run: npm run build:android
+      - if: steps.ver.outputs.skip != 'true'
+        name: Build APK
         working-directory: android
         env:
           TWILIGHT_KEYSTORE: ${{ runner.temp }}/release.jks
           TWILIGHT_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: ./gradlew assembleRelease --no-daemon
-      - name: Verify signing certificate
+      - if: steps.ver.outputs.skip != 'true'
+        name: Verify signing certificate
         run: |
           apk=android/app/build/outputs/apk/release/app-release.apk
           bt=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           sha=$("$bt/apksigner" verify --print-certs "$apk" | grep -oP 'SHA-256 digest: \K[0-9a-f]+' | head -1)
           [ "$sha" = "$EXPECTED_CERT_SHA256" ] || { echo "::error::wrong signing key ($sha)"; exit 1; }
           cp "$apk" "twilight-games-${TAG#v}.apk"
-      - name: Release notes from the tag message
+      - if: steps.ver.outputs.skip != 'true'
+        name: Release notes
         run: |
-          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
-          git for-each-ref "refs/tags/$TAG" --format='%(contents)' > notes.md
+          cp android/RELEASE_NOTES.md notes.md 2>/dev/null || true
           [ -s notes.md ] || echo "개선 사항이 있습니다." > notes.md
-      - uses: softprops/action-gh-release@v2
+      - if: steps.ver.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
+          target_commitish: ${{ github.sha }}
           name: 황혼 게임즈 ${{ env.TAG }}
           body_path: notes.md
           files: twilight-games-*.apk
