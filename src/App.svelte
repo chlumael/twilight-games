@@ -593,6 +593,12 @@
       }
     }));
     unlisten.push(api.onEvent<boolean>("click-through", (on) => (clickThrough = on)));
+    // PC판: 같은 처리기를 Tauri 이벤트에 연결하고, 켤 때 화면 읽기를 함께 시작한다
+    if (api.inTauri) {
+      unlisten.push(api.onEvent<ScreenFrame>("screen-text", (f) => sw.__twilightScreen?.(JSON.stringify(f))));
+      unlisten.push(api.onEvent<{ state: string; message: string }>("screen-state", (st) => sw.__twilightScreenState?.(JSON.stringify(st))));
+      api.screenRead(true);
+    }
     unlisten.push(api.onEvent<string>("hotkey", (action) => {
       if (action === "toggle-collapse") collapsed = !collapsed;
       else if (action === "open-review") { collapsed = false; view = "review"; }

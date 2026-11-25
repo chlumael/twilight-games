@@ -87,3 +87,13 @@ description: 황혼 게임즈의 화면 인식(게임 화면을 읽어 재화·�
 - 좌표·색 기준은 반드시 **사용자 기기의 실제 스크린샷**으로 정한다. 받으면 `references/`가 아니라 테스트 고정 데이터(fixtures)로 저장하되, 공개 저장소에 올려도 되는지 사용자에게 먼저 묻는다(게임 화면 이미지).
 - 판별 로직은 스크린샷을 입력으로 받는 순수 함수로 만들어 단위 테스트한다(캡처·OCR과 분리).
 - 디자인 참고용 화면은 `twilight-game-reference`의 YouTube 프레임으로 구할 수 있지만 좌표 기준으로는 쓰지 않는다.
+
+## PC판 (0.7.0~, 실기 미확인)
+
+- `src-tauri/src/screen.rs`: 앞에 떠 있는 창의 안쪽 영역을 GDI `BitBlt`로 찍고 WinRT `Windows.Media.Ocr`(한국어)로 읽어 휴대폰과 같은 `{time, landscape, lines:[{t,x,y,w,h}]}`를 `screen-text` 이벤트로 보낸다. 상태는 `screen-state`. 명령 `screen_read(start)`, `screen_reading()`. 간격은 휴대폰과 같다(가챠 단어가 보이면 1초, 아니면 2.5초).
+- 우리 창은 `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)`로 캡처에서 빠진다. 우리 창이 앞이면 읽지 않는다.
+- 웹 쪽은 `api.screenSupported / screenRead / screenReading`으로 안드로이드와 공용. PC는 켤 때 자동 시작.
+- 이 리눅스 세션에서도 `rustup target add x86_64-pc-windows-msvc` 후 `cargo check --target x86_64-pc-windows-msvc`로 윈도우 코드를 컴파일 검사할 수 있다(실행은 불가).
+- 설치 파일: `build.yml`의 windows 작업이 최신 릴리스에 `twilight-games-pc-setup.exe`로 올린다 → `https://github.com/chlumael/twilight-games/releases/latest/download/twilight-games-pc-setup.exe`.
+- 알려진 위험(미확인): 전체 화면 전용 모드는 검게 찍힐 수 있음, 윈도우 글자 인식은 한국어 글자 사이에 공백을 넣거나 줄을 다르게 나눌 수 있어 규칙 조정이 필요할 수 있음, 서명이 없어 SmartScreen 경고가 뜸.
+

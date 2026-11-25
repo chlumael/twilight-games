@@ -16,8 +16,8 @@
     onCurrency: (values: Record<string, number>) => void;
   } = $props();
 
-  const bridge = api.android;
-  const supported = !!bridge?.screenRead && api.androidMode === "overlay";
+  const supported = api.screenSupported;
+  const pc = api.inTauri;
   let showRaw = $state(false);
   let copied = $state(false);
 
@@ -35,13 +35,17 @@
   <div class="shead">
     <strong>화면 읽기 (시험 기능)</strong>
     {#if supported}
-      <button onclick={() => bridge?.screenRead?.(!reading)}>{reading ? "끄기" : "켜기"}</button>
+      <button onclick={() => api.screenRead(!reading)}>{reading ? "끄기" : "켜기"}</button>
     {/if}
   </div>
   {#if !supported}
-    <p class="muted small">게임 위에 띄운 창(안드로이드)에서만 쓸 수 있습니다.</p>
+    <p class="muted small">게임 위에 띄운 창(안드로이드)이나 PC판에서 쓸 수 있습니다.</p>
   {:else}
-    <p class="muted small">창을 띄울 때 함께 켜집니다(앱 설정에서 끌 수 있음). <b>창을 펼쳐 둔 동안은 게임을 가려서 읽지 않습니다</b> — 창을 접고 가챠 화면을 잠깐 띄운 뒤 다시 펼쳐 보세요(가챠 화면이 보이면 1초마다, 다른 화면에서는 2.5초마다 읽습니다). 화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으니 게임을 마치면 끄세요(알림을 눌러도 꺼짐). 화면은 기기 안에서만 읽고, 그림은 저장하거나 밖으로 보내지 않습니다. 가챠 메인 화면을 띄우면 재화와 배너를 읽어 아래에 보여 줍니다. 읽은 재화는 두 번 연속 같게 읽히면 앱에 자동으로 반영됩니다.</p>
+    {#if pc}
+      <p class="muted small">프로그램을 켜면 함께 시작합니다. 앞에 떠 있는 창(게임)을 읽고, 이 프로그램 창은 읽지 않습니다. 가챠 화면이 보이면 1초마다, 그 외에는 2.5초마다 읽습니다. 화면은 이 컴퓨터 안에서만 읽고 그림은 저장하거나 밖으로 보내지 않습니다. 게임은 창 모드나 테두리 없는 창 모드를 권합니다(전체 화면 전용 모드는 검게 찍힐 수 있음).</p>
+    {:else}
+      <p class="muted small">창을 띄울 때 함께 켜집니다(앱 설정에서 끌 수 있음). <b>창을 펼쳐 둔 동안은 게임을 가려서 읽지 않습니다</b> — 창을 접고 가챠 화면을 잠깐 띄운 뒤 다시 펼쳐 보세요(가챠 화면이 보이면 1초마다, 다른 화면에서는 2.5초마다 읽습니다). 화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으니 게임을 마치면 끄세요(알림을 눌러도 꺼짐). 화면은 기기 안에서만 읽고, 그림은 저장하거나 밖으로 보내지 않습니다. 가챠 메인 화면을 띄우면 재화와 배너를 읽어 아래에 보여 줍니다. 읽은 재화는 두 번 연속 같게 읽히면 앱에 자동으로 반영됩니다.</p>
+    {/if}
     {#if message}<p class="warn small">{message}</p>{/if}
     {#if reading && !result}<p class="muted small">읽는 중… 게임의 가챠 화면을 열어 주세요.</p>{/if}
   {/if}
