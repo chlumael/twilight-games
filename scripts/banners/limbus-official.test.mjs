@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBanners, parseEvent, parseVideoTitle, parseWalpurgis } from "./limbus-official.mjs";
+import { buildBanners, knownPeriods, parseNewExtractionPeriod, parseUpdateTitle, parseEvent, parseVideoTitle, parseWalpurgis } from "./limbus-official.mjs";
 
 describe("림버스 공식 공지 해석", () => {
   it("추출 공지에서 날짜와 영상을 읽는다", () => {
@@ -76,5 +76,31 @@ describe("림버스 공식 공지 해석", () => {
     expect(list[1].startApprox).toBeUndefined();
     expect(list[1].endApprox).toBeUndefined();
     expect(list[1].featured.map((f) => f.ko)).toEqual(["쐐기 사무소 대표 오티스", "눈물로 벼려낸 검 홍루"]);
+  });
+
+  it("정기 업데이트 공지 제목에서 날짜", () => {
+    expect(parseUpdateTitle("2026년 10월 1일 정기 업데이트 안내")).toBe("2026-10-01");
+    expect(parseUpdateTitle("2026. 11. 12 정기 업데이트 이후 발생한 알려진 이슈 안내")).toBeNull();
+  });
+
+  it("글자 인식 결과에서 신규 특정 추출 기간을 읽는다", () => {
+    const text = "신규 업데이트 사항\n1. 신규 인격 특정 추출 [오트쿠튀르::르루주 BF 타래둥지 그레고르,\n오트쿠튀르::르누아르 B3F 건조장 이상]\n(11/26 12:00 ~ 12/10 10:00 (KST))\n2. 특정 추출 [로쟈](11/2612:00 ~ 12/11 10:00 (KST))";
+    expect(parseNewExtractionPeriod(text, "2026-11-26")).toEqual({ start: "2026-11-26T03:00:00.000Z", end: "2026-12-10T01:00:00.000Z" });
+    // 날짜와 시각이 붙어 인식된 경우, 해를 넘기는 경우
+    expect(parseNewExtractionPeriod("2. 신규 인격 특정 추출 [가] (10/112:00 ~ 10/15 06:00 (KST))", "2026-10-01"))
+      .toEqual({ start: "2026-10-01T03:00:00.000Z", end: "2026-10-14T21:00:00.000Z" });
+    expect(parseNewExtractionPeriod("1. 신규 특정 추출 [가] (12/24 12:00 ~ 1/7 10:00 (KST))", "2026-12-24")?.end).toBe("2027-01-07T01:00:00.000Z");
+    // 업데이트 날짜와 다르게 읽히면 버린다
+    expect(parseNewExtractionPeriod("1. 신규 인격 특정 추출 [가] (11/28 12:00 ~ 12/10 10:00)", "2026-11-26")).toBeNull();
+    expect(parseNewExtractionPeriod("2. 특정 추출 [로쟈] (11/26 12:00 ~ 12/10 10:00)", "2026-11-26")).toBeNull();
+  });
+
+  it("읽은 기간은 근사값 대신 쓰이고, 다음 실행에 이어받는다", () => {
+    const period = { start: "2026-11-26T03:00:00.000Z", end: "2026-12-10T01:00:00.000Z" };
+    const [b] = buildBanners([{ date: "2026-11-26", items: [{ grade: "000", name: "가" }] }], [], {}, { "2026-11-26": period });
+    expect(b).toMatchObject(period);
+    expect(b.startApprox).toBeUndefined();
+    expect(b.endApprox).toBeUndefined();
+    expect(knownPeriods([b, { id: "limbus:official:2026-10-01", start: "a", end: "b", endApprox: true }])).toEqual({ "2026-11-26": period });
   });
 });
