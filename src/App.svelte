@@ -538,7 +538,8 @@
         const r = readScreen(f);
         // "읽은 글자 복사"용으로는 게임 가챠 화면으로 보이는 것만 남긴다.
         // (화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으므로, 다른 앱 글자를 붙잡아 두지 않는다)
-        if (r || looksLikeGacha(f)) screenFrame = f;
+        // PC는 원인을 볼 수 있게 마지막으로 읽은 화면을 항상 남긴다(다른 프로그램을 앞에 두면 그것도 읽으니 주의 문구를 띄운다).
+        if (r || looksLikeGacha(f) || api.inTauri) screenFrame = f;
         onScreenFrame(f, r);
         if (!r) readHistory(f);
         if (r) {

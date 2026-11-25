@@ -48,6 +48,13 @@
     {/if}
     {#if message}<p class="warn small">{message}</p>{/if}
     {#if reading && !result}<p class="muted small">읽는 중… 게임의 가챠 화면을 열어 주세요.</p>{/if}
+    {#if pc && frame}
+      <p class="small" class:warn={frame.blank || frame.lines.length === 0}>
+        마지막으로 읽은 창: {frame.width}×{frame.height}, 글자 {frame.lines.length}줄
+        {#if frame.blank} — 화면이 한 가지 색으로만 찍혔습니다. 게임을 창 모드나 테두리 없는 창 모드로 바꿔 보세요.
+        {:else if frame.lines.length === 0} — 글자를 하나도 읽지 못했습니다.{/if}
+      </p>
+    {/if}
   {/if}
 
   {#if result}
@@ -72,7 +79,7 @@
       <button onclick={copy}>{copied ? "복사됨" : "읽은 글자 복사"}</button>
       <button onclick={() => (showRaw = !showRaw)}>{showRaw ? "글자 숨기기" : `읽은 글자 보기 (${frame.lines.length}줄)`}</button>
     </div>
-    <p class="muted small">인식이 틀리면 "읽은 글자 복사"로 복사해서 보내 주세요. 그 내용으로 규칙을 고칩니다. 복사되는 것은 마지막으로 본 <b>게임 가챠 화면</b>입니다.</p>
+    <p class="muted small">인식이 틀리면 "읽은 글자 복사"로 복사해서 보내 주세요. 그 내용으로 규칙을 고칩니다. 복사되는 것은 마지막으로 본 <b>게임 가챠 화면</b>입니다(PC판은 마지막으로 앞에 있던 창).</p>
     {#if showRaw}<pre>{frameText(frame)}</pre>{/if}
   {/if}
 </section>

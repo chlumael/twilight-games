@@ -24,13 +24,17 @@ pub struct Frame {
     time: u64,
     landscape: bool,
     lines: Vec<Line>,
+    /** 진단용: 찍은 창의 크기와, 그림이 거의 한 가지 색인지(검게 찍힘) */
+    width: i32,
+    height: i32,
+    blank: bool,
 }
 
 /// 가챠 화면이 보이면 그 뒤 20초 동안 1초마다, 아니면 2.5초마다 읽는다 (휴대폰판과 같음).
 const SLOW: Duration = Duration::from_millis(2500);
 const FAST: Duration = Duration::from_millis(1000);
 const FAST_WINDOW: Duration = Duration::from_secs(20);
-const GACHA_WORDS: [&str; 7] = ["헤드헌팅", "기원", "추출", "진행", "LUNACY", "UID", "획득 결과"];
+const GACHA_WORDS: [&str; 7] = ["헤드헌팅", "기원", "추출", "진행", "LUNACY", "UID", "획득결과"];
 
 #[tauri::command]
 pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, start: bool) -> Result<(), String> {
@@ -54,7 +58,7 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, start: bool) ->
         while flag.load(Ordering::SeqCst) {
             match imp::read_once() {
                 Ok(Some(frame)) => {
-                    if frame.lines.iter().any(|l| GACHA_WORDS.iter().any(|w| l.t.contains(w))) {
+                    if frame.lines.iter().any(|l| { let t = l.t.replace(' ', ""); GACHA_WORDS.iter().any(|w| t.contains(w)) }) {
                         last_gacha = std::time::Instant::now();
                     }
                     let _ = app.emit("screen-text", frame);
@@ -199,29 +203,41 @@ mod imp {
             .map_err(err("글자 인식"))?;
         let mut lines = Vec::new();
         for line in result.Lines().map_err(err("결과"))? {
+            // 윈도우 글자 인식은 한글을 글자마다 따로 떼어 주는 일이 있다("헤 드 헌 팅").
+            // 그래서 낱말 사이 간격이 글자 높이에 비해 넓을 때만 띄어쓰기로 본다.
             let (mut l, mut t, mut r, mut b) = (f64::MAX, f64::MAX, 0f64, 0f64);
+            let mut text = String::new();
+            let mut prev_right: Option<f64> = None;
             for word in line.Words().map_err(err("결과"))? {
                 let rect = word.BoundingRect().map_err(err("결과"))?;
-                l = l.min(rect.X as f64);
-                t = t.min(rect.Y as f64);
-                r = r.max((rect.X + rect.Width) as f64);
-                b = b.max((rect.Y + rect.Height) as f64);
+                let (x, y, ww, hh) = (rect.X as f64, rect.Y as f64, rect.Width as f64, rect.Height as f64);
+                if let Some(pr) = prev_right {
+                    if x - pr > hh * 0.3 {
+                        text.push(' ');
+                    }
+                }
+                text.push_str(&word.Text().map_err(err("결과"))?.to_string());
+                prev_right = Some(x + ww);
+                l = l.min(x);
+                t = t.min(y);
+                r = r.max(x + ww);
+                b = b.max(y + hh);
             }
-            if r <= l {
+            if r <= l || text.is_empty() {
                 continue;
             }
-            lines.push(Line {
-                t: line.Text().map_err(err("결과"))?.to_string(),
-                x: l / w as f64,
-                y: t / h as f64,
-                w: (r - l) / w as f64,
-                h: (b - t) / h as f64,
-            });
+            lines.push(Line { t: text, x: l / w as f64, y: t / h as f64, w: (r - l) / w as f64, h: (b - t) / h as f64 });
         }
         let time = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_millis() as u64)
             .unwrap_or(0);
-        Ok(Some(Frame { time, landscape: w > h, lines }))
+        // 띄엄띄엄 본 점들이 거의 같은 색이면 화면이 제대로 안 찍힌 것(전체 화면 전용 모드 등)
+        let step = (bytes.len() / 4 / 400).max(1) * 4;
+        let first = [bytes[0], bytes[1], bytes[2]];
+        let blank = bytes.chunks(4).step_by(step / 4).all(|p| {
+            (p[0] as i32 - first[0] as i32).abs() < 8 && (p[1] as i32 - first[1] as i32).abs() < 8 && (p[2] as i32 - first[2] as i32).abs() < 8
+        });
+        Ok(Some(Frame { time, landscape: w > h, lines, width: w, height: h, blank }))
     }
 }
