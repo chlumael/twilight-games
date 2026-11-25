@@ -10,6 +10,7 @@ import {
   normalizeRecords,
   recordSession,
   setCurrency,
+  spendPreview,
   topHistory,
   undo,
 } from "./ledger";
@@ -81,6 +82,14 @@ describe("currency", () => {
     const b = deduct(a.currency, spend, 10);
     expect(b.currency).toEqual({ tenPermit: 0, permit: 0, orundum: 1800 });
     expect(b.shortfall).toBe(0);
+  });
+
+  it("previews what a pull would spend", () => {
+    const spend = GAMES.arknights.groups[0].spend;
+    expect(spendPreview({ tenPermit: 0, permit: 3, orundum: 6000 }, spend, 10)).toEqual({
+      items: [{ key: "permit", amount: 3 }, { key: "orundum", amount: 4200 }],
+      shortfall: 0,
+    });
   });
 
   it("reports shortfall when currency runs out", () => {

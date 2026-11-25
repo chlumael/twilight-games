@@ -160,6 +160,19 @@ export function deduct(
   return { currency: next, shortfall: remaining };
 }
 
+/** What `n` pulls would consume, per currency key, in spend order. */
+export function spendPreview(
+  currency: Record<string, number>,
+  spend: SpendStep[],
+  n: number,
+): { items: { key: string; amount: number }[]; shortfall: number } {
+  const r = deduct(currency, spend, n);
+  const items = spend
+    .map((s) => ({ key: s.key, amount: (currency[s.key] ?? 0) - (r.currency[s.key] ?? 0) }))
+    .filter((x) => x.amount > 0);
+  return { items, shortfall: r.shortfall };
+}
+
 function newId(): string {
   return crypto.randomUUID();
 }

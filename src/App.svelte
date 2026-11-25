@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import CurrencyBar from "./components/CurrencyBar.svelte";
   import GroupPanel from "./components/GroupPanel.svelte";
   import PityRing from "./components/PityRing.svelte";
   import SettingsPanel from "./components/SettingsPanel.svelte";
@@ -8,9 +9,10 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordSession, setCurrency, topHistory, undo, type TopInfo,
+    normalizeRecords, recentPulls, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo,
   } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
+  import { currencyIcon } from "./lib/icons";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
@@ -39,6 +41,8 @@
   const pending = $derived(GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0));
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
+  const cost1 = $derived(spendPreview(rec.currency, group.spend, 1));
+  const cost10 = $derived(spendPreview(rec.currency, group.spend, 10));
 
   function notify(msg: string) {
     toast = msg;
@@ -242,6 +246,8 @@
           <button onclick={() => (view = "main")}>닫기</button>
         </section>
       {:else}
+        <CurrencyBar {game} currencies={def.currencies} values={rec.currency} {canPull} onEdit={editCurrency} />
+
         {#if def.groups.length > 1}
         <nav class="tabs">
           {#each def.groups as g (g.id)}
@@ -252,22 +258,6 @@
 
         <GroupPanel {status} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} onBanner={setBanner} />
 
-        <section class="currency card">
-          <div class="head">
-            <span class="muted">보유 재화</span>
-            <span class="can"><b>{canPull}</b>뽑 가능</span>
-          </div>
-          <div class="grid">
-            {#each def.currencies as c, i (c.key)}
-              <label class="cur">
-                <span class="glyph g{i % 3}"></span>
-                <span class="cname">{c.label}</span>
-                <input type="number" min="0" value={rec.currency[c.key] ?? 0}
-                  onchange={(e) => editCurrency(c.key, (e.currentTarget as HTMLInputElement).value)} />
-              </label>
-            {/each}
-          </div>
-        </section>
 
         {#if view === "top"}
           <TopForm
@@ -279,8 +269,18 @@
           />
         {:else}
           <section class="actions">
-            <button class="primary" onclick={() => pull(1)}>+1</button>
-            <button class="primary" onclick={() => pull(10)}>+10</button>
+            {#each [{ n: 1, cost: cost1, label: skin.pull1 }, { n: 10, cost: cost10, label: skin.pull10 }] as b (b.n)}
+              <button class="primary pull" onclick={() => pull(b.n)}>
+                <span class="plabel">{b.label}</span>
+                <span class="pcost">
+                  {#each b.cost.items as it (it.key)}
+                    {@const ic = currencyIcon(game, it.key)}
+                    {#if ic}<img src={ic} alt="" />{:else}<i class="nog" title={def.currencies.find((c) => c.key === it.key)?.label}></i>{/if}<span>{it.amount.toLocaleString()}</span>
+                  {/each}
+                  {#if b.cost.shortfall}<span class="short">부족 {b.cost.shortfall}</span>{/if}
+                </span>
+              </button>
+            {/each}
             <button class="act-top" onclick={() => (view = "top")}>★ {def.topLabel}</button>
             <button class="undo" onclick={doUndo} title="되돌리기 (Ctrl+Alt+Z)" aria-label="되돌리기">↶</button>
           </section>
@@ -316,20 +316,14 @@
   .tabs { display: flex; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.3); border-radius: var(--radius); }
   .tabs button { flex: 1; border: none; background: transparent; color: var(--muted); padding: 5px 4px; font-size: 12px; border-radius: calc(var(--radius) * 0.7); }
   .tabs button.active { background: var(--tab-active-bg); color: var(--tab-active-fg); font-weight: 700; }
-  .currency { padding: 10px; border-radius: var(--radius); background: var(--panel); }
-  .currency .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; font-size: 12px; }
-  .can { color: var(--muted); }
-  .can b { font-family: var(--num-font); font-size: 22px; color: var(--text); margin-right: 3px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .cur { display: grid; grid-template-columns: 14px 1fr; grid-template-rows: auto auto; gap: 2px 6px; align-items: center; }
-  .cur input { grid-column: 1 / -1; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .cname { font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .glyph { width: 9px; height: 9px; transform: rotate(45deg); }
-  .glyph.g0 { background: var(--top); }
-  .glyph.g1 { background: var(--a2); }
-  .glyph.g2 { border: 2px solid var(--a2); }
-  .actions { display: grid; grid-template-columns: 1fr 1fr 1.3fr 40px; gap: 6px; }
-  .actions button { padding: 10px 4px; font-weight: 700; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr 0.9fr 34px; gap: 6px; }
+  .actions button { padding: 7px 4px; font-weight: 700; }
+  .pull { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .plabel { font-size: 13px; }
+  .pcost { display: flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 600; opacity: 0.85; flex-wrap: wrap; justify-content: center; }
+  .pcost img { width: 16px; height: 16px; object-fit: contain; }
+  .short { color: var(--warn); }
+  .nog { width: 8px; height: 8px; margin: 0 3px; transform: rotate(45deg); border: 2px solid currentColor; }
   .actions button.primary { background: var(--btn-bg); color: var(--btn-fg); border: var(--btn-border); clip-path: var(--btn-clip); }
   .undo { color: var(--muted); font-size: 16px; }
   .review { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }

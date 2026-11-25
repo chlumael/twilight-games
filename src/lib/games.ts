@@ -160,10 +160,11 @@ export const GAMES: Record<GameId, GameDef> = {
     topLabel: "6성",
     currencies: [
       { key: "oroberyl", label: "오로베릴" },
-      { key: "origeometry", label: "오리지늄" },
-      { key: "limitedPermit", label: "기간 한정 허가증" },
+      { key: "origeometry", label: "파생 오리지늄" },
       { key: "charteredPermit", label: "한정 헤드헌팅 허가증" },
+      { key: "limitedPermit", label: "기간 한정 허가증" },
       { key: "basicPermit", label: "헤드헌팅 허가증" },
+      { key: "arsenalTicket", label: "무기고 증표" },
     ],
     groups: [
       {

@@ -33,3 +33,9 @@ npm run tauri dev   # 앱 실행
 npm test            # 천장·재화 계산 테스트
 npm run check       # 타입 검사
 ```
+
+## 저작권 안내
+
+재화 아이콘 등 게임 이미지의 저작권은 각 게임사(HoYoverse, Hypergryph/Yostar, GRYPHLINE, Project Moon)에 있습니다.
+이 앱은 비상업 팬 도구이며 각 게임사와 관련이 없습니다. 게임 로고와 게임 전용 폰트는 포함하지 않습니다.
+아이콘 출처: 원신 — Enka.Network, 명일방주 — [ArknightsGameResource](https://github.com/yuanyan3060/ArknightsGameResource), 엔드필드·림버스 — 게임 화면.
