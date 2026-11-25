@@ -44,3 +44,11 @@ describe("banner pack", () => {
     expect(newerPack(null, p1)).toBe(p1);
   });
 });
+
+describe("종료일 미정 배너", () => {
+  it("시작만 있고 종료가 없으면 진행 중으로 본다", () => {
+    const open = { id: "x", group: "g", name: "n", start: "2026-01-01T00:00:00.000Z", end: null, version: null, featured: [], featuredRare: [] };
+    expect(activeBanners([open], new Date("2026-06-01T00:00:00Z")).map((b) => b.id)).toEqual(["x"]);
+    expect(activeBanners([open], new Date("2025-06-01T00:00:00Z"))).toEqual([]);
+  });
+});

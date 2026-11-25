@@ -10,5 +10,5 @@ export default defineConfig({
   server: { port: 1420, strictPort: true },
   envPrefix: ["VITE_", "TAURI_ENV_"],
   build: { target: "es2022", outDir: "dist" },
-  test: { include: ["src/**/*.test.ts"] },
+  test: { include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"] },
 });

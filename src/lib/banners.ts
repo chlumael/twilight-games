@@ -13,9 +13,12 @@ export interface PackBanner {
   id: string;
   group: string;
   name: string;
-  /** ISO time; null when the source has no schedule (Endfield). */
+  /** ISO 시각. 출처에 일정이 없으면 null. start만 있고 end가 null이면 종료일 미정(진행 중). */
   start: string | null;
   end: string | null;
+  /** 공지에 날짜 대신 "버전 업데이트 후/전까지"로 적혀 있어 근사값으로 채운 경우 */
+  startApprox?: boolean;
+  endApprox?: boolean;
   version: string | null;
   featured: PackItem[];
   featuredRare: PackItem[];
@@ -67,8 +70,8 @@ function cmpVersion(a: string | null, b: string | null): number {
  */
 export function activeBanners(list: PackBanner[], now: Date = new Date()): PackBanner[] {
   const t = now.toISOString();
-  const dated = list.filter((b) => b.start && b.end);
-  if (dated.length) return dated.filter((b) => b.start! <= t && t <= b.end!);
+  const dated = list.filter((b) => b.start);
+  if (dated.length) return dated.filter((b) => b.start! <= t && (!b.end || t <= b.end));
   const undated = list.filter((b) => !b.start);
   if (!undated.length) return [];
   const newest = undated.reduce((m, b) => (cmpVersion(b.version, m) > 0 ? b.version : m), undated[0].version);

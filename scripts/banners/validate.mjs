@@ -20,7 +20,7 @@ for (const [game, list] of Object.entries(pack.games ?? {})) {
     if (ids.has(b.id)) problems.push(`${game}: duplicate id ${b.id}`);
     ids.add(b.id);
     if (!groups[game]?.includes(b.group)) problems.push(`${b.id}: unknown group ${b.group}`);
-    if ((b.start === null) !== (b.end === null)) problems.push(`${b.id}: start/end must both be set or both null`);
+    if (b.start === null && b.end !== null) problems.push(`${b.id}: end without start`);
     if (b.start && Number.isNaN(Date.parse(b.start))) problems.push(`${b.id}: bad start`);
     if (b.start && b.end && b.start > b.end) problems.push(`${b.id}: ends before it starts`);
     if (!Array.isArray(b.featured)) problems.push(`${b.id}: featured must be a list`);

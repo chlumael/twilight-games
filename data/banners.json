@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-25T01:01:55.947Z",
+ "generatedAt": "2026-11-25T02:53:17.254Z",
  "games": {
   "genshin": [
    {
@@ -5761,259 +5761,274 @@
   ],
   "endfield": [
    {
-    "id": "endfield:rerun_chr_tangtang",
-    "group": "endfield-refactor",
-    "name": "Ancestral Spring Flows Anew",
-    "start": null,
-    "end": null,
-    "version": null,
-    "featured": [
-     {
-      "id": "chr_0027_tangtang",
-      "en": null,
-      "cn": "汤汤",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:rerun_chr_yvonne",
-    "group": "endfield-refactor",
-    "name": "Resplendent Spectrum",
-    "start": null,
-    "end": null,
-    "version": null,
-    "featured": [
-     {
-      "id": "chr_0017_yvonne",
-      "en": null,
-      "cn": "伊冯",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_0_1",
+    "id": "endfield:official:3847",
     "group": "endfield-chartered",
-    "name": "Scars of the Forge",
-    "start": null,
-    "end": null,
-    "version": "1.0",
+    "name": "「불꽃에 그을린 상흔」 특별 허가 헤드헌팅",
+    "start": "2026-01-21T04:30:00.000Z",
+    "end": "2026-02-07T03:59:00.000Z",
     "featured": [
      {
-      "id": "chr_0016_laevat",
-      "en": null,
-      "cn": "莱万汀",
+      "id": "ko:레바테인",
       "ko": "레바테인"
      }
     ],
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:official:7028",
+    "group": "endfield-chartered",
+    "name": "「전달자의 바람」 특별 허가 헤드헌팅",
+    "start": "2026-02-07T04:00:00.000Z",
+    "end": "2026-02-24T03:59:00.000Z",
+    "featured": [
+     {
+      "id": "ko:질베르타",
+      "ko": "질베르타"
+     }
+    ],
+    "version": null,
     "featuredRare": []
    },
    {
-    "id": "endfield:special_1_0_2",
+    "id": "endfield:official:9572",
     "group": "endfield-chartered",
-    "name": "Hues of Passion",
-    "start": null,
-    "end": null,
-    "version": "1.0",
+    "name": "「격정의 색채」 특별 허가 헤드헌팅",
+    "start": "2026-02-24T04:00:00.000Z",
+    "end": "2026-03-11T04:30:00.000Z",
     "featured": [
      {
-      "id": "chr_0017_yvonne",
-      "en": null,
-      "cn": "伊冯",
-      "ko": null
+      "id": "ko:이본",
+      "ko": "이본"
      }
     ],
+    "version": null,
+    "featuredRare": [],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:official:1338",
+    "group": "endfield-chartered",
+    "name": "「강에서 태어난 소녀」 특별 허가 헤드헌팅",
+    "start": "2026-03-11T04:30:00.000Z",
+    "end": "2026-03-29T03:59:00.000Z",
+    "featured": [
+     {
+      "id": "ko:탕탕",
+      "ko": "탕탕"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:official:3843",
+    "group": "endfield-chartered",
+    "name": "「울프펄」 특별 허가 헤드헌팅",
+    "start": "2026-03-29T04:00:00.000Z",
+    "end": "2026-04-16T04:00:00.000Z",
+    "featured": [
+     {
+      "id": "ko:로시",
+      "ko": "로시"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:official:9579",
+    "group": "endfield-chartered",
+    "name": "「봄의 천둥, 만물의 소생」 특별 허가 헤드헌팅",
+    "start": "2026-04-16T04:00:00.000Z",
+    "end": "2026-05-22T03:59:00.000Z",
+    "featured": [
+     {
+      "id": "ko:장방이",
+      "ko": "장방이"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:official:0759",
+    "group": "endfield-chartered",
+    "name": "「후회 없는 주먹」 특별 허가 헤드헌팅",
+    "start": "2026-06-03T04:00:00.000Z",
+    "end": "2026-06-26T03:59:00.000Z",
+    "featured": [
+     {
+      "id": "ko:미브",
+      "ko": "미브"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:official:6175",
+    "group": "endfield-chartered",
+    "name": "「죄를 쫓는 자」 특별 허가 헤드헌팅",
+    "start": "2026-06-26T04:00:00.000Z",
+    "end": "2026-07-15T10:00:00.000Z",
+    "featured": [
+     {
+      "id": "ko:카뮤",
+      "ko": "카뮤"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:official:2656",
+    "group": "endfield-chartered",
+    "name": "「벼랑 끝, 북쪽을 향한 시선」 특별 허가 헤드헌팅",
+    "start": "2026-07-15T10:00:00.000Z",
+    "end": "2026-08-09T03:59:00.000Z",
+    "featured": [
+     {
+      "id": "ko:결",
+      "ko": "결"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:official:3831",
+    "group": "endfield-chartered",
+    "name": "「빛나는 새벽의 별」 특별 허가 헤드헌팅",
+    "start": "2026-08-09T04:00:00.000Z",
+    "end": "2026-09-01T04:00:00.000Z",
+    "featured": [
+     {
+      "id": "ko:리노",
+      "ko": "리노"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:official:6172",
+    "group": "endfield-chartered",
+    "name": "「겨울 사냥」 특별 허가 헤드헌팅",
+    "start": "2026-09-01T04:00:00.000Z",
+    "end": "2026-09-30T03:59:00.000Z",
+    "featured": [
+     {
+      "id": "ko:티프로스",
+      "ko": "티프로스"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:official:3839",
+    "group": "endfield-refactor",
+    "name": "「찬란한 색채」 재구축 헤드헌팅",
+    "start": "2026-09-24T04:00:00.000Z",
+    "end": "2026-10-14T10:00:00.000Z",
+    "featured": [
+     {
+      "id": "ko:이본",
+      "ko": "이본"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:official:4489",
+    "group": "endfield-chartered",
+    "name": "「만물의 재구성」 특별 허가 헤드헌팅",
+    "start": "2026-10-14T10:00:00.000Z",
+    "end": "2026-11-05T03:59:00.000Z",
+    "featured": [
+     {
+      "id": "ko:사",
+      "ko": "사"
+     }
+    ],
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:official:6179",
+    "group": "endfield-refactor",
+    "name": "「선조의 샘의 새로운 물결」 재구축 헤드헌팅",
+    "start": "2026-10-29T04:00:00.000Z",
+    "end": "2026-11-19T03:59:00.000Z",
+    "featured": [
+     {
+      "id": "ko:탕탕",
+      "ko": "탕탕"
+     }
+    ],
+    "version": null,
     "featuredRare": []
    },
    {
-    "id": "endfield:special_1_0_3",
+    "id": "endfield:official:7012",
     "group": "endfield-chartered",
-    "name": "The Floaty Messenger",
-    "start": null,
-    "end": null,
-    "version": "1.0",
+    "name": "「은하수를 부르는 불꽃」 특별 허가 헤드헌팅",
+    "start": "2026-11-05T04:00:00.000Z",
+    "end": "2026-11-24T04:00:00.000Z",
     "featured": [
      {
-      "id": "chr_0013_aglina",
-      "en": null,
-      "cn": "洁尔佩塔",
-      "ko": null
+      "id": "ko:명하",
+      "ko": "명하"
      }
     ],
-    "featuredRare": []
+    "version": null,
+    "featuredRare": [],
+    "endApprox": true
    },
    {
-    "id": "endfield:special_1_1_1",
+    "id": "endfield:official:5204",
     "group": "endfield-chartered",
-    "name": "River's Daughter",
-    "start": null,
-    "end": null,
-    "version": "1.1",
+    "name": "「모루, 배낭, 그리고 벌꿀」 특별 허가 헤드헌팅",
+    "start": "2026-11-24T04:00:00.000Z",
+    "end": "2026-12-23T03:59:00.000Z",
     "featured": [
      {
-      "id": "chr_0027_tangtang",
-      "en": null,
-      "cn": "汤汤",
-      "ko": null
+      "id": "ko:케르",
+      "ko": "케르"
      }
     ],
-    "featuredRare": []
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
    },
    {
-    "id": "endfield:special_1_1_2",
-    "group": "endfield-chartered",
-    "name": "Wolf Pearl",
-    "start": null,
-    "end": null,
-    "version": "1.1",
+    "id": "endfield:official:8992",
+    "group": "endfield-refactor",
+    "name": "「떠도는 모든 소망에게」 재구축 헤드헌팅",
+    "start": "2026-11-24T05:00:00.000Z",
+    "end": "2026-12-16T03:59:00.000Z",
     "featured": [
      {
-      "id": "chr_0028_wulfa",
-      "en": null,
-      "cn": "洛茜",
-      "ko": null
+      "id": "ko:질베르타",
+      "ko": "질베르타"
      }
     ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_2_1",
-    "group": "endfield-chartered",
-    "name": "Thunder of Renewal",
-    "start": null,
-    "end": null,
-    "version": "1.2",
-    "featured": [
-     {
-      "id": "chr_0030_zhuangfy",
-      "en": null,
-      "cn": "庄方宜",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_3_1",
-    "group": "endfield-chartered",
-    "name": "Fists of No Regrets",
-    "start": null,
-    "end": null,
-    "version": "1.3",
-    "featured": [
-     {
-      "id": "chr_0031_mifu",
-      "en": null,
-      "cn": "弭弗",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_3_2",
-    "group": "endfield-chartered",
-    "name": "Expunger of Sin",
-    "start": null,
-    "end": null,
-    "version": "1.3",
-    "featured": [
-     {
-      "id": "chr_0033_camille",
-      "en": null,
-      "cn": "卡缪",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_4_1",
-    "group": "endfield-chartered",
-    "name": "North Yearns the Rift Vigile",
-    "start": null,
-    "end": null,
-    "version": "1.4",
-    "featured": [
-     {
-      "id": "chr_0032_lizhiyan",
-      "en": null,
-      "cn": "诀",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_4_2",
-    "group": "endfield-chartered",
-    "name": "Good Morning from Your Dawnstar",
-    "start": null,
-    "end": null,
-    "version": "1.4",
-    "featured": [
-     {
-      "id": "chr_0035_liino",
-      "en": null,
-      "cn": "梨诺",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_5_1",
-    "group": "endfield-chartered",
-    "name": "Winter Hunt",
-    "start": null,
-    "end": null,
-    "version": "1.5",
-    "featured": [
-     {
-      "id": "chr_0034_typhoea",
-      "en": null,
-      "cn": "提弗洛斯",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_6_1",
-    "group": "endfield-chartered",
-    "name": "Rejuvenation",
-    "start": null,
-    "end": null,
-    "version": "1.6",
-    "featured": [
-     {
-      "id": "chr_0036_jsspsi",
-      "en": null,
-      "cn": "祀",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
-   },
-   {
-    "id": "endfield:special_1_6_2",
-    "group": "endfield-chartered",
-    "name": "The Hearth Fire Beckons the Starry Flow",
-    "start": null,
-    "end": null,
-    "version": "1.6",
-    "featured": [
-     {
-      "id": "chr_0037_minghe",
-      "en": null,
-      "cn": "明河",
-      "ko": null
-     }
-    ],
-    "featuredRare": []
+    "version": null,
+    "featuredRare": [],
+    "startApprox": true
    }
   ],
   "arknights": [],

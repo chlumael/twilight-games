@@ -25,27 +25,27 @@ for g,l in d['games'].items():
     if (b['start'] or '')<=now<=(b['end'] or '9'): print(g,b['group'],b['name'],[f.get('ko') or f.get('en') or f.get('cn') for f in b['featured']])"
 ```
 
-엔드필드는 기간이 없어 위 조건에 모두 걸리므로, `version`이 가장 높은 것만 보면 된다.
+엔드필드도 2026-11-25부터 공식 공지에서 기간을 읽는다. 종료일이 `null`이면 "진행 중(종료일 미정)"이다.
 
 ## 출처별 주의
 
 | 게임 | 출처 | 주의 |
 |---|---|---|
 | 원신 | paimon.moe (`banners.js`, `bannersDual.js`, `itemList.js`, `characters.js`, `weaponList.js`, `locales/items/ko.json`) | 시간은 아시아 서버(UTC+8). 캐릭터 배너는 두 5성이 모두 적혀 있어 `shortName`으로 자기 픽업만 남긴다 |
-| 엔드필드 | FrostN0v0/EndfieldGachaPoolTable (`master` 브랜치) | 기간 없음, 이름은 중국어 → `data/names/endfield.ko.json`에 한국어를 직접 채운다 |
+| 엔드필드 | 한국어 공식 공지 (`scripts/banners/endfield-official.mjs`, 자료 주소 `web-news.gryphline.com/api/bulletin`) | 제목 `「이름」 특별 허가\|재구축 헤드헌팅`인 공지만 해석. 시간은 Asia 서버(UTC+8). "버전 업데이트 후/전까지"는 근사값으로 채우고 `startApprox`/`endApprox` 표시. 해석 못 한 공지는 실행 로그에 경고로 나온다 |
 | 명일방주 | 없음 (한국 서버 데이터 저장소는 2025-12 이후 멈춤) | 화면 인식으로 생성 예정 |
 | 림버스 | 없음 (Steam 뉴스 API는 접속되지만 글에서 추출 필요) | 화면 인식으로 생성 예정 |
 
 - **외부 JS는 절대 실행하지 않는다.** `export const x = {...}`는 JSON5로, 다른 모듈을 참조하는 표는 정규식(`extractNames`)으로 읽는다. 외부 코드를 실행하는 방식은 보안 정책에서 실제로 거부됐다.
 - 출처 하나가 실패해도 나머지는 만들어지고, 실패 내용은 `errors`에 남는다. validate는 원신·엔드필드가 비면 실패시킨다.
 
-## 엔드필드 한국어 이름 추가
+## 엔드필드 공지 형식이 바뀌었을 때
 
-사용자가 알려준 이름만 넣는다(중국어를 임의로 번역해 넣지 않는다).
-1. 캐릭터 ID 찾기: `data/banners.json`의 엔드필드 `featured[].id`와 `cn`
-2. `data/names/endfield.ko.json`의 `characters`에 `"chr_xxxx": "한국어 이름"`
-3. 배너 이름도 알면 `banners`에 `"special_1_6_1": "한국어 배너 이름"`
-4. `npm run banners` 후 확인
+실행 로그에 "해석하지 못한 헤드헌팅 공지"가 나오거나 배너가 빠지면:
+1. 해당 공지 본문을 받아 본다: `curl "https://web-news.gryphline.com/api/bulletin/<cid>?lang=ko-kr&code=arknights_endfield_official"`
+2. `endfield-official.mjs`의 `parseNotice` 규칙을 고치고, 그 공지 문장을 `endfield-official.test.mjs`에 사례로 추가한다
+3. 이름은 공식 공지 표기를 그대로 쓴다(임의 번역 금지). 「찬란한 빛의 축제」 특수 헤드헌팅처럼 픽업 6성이 없는 공지는 건너뛰는 것이 정상이다
+4. 이 세션에서 실행할 때는 `NODE_USE_ENV_PROXY=1 npm run banners` (Node의 fetch가 프록시를 안 읽기 때문)
 
 ## 주간 자동 PR
 

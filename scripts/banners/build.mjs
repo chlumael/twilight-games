@@ -1,11 +1,11 @@
-// Builds data/banners.json from public community data.
+// Builds data/banners.json: 원신은 공개 정리 자료, 엔드필드는 한국어 공식 공지.
 //   node scripts/banners/build.mjs [outFile]
 // Upstream files are never executed: JS data modules are parsed as JSON5 text.
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import JSON5 from "json5";
+import { endfieldOfficial as endfield } from "./endfield-official.mjs";
 
 const PAIMON = "https://raw.githubusercontent.com/MadeBaruna/paimon-moe/main/src";
-const EF = "https://raw.githubusercontent.com/FrostN0v0/EndfieldGachaPoolTable/master";
 
 async function get(url, type = "text") {
   const res = await fetch(url);
@@ -96,32 +96,6 @@ async function genshin() {
   add(banners.chronicled, "genshin-chronicled", 1);
   const cutoff = Date.now() - 730 * 864e5; // keep about two years
   return out.filter((b) => Date.parse(b.end) > cutoff).sort((a, b) => a.start.localeCompare(b.start));
-}
-
-async function endfield() {
-  const [pools, cfg, koFile] = await Promise.all([
-    get(`${EF}/GachaPoolTable.json`, "json"),
-    get(`${EF}/TableCfg/GachaCharPoolTable.json`, "json"),
-    readFile(new URL("../../data/names/endfield.ko.json", import.meta.url), "utf8").then(JSON.parse),
-  ]);
-  const groupOf = { special: "endfield-chartered", rerun: "endfield-refactor" };
-  const out = [];
-  for (const [id, p] of Object.entries(pools)) {
-    if (p.pool_gacha_type !== "char" || !groupOf[p.pool_type]) continue;
-    const up = p.all.filter((c) => c.name === p.up6_name);
-    const version = id.match(/_(\d+)_(\d+)_\d+$/)?.slice(1).join(".") ?? null;
-    out.push({
-      id: `endfield:${id}`,
-      group: groupOf[p.pool_type],
-      name: koFile.banners?.[id] ?? cfg[id]?.name?.en ?? p.pool_name,
-      start: null, // not in the source; the app matches the running banner on screen
-      end: null,
-      version,
-      featured: up.map((c) => ({ id: c.id, en: null, cn: c.name, ko: koFile.characters?.[c.id] ?? null })),
-      featuredRare: [],
-    });
-  }
-  return out.sort((a, b) => (a.version ?? "").localeCompare(b.version ?? "", undefined, { numeric: true }));
 }
 
 const games = {};
