@@ -7,12 +7,14 @@ import type { GameId } from "./types";
 
 export const inTauri = isTauri();
 
-export async function readStore(name: "records" | "settings"): Promise<string | null> {
+export type StoreName = "records" | "settings" | "banners";
+
+export async function readStore(name: StoreName): Promise<string | null> {
   if (!inTauri) return localStorage.getItem(`tg-${name}`);
   return invoke<string | null>("read_store", { name });
 }
 
-export async function writeStore(name: "records" | "settings", content: string): Promise<void> {
+export async function writeStore(name: StoreName, content: string): Promise<void> {
   if (!inTauri) return localStorage.setItem(`tg-${name}`, content);
   await invoke("write_store", { name, content });
 }

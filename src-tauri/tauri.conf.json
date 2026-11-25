@@ -27,7 +27,7 @@
         "skipTaskbar": false
       }
     ],
-    "security": { "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:" }
+    "security": { "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost https://raw.githubusercontent.com" }
   },
   "bundle": {
     "active": true,

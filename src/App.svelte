@@ -12,6 +12,8 @@
     normalizeRecords, recentPulls, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo,
   } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
+  import bundledPack from "../data/banners.json";
+  import { autoBanner, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
@@ -30,6 +32,7 @@
   let view = $state<"main" | "settings" | "review" | "top">("main");
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
+  let pack = $state.raw<BannerPack | null>(isPack(bundledPack) ? bundledPack : null);
 
   const def = $derived(GAMES[game]);
   const skin = $derived(SKINS[game]);
@@ -46,6 +49,26 @@
   const hits = $derived(topHistory(rec, groupId));
   const cost1 = $derived(spendPreview(rec.currency, group.spend, 1));
   const cost10 = $derived(spendPreview(rec.currency, group.spend, 10));
+  const banners = $derived(groupBanners(pack, game, groupId));
+  const currentPackBanner = $derived(banners.find((b) => b.id === status.banner));
+  const suggestions = $derived(currentPackBanner?.featured.map(itemName) ?? []);
+
+  // Follow the banner schedule: switch groups to the running banner unless the user typed one.
+  $effect(() => {
+    if (!loaded || !pack) return;
+    let next: Records | null = null;
+    for (const id of GAME_IDS) {
+      for (const g of GAMES[id].groups) {
+        const cur = (next ?? records).games[id].currentBanner[g.id] ?? "";
+        const to = autoBanner(groupBanners(pack, id, g.id), cur);
+        if (to) {
+          next ??= structuredClone(records);
+          next.games[id].currentBanner[g.id] = to;
+        }
+      }
+    }
+    if (next) records = next;
+  });
 
   function notify(msg: string) {
     toast = msg;
@@ -170,6 +193,27 @@
     }
   }
 
+  /** Use the newest of: bundled pack, cached pack, published pack. Offline is fine. */
+  async function refreshPack() {
+    try {
+      const cached = await api.readStore("banners");
+      const c = cached ? JSON.parse(cached) : null;
+      if (isPack(c)) pack = newerPack(pack, c);
+    } catch {
+      /* ignore a broken cache */
+    }
+    try {
+      const res = await fetch(PACK_URL, { cache: "no-store" });
+      const remote = res.ok ? await res.json() : null;
+      if (isPack(remote) && newerPack(pack, remote) === remote) {
+        pack = remote;
+        await api.writeStore("banners", JSON.stringify(remote));
+      }
+    } catch {
+      /* offline: keep what we have */
+    }
+  }
+
   onMount(() => {
     const unlisten: Promise<() => void>[] = [];
     (async () => {
@@ -182,6 +226,7 @@
         notify(`불러오기 실패: ${e}`);
       }
       loaded = true;
+      await refreshPack();
     })();
     unlisten.push(api.onEvent<api.Detection>("game-detected", (d) => {
       detection = d;
@@ -259,11 +304,13 @@
         </nav>
         {/if}
 
-        <GroupPanel {status} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} onBanner={setBanner} />
+        <GroupPanel {status} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} {banners} onBanner={setBanner} />
 
 
         {#if view === "top"}
           <TopForm
+            {suggestions}
+            guessFeatured={(n) => matchFeatured(currentPackBanner, n)}
             topLabel={def.topLabel}
             lastSessionSize={lastSessionSize(rec, groupId)}
             showFeatured={group.featuredRule !== "none" || group.bannerCounters.length > 0}

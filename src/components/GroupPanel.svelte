@@ -1,12 +1,15 @@
 <script lang="ts">
+  import { activeBanners, bannerLabel, daysLeft, itemName, type PackBanner } from "../lib/banners";
   import type { GroupStatus, TopHit } from "../lib/ledger";
   import type { Pull } from "../lib/types";
   import PityBar from "./PityBar.svelte";
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, recent, hits, gauge, onBanner }: {
+  let { status, topLabel, recent, hits, gauge, banners = [], onBanner }: {
     status: GroupStatus;
+    /** Known banners for this group from the data pack. */
+    banners?: PackBanner[];
     gauge: "ring" | "bar";
     topLabel: string;
     recent: Pull[];
@@ -20,6 +23,11 @@
   // Without hard pity (Limbus) the ring tracks the first banner counter (200 exchange).
   const ringCounter = $derived(status.hardPity === null ? status.counters[0] : undefined);
   const counters = $derived(status.counters.filter((c) => c !== ringCounter));
+  const active = $derived(activeBanners(banners));
+  const others = $derived(banners.filter((b) => !active.includes(b)).slice(-6).reverse());
+  const current = $derived(banners.find((b) => b.id === status.banner));
+  let typing = $state(false);
+  const custom = $derived(typing || (status.banner !== "" && !current));
 </script>
 
 <section class="hero" class:wide={gauge === "bar" && status.hardPity}>
@@ -69,15 +77,42 @@
   <PullStrip pulls={recent} />
 </section>
 
-<label class="banner">
+<div class="banner">
   <span>배너</span>
-  <input
-    value={status.banner}
-    placeholder="배너 이름 (천장 분리 기준)"
-    onchange={(e) => onBanner((e.currentTarget as HTMLInputElement).value.trim())}
-  />
+  {#if custom || !banners.length}
+    <input
+      value={current ? "" : status.banner}
+      placeholder="배너 이름 (천장 분리 기준)"
+      onchange={(e) => { onBanner((e.currentTarget as HTMLInputElement).value.trim()); typing = false; }}
+    />
+  {:else}
+    <select value={status.banner} onchange={(e) => {
+      const v = (e.currentTarget as HTMLSelectElement).value;
+      if (v === "__custom") typing = true; else onBanner(v);
+    }}>
+      {#if !current}<option value="">배너 선택</option>{/if}
+      {#if active.length}
+        <optgroup label="진행 중">
+          {#each active as b (b.id)}<option value={b.id}>{bannerLabel(b)}</option>{/each}
+        </optgroup>
+      {/if}
+      {#if others.length}
+        <optgroup label="이전·다른 배너">
+          {#each others as b (b.id)}<option value={b.id}>{bannerLabel(b)}{b.version ? ` (${b.version})` : ""}</option>{/each}
+        </optgroup>
+      {/if}
+      <option value="__custom">직접 입력…</option>
+    </select>
+  {/if}
   {#if status.counters.length}<span class="hint">{status.bannerPulls}회</span>{/if}
-</label>
+</div>
+{#if current}
+  <div class="binfo">
+    {#each current.featured as f (f.id)}<span class="feat">{itemName(f)}</span>{/each}
+    {#if daysLeft(current) !== null}<span class="dday">D-{daysLeft(current)}</span>{/if}
+    <span class="bname">{current.name}</span>
+  </div>
+{/if}
 
 {#if lastHits.length}
   <section class="hits">
@@ -119,6 +154,11 @@
   .dot { width: 8px; height: 8px; border-radius: 2px; background: var(--top); box-shadow: 0 0 5px var(--glow); display: inline-block; }
 
   .banner { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .banner select, .banner input { width: 100%; }
+  .binfo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: -4px; font-size: 11px; }
+  .feat { padding: 1px 7px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 22%, transparent); color: var(--text); font-weight: 600; }
+  .dday { color: var(--warn); font-weight: 700; }
+  .bname { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 
   .hits { display: flex; flex-direction: column; gap: 4px; }
   .hit {
