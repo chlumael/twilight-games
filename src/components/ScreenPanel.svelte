@@ -1,0 +1,88 @@
+<script lang="ts">
+  import * as api from "../lib/api";
+  import { GAMES } from "../lib/games";
+  import { frameText, type ScreenFrame, type ScreenReading } from "../lib/recognize";
+  import type { GameId } from "../lib/types";
+
+  let { game, currency, reading, message, frame, result, onCurrency }: {
+    game: GameId;
+    currency: Record<string, number>;
+    /** 화면 읽기가 켜져 있는지, 알림 문구, 마지막으로 읽은 화면과 해석 결과 (App이 받아서 넘긴다) */
+    reading: boolean;
+    message: string;
+    frame: ScreenFrame | null;
+    result: ScreenReading | null;
+    /** 읽은 재화를 적용한다 */
+    onCurrency: (values: Record<string, number>) => void;
+  } = $props();
+
+  const bridge = api.android;
+  const supported = !!bridge?.screenRead && api.androidMode === "overlay";
+  let showRaw = $state(false);
+  let copied = $state(false);
+
+  const label = (g: GameId, key: string) => GAMES[g].currencies.find((c) => c.key === key)?.label ?? key;
+  const changed = $derived(result && result.game === game
+    ? Object.entries(result.currency).filter(([k, v]) => currency[k] !== v) : []);
+
+  async function copy() {
+    if (!frame) return;
+    try { await navigator.clipboard.writeText(frameText(frame)); copied = true; setTimeout(() => (copied = false), 1500); } catch { showRaw = true; }
+  }
+</script>
+
+<section class="screen card">
+  <div class="shead">
+    <strong>화면 읽기 (시험 기능)</strong>
+    {#if supported}
+      <button onclick={() => bridge?.screenRead?.(!reading)}>{reading ? "끄기" : "켜기"}</button>
+    {/if}
+  </div>
+  {#if !supported}
+    <p class="muted small">게임 위에 띄운 창(안드로이드)에서만 쓸 수 있습니다.</p>
+  {:else}
+    <p class="muted small">창을 띄울 때 함께 켜집니다(앱 설정에서 끌 수 있음). 꺼져 있으면 "켜기"를 누르세요. 화면은 2~3초에 한 번 기기 안에서만 읽고, 그림은 저장하거나 밖으로 보내지 않습니다. 가챠 메인 화면을 띄우면 재화와 배너를 읽어 아래에 보여 줍니다. 자동으로 기록을 바꾸지는 않습니다.</p>
+    {#if message}<p class="warn small">{message}</p>{/if}
+    {#if reading && !result}<p class="muted small">읽는 중… 게임의 가챠 화면을 열어 주세요.</p>{/if}
+  {/if}
+
+  {#if result}
+    <div class="found">
+      <div class="row"><span>읽은 화면</span><b>{GAMES[result.game].name} 가챠 메인</b></div>
+      {#if result.banner}<div class="row"><span>배너</span><b>{result.banner}</b></div>{/if}
+      {#if result.until}<div class="row"><span>종료 표시</span><b>{result.until}</b></div>{/if}
+      {#if result.toTop !== null}<div class="row"><span>화면에 적힌 천장까지</span><b>{result.toTop}회</b></div>{/if}
+      {#if result.toFeatured !== null}<div class="row"><span>화면에 적힌 픽업 확정까지</span><b>{result.toFeatured}회</b></div>{/if}
+      {#each Object.entries(result.currency) as [k, v] (k)}
+        <div class="row"><span>{label(result.game, k)}</span><b>{v.toLocaleString()}{#if result.game === game && currency[k] !== v} <small>(기록: {(currency[k] ?? 0).toLocaleString()})</small>{/if}</b></div>
+      {/each}
+      {#if changed.length}
+        <button class="apply" onclick={() => onCurrency(Object.fromEntries(changed))}>읽은 재화로 맞추기</button>
+      {/if}
+    </div>
+  {/if}
+
+  {#if frame}
+    <div class="raw">
+      <button onclick={copy}>{copied ? "복사됨" : "읽은 글자 복사"}</button>
+      <button onclick={() => (showRaw = !showRaw)}>{showRaw ? "글자 숨기기" : `읽은 글자 보기 (${frame.lines.length}줄)`}</button>
+    </div>
+    <p class="muted small">인식이 틀리면 "읽은 글자 복사"로 복사해서 보내 주세요. 그 내용으로 규칙을 고칩니다.</p>
+    {#if showRaw}<pre>{frameText(frame)}</pre>{/if}
+  {/if}
+</section>
+
+<style>
+  .screen { display: flex; flex-direction: column; gap: 8px; padding: 10px; font-size: 12px; }
+  .shead { display: flex; justify-content: space-between; align-items: center; }
+  .small { font-size: 11px; margin: 0; line-height: 1.45; }
+  .warn { color: var(--warn); }
+  .found { display: flex; flex-direction: column; gap: 4px; }
+  .row { display: flex; justify-content: space-between; gap: 8px; }
+  .row span { color: var(--muted); }
+  .row b { color: var(--text); text-align: right; }
+  .row small { color: var(--muted); font-weight: 400; }
+  .apply { margin-top: 4px; }
+  .raw { display: flex; gap: 6px; flex-wrap: wrap; }
+  pre { margin: 0; max-height: 180px; overflow: auto; font-size: 10px; line-height: 1.35; white-space: pre-wrap; color: var(--muted); user-select: text; }
+</style>

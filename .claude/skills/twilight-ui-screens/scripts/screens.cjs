@@ -76,11 +76,27 @@ const contexts = {
     await shot("genshin");
   } else {
     if (mode === "desktop" && (await page.locator("button.expand").count())) await page.click("button.expand");
-    for (const id of Object.keys(names)) { await pick(id); await shot(id); }
+    for (const id of Object.keys(names)) {
+      await pick(id); await shot(id);
+      // 배너 상세 보기(있을 때만): 펼쳐서 전체 화면을 찍고 다시 접는다
+      if (await page.locator("button.binfo").count()) {
+        await page.click("button.binfo"); await page.waitForTimeout(200);
+        await page.locator("section.detail").evaluate((el) => el.scrollIntoView({ block: "start" }));
+        await page.locator("section.detail").screenshot({ path: path.join(outDir, `${mode}-${id}-banner.png`) });
+        await page.click("button.binfo");
+      }
+    }
     await pick("genshin");
     await page.click("text=/★/"); await page.waitForTimeout(200); await shot("top-form");
     await page.click("text=취소");
     await page.click("[aria-label=설정]"); await page.waitForTimeout(200); await shot("settings");
+    await page.click("[aria-label=설정]");
+    // 통계 화면: 내용 전체를 찍는다
+    if (await page.locator("button[title=통계]").count()) {
+      await page.click("button[title=통계]"); await page.waitForTimeout(200);
+      await page.locator("section.stats").screenshot({ path: path.join(outDir, `${mode}-stats.png`) });
+      await page.click("button[title=통계]");
+    }
   }
   console.log(`saved ${mode} screenshots to ${outDir}`, errors.length ? `\nconsole errors:\n${errors.join("\n")}` : "");
   await browser.close();

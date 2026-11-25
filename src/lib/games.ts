@@ -36,7 +36,10 @@ export interface PityGroup {
 export interface CurrencyDef {
   key: string;
   label: string;
-  /** Increases are entered by hand only; spending is still tracked automatically. */
+  /**
+   * 보유량은 사용자가 직접 입력하고, 사용은 자동으로 차감한다.
+   * 가챠 화면에 수량이 보이지 않는 재화: 원신 창세의 결정, 명일방주 헤드헌팅권(창고에만 표시).
+   */
   manualOnly?: boolean;
 }
 
@@ -116,8 +119,8 @@ export const GAMES: Record<GameId, GameDef> = {
     currencies: [
       { key: "orundum", label: "합성옥" },
       { key: "originite", label: "오리지늄" },
-      { key: "permit", label: "헤드헌팅권" },
-      { key: "tenPermit", label: "10회 헤드헌팅권" },
+      { key: "permit", label: "헤드헌팅권", manualOnly: true },
+      { key: "tenPermit", label: "10회 헤드헌팅권", manualOnly: true },
     ],
     groups: [
       {

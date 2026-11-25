@@ -2,11 +2,13 @@
   import { activeBanners, bannerLabel, daysLeft, itemName, type PackBanner } from "../lib/banners";
   import type { GroupStatus, TopHit } from "../lib/ledger";
   import type { Pull } from "../lib/types";
+  import BannerDetail from "./BannerDetail.svelte";
   import PityBar from "./PityBar.svelte";
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, recent, hits, gauge, banners = [], onBanner }: {
+  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner }: {
+    groupLabel?: string;
     status: GroupStatus;
     /** Known banners for this group from the data pack. */
     banners?: PackBanner[];
@@ -27,6 +29,7 @@
   const others = $derived(banners.filter((b) => !active.includes(b)).slice(-6).reverse());
   const current = $derived(banners.find((b) => b.id === status.banner));
   let typing = $state(false);
+  let detail = $state(false);
   const custom = $derived(typing || (status.banner !== "" && !current));
 </script>
 
@@ -104,14 +107,29 @@
       <option value="__custom">직접 입력…</option>
     </select>
   {/if}
-  {#if status.counters.length}<span class="hint">{status.bannerPulls}회</span>{/if}
+  {#if custom && banners.length}
+    <button class="tolist" onclick={() => { typing = false; onBanner(""); }}>목록에서 선택</button>
+  {:else if status.counters.length}<span class="hint">{status.bannerPulls}회</span>{/if}
 </div>
 {#if current}
-  <div class="binfo">
+  <button class="binfo" onclick={() => (detail = !detail)} aria-expanded={detail}>
     {#each current.featured as f (f.id)}<span class="feat">{itemName(f)}</span>{/each}
     {#if daysLeft(current) !== null}<span class="dday">D-{daysLeft(current)}</span>{/if}
     <span class="bname">{current.name}</span>
-  </div>
+    <span class="more">{detail ? "접기 ▲" : "자세히 ▼"}</span>
+  </button>
+  {#if detail}
+    <BannerDetail
+      banner={current}
+      {banners}
+      {groupLabel}
+      {topLabel}
+      pulls={status.counters.length ? status.bannerPulls : null}
+      selected={status.banner}
+      onSelect={onBanner}
+      onClose={() => (detail = false)}
+    />
+  {/if}
 {/if}
 
 {#if lastHits.length}
@@ -155,7 +173,9 @@
 
   .banner { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
   .banner select, .banner input { width: 100%; }
-  .binfo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: -4px; font-size: 11px; }
+  .binfo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: -4px; font-size: 11px; width: 100%; padding: 4px 0; background: none; border: 0; text-align: left; box-shadow: none; }
+  .tolist { padding: 4px 8px; font-size: 11px; white-space: nowrap; }
+  .more { margin-left: auto; color: var(--accent); font-weight: 600; flex: none; }
   .feat { padding: 1px 7px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 22%, transparent); color: var(--text); font-weight: 600; }
   .dday { color: var(--warn); font-weight: 700; }
   .bname { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }

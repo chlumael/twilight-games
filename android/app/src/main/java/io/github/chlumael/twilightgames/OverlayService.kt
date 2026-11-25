@@ -65,6 +65,7 @@ class OverlayService : Service() {
             return START_STICKY
         }
         running = true
+        instance = this
         startInForeground()
         if (!created) {
             created = true
@@ -152,7 +153,10 @@ class OverlayService : Service() {
         webView = WebView(this)
         WebSetup.configure(
             this, webView,
-            WebBridge(mode = "overlay", onCollapse = ::collapse, onClose = ::stopSelf, onSummary = ::showSummary),
+            WebBridge(
+                mode = "overlay", onCollapse = ::collapse, onClose = ::stopSelf, onSummary = ::showSummary,
+                onScreenRead = ::setScreenRead,
+            ),
         )
         val handle = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -294,8 +298,25 @@ class OverlayService : Service() {
         wm.addView(bubble, bubbleParams)
     }
 
+    /** 화면 읽기 켜기: 동의 창을 띄울 투명 화면을 연다. 끄기: 읽기 서비스를 멈춘다. */
+    private fun setScreenRead(start: Boolean) {
+        if (start) {
+            if (expanded) collapse() // 동의 창과 게임 화면을 가리지 않게 접는다
+            startActivity(Intent(this, CaptureConsentActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        } else {
+            ScreenReadService.stop(this)
+        }
+    }
+
+    private fun callPage(function: String, json: String) {
+        if (!created) return
+        webView.evaluateJavascript("window.$function && window.$function(${org.json.JSONObject.quote(json)})", null)
+    }
+
     override fun onDestroy() {
         running = false
+        instance = null
+        if (ScreenReadService.running) ScreenReadService.stop(this)
         if (created) {
             runCatching { wm.removeView(if (expanded) panel else bubble) }
             webView.destroy()
@@ -348,5 +369,14 @@ class OverlayService : Service() {
 
         /** True while the overlay service is alive (lets the app ask it to refresh). */
         @Volatile var running = false
+
+        @Volatile private var instance: OverlayService? = null
+        private val mainHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        /** 웹 화면이 아직 뜨기 전에 온 상태 알림은 잠깐 뒤에 다시 보낸다. */
+        @Volatile private var lastState: String? = null
+
+        /** 화면에서 읽은 글자(JSON)를 오버레이의 웹 화면으로 넘긴다. */
+        fun screenText(json: String) { mainHandler.post { instance?.callPage("__twilightScreen", json) } }
+        fun screenState(json: String) { lastState = json; mainHandler.post { instance?.callPage("__twilightScreenState", json) } }
     }
 }

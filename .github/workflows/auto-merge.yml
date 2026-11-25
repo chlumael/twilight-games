@@ -1,0 +1,51 @@
+name: auto-merge
+
+# 작업 브랜치에 올라온 내용이 검사를 통과하면 main에 자동으로 합친다.
+# (사용자 승인 2026-11-25: 매번 PR을 직접 합치지 않아도 되게)
+# 한계: GitHub 기본 토큰은 워크플로 파일(.github/workflows) 변경을 올릴 수 없다.
+#       그런 변경이 섞여 있으면 합치지 않고 건너뛴다 → 그때만 사용자가 PR로 합친다.
+on:
+  push:
+    branches: ["phase*"]
+
+permissions:
+  contents: write
+  actions: write # 합친 뒤 웹앱 배포(pages)를 직접 실행하기 위해
+
+concurrency:
+  group: auto-merge
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run check
+      - name: main에 합치기
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          if git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "이미 main에 들어 있습니다."; exit 0
+          fi
+          if ! git diff --quiet origin/main "$GITHUB_SHA" -- .github/workflows; then
+            echo "::warning::워크플로 파일이 바뀌어 자동으로 합칠 수 없습니다. PR로 직접 합쳐 주세요."
+            exit 0
+          fi
+          git checkout -B main origin/main
+          git merge --no-edit -m "작업 브랜치 자동 합치기 (${GITHUB_REF_NAME})" "$GITHUB_SHA"
+          git push origin main
+          # 기본 토큰으로 올린 것은 다른 워크플로를 깨우지 않으므로 웹앱 배포를 직접 실행한다.
+          gh workflow run pages.yml --ref main

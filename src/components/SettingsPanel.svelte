@@ -48,6 +48,7 @@
   function editBaseline(groupId: string, patch: Partial<Baseline>) {
     onBaseline(groupId, { ...baseline(groupId), ...patch });
   }
+  let autoRead = $state(android?.autoScreenRead?.() ?? true);
 </script>
 
 <div class="settings">
@@ -128,6 +129,13 @@
         <button onclick={() => android?.checkUpdate?.()}>업데이트 확인</button>
       </div>
       <p class="muted hint">앱을 켤 때 6시간마다 새 버전을 확인하고, 있으면 알려줍니다.</p>
+      {#if android?.setAutoScreenRead}
+        <label class="autoread">
+          <input type="checkbox" checked={autoRead} onchange={(e) => { autoRead = (e.currentTarget as HTMLInputElement).checked; android?.setAutoScreenRead?.(autoRead); }} />
+          창을 띄울 때 화면 읽기도 함께 시작
+        </label>
+        <p class="muted hint">켜 두면 "띄우기"를 누를 때 화면 녹화 허용 창이 바로 뜹니다. 허용은 안드로이드 규칙상 매번 한 번 눌러야 합니다.</p>
+      {/if}
     </section>
   {/if}
 
@@ -179,4 +187,5 @@
   .base label.check { flex-direction: row; align-items: center; gap: 4px; }
   .proc { display: grid; grid-template-columns: 56px 1fr auto; gap: 4px; align-items: center; }
   .proc select { max-width: 90px; }
+  .autoread { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 </style>

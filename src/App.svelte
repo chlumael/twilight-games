@@ -3,7 +3,9 @@
   import CurrencyBar from "./components/CurrencyBar.svelte";
   import GroupPanel from "./components/GroupPanel.svelte";
   import PityRing from "./components/PityRing.svelte";
+  import ScreenPanel from "./components/ScreenPanel.svelte";
   import SettingsPanel from "./components/SettingsPanel.svelte";
+  import StatsPanel from "./components/StatsPanel.svelte";
   import TopForm from "./components/TopForm.svelte";
   import * as api from "./lib/api";
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
@@ -15,8 +17,9 @@
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
   import bundledPack from "../data/banners.json";
-  import { autoBanner, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
+  import { autoBanner, bannerLabel, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
+  import { readScreen, type ScreenFrame, type ScreenReading } from "./lib/recognize";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
@@ -34,9 +37,13 @@
   const web = !api.inTauri;
   const overlay = api.androidMode === "overlay";
   let collapsed = $state(!web);
-  let view = $state<"main" | "settings" | "review" | "top">("main");
+  let view = $state<"main" | "settings" | "review" | "top" | "stats">("main");
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
+  let screenOn = $state(!!api.android?.screenReading?.());
+  let screenMessage = $state("");
+  let screenFrame = $state.raw<ScreenFrame | null>(null);
+  let screenResult = $state.raw<ScreenReading | null>(null);
   let pack = $state.raw<BannerPack | null>(isPack(bundledPack) ? bundledPack : null);
 
   const def = $derived(GAMES[game]);
@@ -55,6 +62,11 @@
   const cost1 = $derived(spendPreview(rec.currency, group.spend, 1));
   const cost10 = $derived(spendPreview(rec.currency, group.spend, 10));
   const banners = $derived(groupBanners(pack, game, groupId));
+  /** 기록에 저장된 배너 ID를 보여 줄 이름으로 바꾼다 (팩에 없으면 그대로). */
+  function packBannerName(id: string): string {
+    const b = (pack?.games[game] ?? []).find((x) => x.id === id);
+    return b ? `${bannerLabel(b)} · ${b.name}` : id;
+  }
   const currentPackBanner = $derived(banners.find((b) => b.id === status.banner));
   const suggestions = $derived(currentPackBanner?.featured.map(itemName) ?? []);
 
@@ -337,6 +349,29 @@
   }
 
   onMount(() => {
+    // 화면 읽기 결과 받기 (안드로이드 오버레이). 창이 접혀 있어도 계속 받는다.
+    const sw = window as unknown as { __twilightScreen?: (j: string) => void; __twilightScreenState?: (j: string) => void };
+    sw.__twilightScreen = (json) => {
+      try {
+        const f = JSON.parse(json) as ScreenFrame;
+        screenOn = true;
+        screenFrame = f;
+        const r = readScreen(f);
+        if (r) {
+          screenResult = r;
+          // 읽은 화면이 다른 게임이면 그 게임으로 바꾼다 (기록은 건드리지 않는다)
+          if (r.game !== game) { game = r.game; settings = { ...settings, lastGame: r.game }; }
+        }
+      } catch { /* 깨진 데이터는 버린다 */ }
+    };
+    sw.__twilightScreenState = (json) => {
+      try {
+        const st = JSON.parse(json) as { state: string; message: string };
+        screenOn = st.state === "started";
+        screenMessage = st.state === "denied" ? "화면 녹화를 허용하지 않아 시작하지 못했습니다."
+          : st.state === "error" ? `시작하지 못했습니다: ${st.message}` : "";
+      } catch { /* 무시 */ }
+    };
     (window as unknown as { __twilightReload?: () => void }).__twilightReload = () => {
       if (loaded) reloadFromStorage();
     };
@@ -419,6 +454,7 @@
       <button class="icon pend" class:has={pending > 0} onclick={() => (view = view === "review" ? "main" : "review")} title="확인 대기">
         확인 {pending}
       </button>
+      <button class="icon" onclick={() => (view = view === "stats" ? "main" : "stats")} title="통계">통계</button>
       <button class="icon" onclick={() => (view = view === "settings" ? "main" : "settings")} aria-label="설정">⚙</button>
       {#if !web}<button class="icon" onclick={() => { collapsed = true; view = "main"; }} aria-label="접기">▴</button>{/if}
       {#if api.androidMode === "app"}
@@ -445,12 +481,16 @@
           syncConfigured={sync.syncConfigured} {account} {syncState} {lastSync}
           onSignIn={signInAccount} onSignOut={signOutAccount} onSync={syncNow}
         />
+      {:else if view === "stats"}
+        <StatsPanel {game} record={rec} bannerName={packBannerName} onClose={() => (view = "main")} />
       {:else if view === "review"}
         <section class="review">
           <strong>확인 대기</strong>
           {#if pending === 0}
-            <p class="muted">확인할 기록이 없습니다. 화면 인식이 추가되면 여기에 쌓입니다.</p>
+            <p class="muted">확인할 기록이 없습니다.</p>
           {/if}
+          <ScreenPanel {game} currency={rec.currency} reading={screenOn} message={screenMessage} frame={screenFrame} result={screenResult}
+            onCurrency={(values) => update(setCurrency(records, game, values))} />
           <button onclick={() => (view = "main")}>닫기</button>
         </section>
       {:else}
@@ -464,7 +504,7 @@
         </nav>
         {/if}
 
-        <GroupPanel {status} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} {banners} onBanner={setBanner} />
+        <GroupPanel {status} groupLabel={group.name} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} {banners} onBanner={setBanner} />
 
 
         {#if view === "top"}

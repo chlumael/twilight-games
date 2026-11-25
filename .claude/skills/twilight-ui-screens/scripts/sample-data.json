@@ -38,11 +38,11 @@
     },
     "limbus": {
       "currency": { "lunacy": 5460, "ticket": 3, "tenTicket": 1 },
-      "currentBanner": { "limbus-extraction": "픽업 추출" },
+      "currentBanner": { "limbus-extraction": "" },
       "baseline": {},
       "sessions": [
-        { "group": "limbus-extraction", "banner": "픽업 추출", "count": 10, "minsAgo": 40, "tops": { "8": ["000 인격", true] } },
-        { "group": "limbus-extraction", "banner": "픽업 추출", "count": 10, "minsAgo": 4, "tops": {} }
+        { "group": "limbus-extraction", "banner": "", "count": 10, "minsAgo": 40, "tops": { "8": ["000 인격", true] } },
+        { "group": "limbus-extraction", "banner": "", "count": 10, "minsAgo": 4, "tops": {} }
       ]
     }
   }
