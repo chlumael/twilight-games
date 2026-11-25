@@ -20,7 +20,8 @@
   let count = $state(detection.count);
   const label = (k: string) => def.currencies.find((c) => c.key === k)?.label ?? k;
   const topRarity = $derived(detection.game === "genshin" ? 5 : 6);
-  const shown = $derived([...detection.items].sort((a, b) => b.rarity - a.rarity));
+  // 3성은 보여 주지도 기록하지도 않는다(사용자 요청 2026-11-25). 횟수 확인용으로만 읽는다.
+  const shown = $derived(detection.items.filter((i) => i.rarity >= 4).sort((a, b) => b.rarity - a.rarity));
   const time = $derived(new Date(detection.time).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }));
 </script>
 

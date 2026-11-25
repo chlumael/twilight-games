@@ -70,7 +70,8 @@
   function saveDetection(d: Detection, gid: string, count: number) {
     const top = d.game === "genshin" ? 5 : 6;
     const banner = groupBanners(pack, d.game, gid).find((b) => b.id === records.games[d.game].currentBanner[gid]);
-    const items = d.items.map((i) => ({
+    // 3성은 기록하지 않는다(사용자 요청). 4성 이상만 이름·등급을 남긴다.
+    const items = d.items.filter((i) => i.rarity >= 4).map((i) => ({
       name: i.name, rarity: i.rarity, top: i.rarity >= top, featured: i.rarity >= top ? matchFeatured(banner, i.name) : null,
     }));
     update(recordDetected(records, d.game, gid, count, items, d.after, new Date(d.time)));
