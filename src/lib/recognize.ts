@@ -133,7 +133,7 @@ export function numberTokens(lines: ScreenLine[]): { n: number; x: number; plus:
 
 function genshin(lines: ScreenLine[]): ScreenReading | null {
   if (!has(lines, /기원10회/) || !has(lines, /기원1회/)) return null;
-  // 오른쪽 위 숫자들: (스타라이트) (스타더스트) 원석[+] 인연. 실기 확인(2026-11-25): 숫자가 4개까지 나오고
+  // 오른쪽 위 숫자들: 스타라이트, 스타더스트, 원석[+], 인연 순서(사용자 확인 2026-11-25). 숫자가 4개까지 나오고
   // 원석 숫자 뒤에 충전 "+"가 붙는다. 원석 = "+"가 붙은 숫자, 인연 = 그보다 오른쪽의 마지막 숫자.
   const tokens = numberTokens(lines.filter((l) => l.y < 0.12 && l.x > 0.5));
   const currency: Record<string, number> = {};
