@@ -137,21 +137,15 @@ export function recentPulls(rec: GameRecord, groupId: string, limit: number): Pu
 
 /** Pulls affordable with the given currency, following the spend order. */
 export function availablePulls(currency: Record<string, number>, spend: SpendStep[]): number {
-  return spend.reduce((sum, s) => sum + Math.floor((currency[s.key] ?? 0) / s.cost) * s.pulls, 0);
+  return spend.reduce((sum, s) => {
+    const pool = (currency[s.key] ?? 0) + (s.topUp ? (currency[s.topUp.key] ?? 0) * s.topUp.rate : 0);
+    return sum + Math.floor(pool / s.cost) * s.pulls;
+  }, 0);
 }
 
-/** Extra pulls available if convertible currencies (e.g. 창세의 결정 → 원석) were converted. */
-export function convertiblePulls(
-  currency: Record<string, number>,
-  defs: { key: string; convertsTo?: { key: string; rate: number } }[],
-  spend: SpendStep[],
-): number {
-  const converted = { ...currency };
-  for (const d of defs) {
-    if (!d.convertsTo) continue;
-    converted[d.convertsTo.key] = (converted[d.convertsTo.key] ?? 0) + (currency[d.key] ?? 0) * d.convertsTo.rate;
-  }
-  return availablePulls(converted, spend) - availablePulls(currency, spend);
+/** How many of the affordable pulls depend on currency `key` (e.g. 창세의 결정). */
+export function pullsFrom(currency: Record<string, number>, spend: SpendStep[], key: string): number {
+  return availablePulls(currency, spend) - availablePulls({ ...currency, [key]: 0 }, spend);
 }
 
 /**
@@ -166,7 +160,16 @@ export function deduct(
   const next = { ...currency };
   let remaining = n;
   for (const s of spend) {
-    while (remaining >= s.pulls && (next[s.key] ?? 0) >= s.cost) {
+    while (remaining >= s.pulls) {
+      const have = next[s.key] ?? 0;
+      if (have < s.cost && s.topUp) {
+        // Convert only what is missing for this pull, if the top-up source covers it.
+        const need = Math.ceil((s.cost - have) / s.topUp.rate);
+        if ((next[s.topUp.key] ?? 0) < need) break;
+        next[s.topUp.key] = (next[s.topUp.key] ?? 0) - need;
+        next[s.key] = have + need * s.topUp.rate;
+      }
+      if ((next[s.key] ?? 0) < s.cost) break;
       next[s.key] = (next[s.key] ?? 0) - s.cost;
       remaining -= s.pulls;
     }
@@ -181,8 +184,9 @@ export function spendPreview(
   n: number,
 ): { items: { key: string; amount: number }[]; shortfall: number } {
   const r = deduct(currency, spend, n);
-  const items = spend
-    .map((s) => ({ key: s.key, amount: (currency[s.key] ?? 0) - (r.currency[s.key] ?? 0) }))
+  const keys = spend.flatMap((s) => (s.topUp ? [s.key, s.topUp.key] : [s.key]));
+  const items = keys
+    .map((key) => ({ key, amount: (currency[key] ?? 0) - (r.currency[key] ?? 0) }))
     .filter((x) => x.amount > 0);
   return { items, shortfall: r.shortfall };
 }

@@ -8,7 +8,7 @@
   import * as api from "./lib/api";
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
-    availablePulls, convertiblePulls, emptyRecords, groupStatus, lastSessionSize, markTopInLastSession,
+    availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
     normalizeRecords, recentPulls, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo,
   } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
@@ -38,7 +38,9 @@
   const group = $derived(findGroup(game, groupId));
   const status = $derived(groupStatus(rec, game, groupId));
   const canPull = $derived(availablePulls(rec.currency, group.spend));
-  const extraPulls = $derived(convertiblePulls(rec.currency, def.currencies, group.spend));
+  const included = $derived(
+    def.currencies.filter((c) => c.manualOnly).map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
+  );
   const pending = $derived(GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0));
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
@@ -247,7 +249,7 @@
           <button onclick={() => (view = "main")}>닫기</button>
         </section>
       {:else}
-        <CurrencyBar {game} currencies={def.currencies} values={rec.currency} {canPull} extra={extraPulls} onEdit={editCurrency} />
+        <CurrencyBar {game} currencies={def.currencies} values={rec.currency} {canPull} {included} onEdit={editCurrency} />
 
         {#if def.groups.length > 1}
         <nav class="tabs">

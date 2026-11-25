@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GAMES } from "./games";
 import {
   availablePulls,
-  convertiblePulls,
+  pullsFrom,
   deduct,
   emptyBaseline,
   emptyRecords,
@@ -99,12 +99,16 @@ describe("currency", () => {
     expect(deduct({ tenTicket: 0, ticket: 2, lunacy: 1300 }, spend, 10).currency).toEqual({ tenTicket: 0, ticket: 0, lunacy: 260 });
   });
 
-  it("counts Genesis Crystals only as convertible extra pulls", () => {
-    const g = GAMES.genshin;
-    const cur = { primogem: 100, intertwined: 0, genesis: 300 };
-    expect(availablePulls(cur, g.groups[0].spend)).toBe(0);
-    expect(convertiblePulls(cur, g.currencies, g.groups[0].spend)).toBe(2);
-    expect(deduct(cur, g.groups[0].spend, 1).currency.genesis).toBe(300);
+  it("Genshin spends fates, then primogems, then converts Genesis Crystals", () => {
+    const spend = GAMES.genshin.groups[0].spend;
+    const cur = { intertwined: 1, primogem: 100, genesis: 300 };
+    expect(availablePulls(cur, spend)).toBe(3); // 1 fate + (100+300)/160
+    expect(pullsFrom(cur, spend, "genesis")).toBe(2);
+    expect(deduct(cur, spend, 2).currency).toEqual({ intertwined: 0, primogem: 0, genesis: 240 });
+    expect(spendPreview(cur, spend, 2).items).toEqual([
+      { key: "intertwined", amount: 1 }, { key: "primogem", amount: 100 }, { key: "genesis", amount: 60 },
+    ]);
+    expect(deduct(cur, spend, 4).shortfall).toBe(1);
   });
 
   it("reports shortfall when currency runs out", () => {

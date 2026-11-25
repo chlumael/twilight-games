@@ -5,6 +5,8 @@ export interface SpendStep {
   key: string;
   cost: number;
   pulls: number;
+  /** When `key` runs short, convert from this currency first (원신: 창세의 결정 → 원석). */
+  topUp?: { key: string; rate: number };
 }
 
 export interface BannerCounter {
@@ -34,10 +36,8 @@ export interface PityGroup {
 export interface CurrencyDef {
   key: string;
   label: string;
-  /** Only ever entered by hand: never read from the screen or spent automatically. */
+  /** Increases are entered by hand only; spending is still tracked automatically. */
   manualOnly?: boolean;
-  /** Can be converted 1:rate into another currency (shown as extra pulls, never auto-converted). */
-  convertsTo?: { key: string; rate: number };
 }
 
 export interface GameDef {
@@ -51,9 +51,10 @@ export interface GameDef {
   processNames: string[];
 }
 
+// 인연 → 원석 → (원석이 모자라면) 창세의 결정을 원석으로 교환.
 const genshinEventSpend: SpendStep[] = [
   { key: "intertwined", cost: 1, pulls: 1 },
-  { key: "primogem", cost: 160, pulls: 1 },
+  { key: "primogem", cost: 160, pulls: 1, topUp: { key: "genesis", rate: 1 } },
 ];
 
 const arknightsSpend: SpendStep[] = [
@@ -71,7 +72,7 @@ export const GAMES: Record<GameId, GameDef> = {
     currencies: [
       { key: "primogem", label: "원석" },
       { key: "intertwined", label: "뒤엉킨 인연" },
-      { key: "genesis", label: "창세의 결정", manualOnly: true, convertsTo: { key: "primogem", rate: 1 } },
+      { key: "genesis", label: "창세의 결정", manualOnly: true },
     ],
     groups: [
       {

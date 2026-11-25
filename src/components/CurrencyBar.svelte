@@ -3,13 +3,13 @@
   import { currencyIcon } from "../lib/icons";
   import type { GameId } from "../lib/types";
 
-  let { game, currencies, values, canPull, extra = 0, onEdit }: {
+  let { game, currencies, values, canPull, included = [], onEdit }: {
     game: GameId;
     currencies: CurrencyDef[];
     values: Record<string, number>;
     canPull: number;
-    /** Extra pulls if convertible currencies were converted. */
-    extra?: number;
+    /** Pulls that depend on manual-only currencies, e.g. [{ label: "창세", pulls: 6 }]. */
+    included?: { label: string; pulls: number }[];
     onEdit: (key: string, value: string) => void;
   } = $props();
 </script>
@@ -17,7 +17,7 @@
 <section class="cbar">
   {#each currencies as c (c.key)}
     {@const icon = currencyIcon(game, c.key)}
-    <label class="pill" class:manual={c.manualOnly} title={c.manualOnly ? `${c.label} (수동 입력 전용, 자동 차감 안 함)` : c.label}>
+    <label class="pill" class:manual={c.manualOnly} title={c.manualOnly ? `${c.label}: 보유량은 직접 입력, 사용은 자동 차감` : c.label}>
       {#if icon}<img src={icon} alt="" />{:else}<span class="glyph"></span>{/if}
       <span class="name">{c.label}{#if c.manualOnly}<em>수동</em>{/if}</span>
       <input type="number" min="0" value={values[c.key] ?? 0}
@@ -26,7 +26,7 @@
   {/each}
   <div class="can">
     <b>{canPull}</b><span>회 가능</span>
-    {#if extra > 0}<span class="extra" title="창세의 결정 등을 전환하면">+{extra} 전환 시</span>{/if}
+    {#each included.filter((x) => x.pulls > 0) as x}<span class="extra">({x.label} {x.pulls}회 포함)</span>{/each}
   </div>
 </section>
 
