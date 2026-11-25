@@ -46,6 +46,40 @@ export function extractNames(source) {
   return names;
 }
 
+/**
+ * `key: { ... name: '...', rarity: N }` 표에서 이름과 등급을 꺼낸다(실행하지 않고 글로 읽는다).
+ * 원신 화면 읽기에서 공개 화면의 이름으로 몇 성인지 알아내는 데 쓴다.
+ */
+export function extractRarities(source) {
+  const out = {};
+  for (const m of source.matchAll(/^ {2}['"]?([\w-]+)['"]?: \{([\s\S]*?)^ {2}\}/gm)) {
+    const n = m[2].match(/^ {4}name: (['"])((?:\\.|(?!\1).)*)\1/m);
+    const r = m[2].match(/^ {4}rarity: (\d)/m);
+    if (n && r) out[m[1]] = { en: n[2].replace(/\\(.)/g, "$1"), rarity: Number(r[1]) };
+  }
+  return out;
+}
+
+/** 원신 기원에서 나올 수 있는 캐릭터(4·5성)와 무기(3~5성)의 한국어 이름 → 등급 */
+async function genshinItems() {
+  const [charsSrc, weaponsSrc, ko] = await Promise.all([
+    get(`${PAIMON}/data/characters.js`),
+    get(`${PAIMON}/data/weaponList.js`),
+    get(`${PAIMON}/locales/items/ko.json`, "json"),
+  ]);
+  const items = {};
+  const add = (table, kind, minRarity) => {
+    for (const { en, rarity } of Object.values(extractRarities(table))) {
+      const name = ko[en];
+      if (!name || rarity < minRarity) continue;
+      items[name] = { rarity, kind };
+    }
+  };
+  add(weaponsSrc, "weapon", 3);
+  add(charsSrc, "character", 4); // 같은 이름이면 캐릭터가 이긴다
+  return { schemaVersion: 1, generatedAt: new Date().toISOString(), items };
+}
+
 /** paimon.moe times are Asia server time (UTC+8). */
 function asiaTime(s) {
   return new Date(s.replace(" ", "T") + "+08:00").toISOString();
@@ -123,6 +157,15 @@ games.arknights ??= [];
 games.limbus ??= [];
 games.genshin ??= [];
 games.endfield ??= [];
+
+try {
+  const table = await genshinItems();
+  if (Object.keys(table.items).length > 100) {
+    await writeFile(new URL("../../data/genshin-items.json", import.meta.url), JSON.stringify(table) + "\n");
+  }
+} catch (e) {
+  console.warn(`원신 이름·등급 표를 만들지 못함 (${e.message})`);
+}
 
 const pack = { schemaVersion: 1, generatedAt: new Date().toISOString(), games, errors };
 const outFile = process.argv[2] ?? new URL("../../data/banners.json", import.meta.url);

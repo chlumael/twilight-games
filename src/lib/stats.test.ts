@@ -71,4 +71,12 @@ describe("통계", () => {
     expect(luckLabel({ ...base, tops: 3, pityRatio: 0.8 })).toBe("보통");
     expect(luckLabel({ ...base, tops: 3, pityRatio: 0.95 })).toBe("천장 근처에서 자주 나옴");
   });
+
+  it("4성 기록: 화면 읽기로 이름이 남은 것만, 최근부터", () => {
+    const r = sample();
+    const ps = r.games.genshin.pulls;
+    ps[0].name = "바바라"; ps[0].rarity = 4;
+    ps[12].name = "행추"; ps[12].rarity = 4;
+    expect(groupStats(r.games.genshin, "genshin", "genshin-char").rare.map((p) => p.name)).toEqual(["행추", "바바라"]);
+  });
 });

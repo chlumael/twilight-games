@@ -3,6 +3,7 @@
   import CurrencyBar from "./components/CurrencyBar.svelte";
   import GroupPanel from "./components/GroupPanel.svelte";
   import PityRing from "./components/PityRing.svelte";
+  import DetectionCard from "./components/DetectionCard.svelte";
   import ScreenPanel from "./components/ScreenPanel.svelte";
   import SettingsPanel from "./components/SettingsPanel.svelte";
   import StatsPanel from "./components/StatsPanel.svelte";
@@ -11,7 +12,7 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo,
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo,
   } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
@@ -20,6 +21,8 @@
   import { autoBanner, bannerLabel, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
   import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading } from "./lib/recognize";
+  import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "./lib/detect";
+  import genshinItemsFile from "../data/genshin-items.json";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
@@ -40,6 +43,45 @@
   let view = $state<"main" | "settings" | "review" | "top" | "stats">("main");
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
+  // ---- 뽑기 감지 (화면 읽기 결과 → 확인 대기) ----
+  const DETECT_KEY = "tg-detections";
+  const genshinItems = ((genshinItemsFile as { items?: ItemTable }).items ?? {}) as ItemTable;
+  let detectState = emptyDetectState();
+  let detections = $state.raw<Detection[]>(loadDetections());
+  function loadDetections(): Detection[] {
+    try { return JSON.parse(localStorage.getItem(DETECT_KEY) ?? "[]") as Detection[]; } catch { return []; }
+  }
+  function saveDetections(list: Detection[]) {
+    detections = list;
+    try { localStorage.setItem(DETECT_KEY, JSON.stringify(list)); } catch { /* 저장 공간 문제는 무시 */ }
+  }
+  function onScreenFrame(f: ScreenFrame, r: ScreenReading | null) {
+    const out = detectStep(detectState, f, r, {
+      spendOf: (g) => findGroup(g, settings.activeGroup[g] ?? GAMES[g].groups[0].id).spend,
+      genshinItems,
+      newId: () => `det-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    });
+    detectState = out.state;
+    if (out.detection) {
+      saveDetections([...loadDetections(), out.detection]);
+      notify(`${GAMES[out.detection.game].shortName} ${out.detection.count}회 뽑기 감지 — "확인"에서 기록하세요`);
+    }
+  }
+  function saveDetection(d: Detection, gid: string, count: number) {
+    const top = d.game === "genshin" ? 5 : 6;
+    const banner = groupBanners(pack, d.game, gid).find((b) => b.id === records.games[d.game].currentBanner[gid]);
+    const items = d.items.map((i) => ({
+      name: i.name, rarity: i.rarity, top: i.rarity >= top, featured: i.rarity >= top ? matchFeatured(banner, i.name) : null,
+    }));
+    update(recordDetected(records, d.game, gid, count, items, d.after, new Date(d.time)));
+    saveDetections(loadDetections().filter((x) => x.id !== d.id));
+    notify(`${GAMES[d.game].shortName} ${count}회 기록 완료`);
+  }
+  function guessFeaturedFor(g: GameId, gid: string, name: string): boolean | null {
+    const banner = groupBanners(pack, g, gid).find((b) => b.id === records.games[g].currentBanner[gid]);
+    return matchFeatured(banner, name);
+  }
+
   let screenOn = $state(!!api.android?.screenReading?.());
   let screenMessage = $state("");
   let screenFrame = $state.raw<ScreenFrame | null>(null);
@@ -56,7 +98,9 @@
   const included = $derived(
     def.currencies.filter((c) => c.manualOnly).map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
   );
-  const pending = $derived(GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0));
+  const pending = $derived(
+    detections.length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
+  );
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
   const cost1 = $derived(spendPreview(rec.currency, group.spend, 1));
@@ -359,6 +403,7 @@
         // "읽은 글자 복사"용으로는 게임 가챠 화면으로 보이는 것만 남긴다.
         // (화면 읽기는 켜져 있는 동안 다른 앱 화면도 읽으므로, 다른 앱 글자를 붙잡아 두지 않는다)
         if (r || looksLikeGacha(f)) screenFrame = f;
+        onScreenFrame(f, r);
         if (r) {
           // 이번에 일부를 못 읽었으면(가려짐 등) 같은 게임에서 직전에 읽은 값을 남겨 둔다
           if (screenResult?.game === r.game) r.currency = { ...screenResult.currency, ...r.currency };
@@ -493,6 +538,12 @@
           {#if pending === 0}
             <p class="muted">확인할 기록이 없습니다.</p>
           {/if}
+          {#each detections as d (d.id)}
+            <DetectionCard detection={d} defaultGroup={settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id}
+              guessFeatured={(gid, name) => guessFeaturedFor(d.game, gid, name)}
+              onSave={(gid, count) => saveDetection(d, gid, count)}
+              onDiscard={() => saveDetections(loadDetections().filter((x) => x.id !== d.id))} />
+          {/each}
           <ScreenPanel {game} currency={rec.currency} reading={screenOn} message={screenMessage} frame={screenFrame} result={screenResult}
             onCurrency={(values) => update(setCurrency(records, game, values))} />
           <button onclick={() => (view = "main")}>닫기</button>

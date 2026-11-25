@@ -153,3 +153,25 @@ describe("editing", () => {
     expect(r.games.genshin.currency).toEqual({});
   });
 });
+
+import { recordDetected } from "./ledger";
+
+describe("화면 감지 기록", () => {
+  it("최고 등급은 맨 뒤 자리, 4성·3성은 이름과 등급, 재화는 화면 값으로", () => {
+    let r = emptyRecords();
+    r.games.genshin.currency = { primogem: 1600, intertwined: 10 };
+    r = recordDetected(r, "genshin", "genshin-char", 10, [
+      { name: "바바라", rarity: 4, top: false, featured: null },
+      { name: "자백", rarity: 5, top: true, featured: true },
+      { name: "탄궁", rarity: 3, top: false, featured: null },
+    ], { primogem: 1600, intertwined: 0 }, t(0));
+    const pulls = r.games.genshin.pulls.sort((a, b) => a.indexInSession - b.indexInSession);
+    expect(pulls).toHaveLength(10);
+    expect(pulls[9]).toMatchObject({ top: true, name: "자백", featured: true, rarity: 5, source: "screen" });
+    expect(pulls[0]).toMatchObject({ name: "바바라", rarity: 4, top: false });
+    expect(pulls[1]).toMatchObject({ name: "탄궁", rarity: 3 });
+    expect(pulls[2].name).toBeNull();
+    expect(r.games.genshin.currency).toEqual({ primogem: 1600, intertwined: 0 });
+    expect(groupStatus(r.games.genshin, "genshin", "genshin-char").pity).toBe(0);
+  });
+});

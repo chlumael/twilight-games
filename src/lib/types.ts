@@ -17,6 +17,8 @@ export interface Pull {
   name: string | null;
   /** For top pulls: was it the featured/target item? null = unknown. */
   featured: boolean | null;
+  /** 등급 (원신 3·4·5성 등). 화면에서 읽었을 때만 있다. 없으면 top으로만 판단 */
+  rarity?: number | null;
   source: PullSource;
   confidence: number;
   status: PullStatus;

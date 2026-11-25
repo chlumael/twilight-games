@@ -23,6 +23,8 @@ export interface GroupStats {
   /** 평균 뽑기 수 ÷ 천장. 낮을수록 운이 좋다. 천장이 없으면 null */
   pityRatio: number | null;
   hits: TopHit[];
+  /** 화면에서 읽어 이름이 남은 한 단계 아래 등급(원신 4성) — 최근 것부터 */
+  rare: Pull[];
 }
 
 export interface BannerStats {
@@ -74,6 +76,7 @@ export function groupStats(rec: GameRecord, game: GameId, groupId: string): Grou
     featuredLost: lost,
     pityRatio: average !== null && group.hardPity ? average / group.hardPity : null,
     hits,
+    rare: sorted.filter((p) => !p.top && p.rarity === 4 && p.name).reverse(),
   };
 }
 

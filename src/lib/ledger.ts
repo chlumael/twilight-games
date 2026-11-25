@@ -315,3 +315,39 @@ export function undo(records: Records): { records: Records; label: string | null
   rec.currency = entry.prevCurrency;
   return { records: next, label: entry.label };
 }
+
+/**
+ * 화면에서 감지한 뽑기를 기록한다. 최고 등급은 tops처럼, 그 아래 등급은 이름·등급만 붙인다.
+ * 한 번에 뽑은 것 안에서의 순서는 알 수 없어서, 최고 등급을 맨 뒤 자리에 둔다
+ * (그래서 다음 천장 계산이 최대 9회까지 적게 나올 수 있다 — 게임 기록 화면 읽기로 보정 예정).
+ */
+export function recordDetected(
+  records: Records,
+  game: GameId,
+  groupId: string,
+  count: number,
+  items: { name: string; rarity: number; top: boolean; featured: boolean | null }[],
+  after: Record<string, number>,
+  now: Date,
+): Records {
+  const tops = items.filter((i) => i.top).slice(-count);
+  const lower = items.filter((i) => !i.top).slice(0, count - tops.length);
+  const map = new Map<number, TopInfo>();
+  tops.forEach((t, k) => map.set(count - tops.length + k, { name: t.name, featured: t.featured }));
+  const next = recordSession(records, game, groupId, count, map, now);
+  const added = new Set(next.undo[next.undo.length - 1]?.addedPullIds ?? []);
+  const rec = next.games[game];
+  const session = rec.pulls.filter((p) => added.has(p.id)).sort((a, b) => a.indexInSession - b.indexInSession);
+  for (const p of session) {
+    p.source = "screen";
+    if (p.top) p.rarity = items.find((i) => i.top && i.name === p.name)?.rarity ?? null;
+  }
+  lower.forEach((it, k) => {
+    const p = session[k];
+    if (p && !p.top) { p.name = it.name; p.rarity = it.rarity; }
+  });
+  // 앱이 따라가던 재화보다 화면에서 읽은 값이 정확하다
+  for (const [k, v] of Object.entries(after)) rec.currency[k] = v;
+  rec.currencyUpdatedAt = now.toISOString();
+  return next;
+}

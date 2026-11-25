@@ -66,6 +66,12 @@
         {:else if g.pityRatio !== null}
           <p class="muted small">{def.topLabel} 기록이 3개 이상 쌓이면 천장 대비 평균과 운 평가가 표시됩니다.</p>
         {/if}
+        {#if g.rare.length}
+          <div class="rare">
+            <span class="k">4성 기록 {g.rare.length}개 (화면 읽기로 기록된 것)</span>
+            <div class="chips">{#each g.rare.slice(0, 20) as p (p.id)}<span class="chip4">{p.name}</span>{/each}</div>
+          </div>
+        {/if}
         {#if g.hits.length}
           <div class="hits">
             {#each [...g.hits].reverse().slice(0, 12) as h (h.pull.id)}
@@ -124,4 +130,7 @@
   .bname { color: var(--text); font-weight: 600; word-break: keep-all; }
   .bmeta { display: flex; flex-wrap: wrap; gap: 4px 10px; color: var(--muted); font-size: 11px; }
   .bnames { color: var(--top); font-size: 11px; }
+  .rare { display: flex; flex-direction: column; gap: 4px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 3px; }
+  .chip4 { padding: 1px 6px; border-radius: var(--btn-radius); background: color-mix(in srgb, #a259ff 28%, transparent); color: var(--text); font-size: 11px; }
 </style>
