@@ -140,3 +140,8 @@ export async function pcVersion(): Promise<string | null> {
 export async function openPcDownload(): Promise<void> {
   if (inTauri) await invoke("open_download");
 }
+
+/** PC판 버튼 하나 업데이트: 설치 파일을 받아 실행하고 프로그램을 끝낸다. 실패하면 이유를 던진다. */
+export async function installPcUpdate(): Promise<void> {
+  await invoke("install_update");
+}

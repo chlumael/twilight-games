@@ -90,3 +90,46 @@ const DOWNLOAD: &str = "https://github.com/chlumael/twilight-games/releases/late
 pub fn open_download() -> Result<(), String> {
     open_browser(DOWNLOAD)
 }
+
+/// 버튼 하나로 업데이트: 설치 파일을 임시 폴더에 받아 실행하고 프로그램을 끝낸다.
+/// 주소는 우리 저장소의 최신 릴리스로 고정이고(https), 윈도우에 들어 있는 curl로 받는다.
+/// 설치 프로그램은 진행 상황만 보여 주고(/P) 끝나면 프로그램을 다시 켠다(/R).
+#[tauri::command(async)]
+pub fn install_update(app: AppHandle) -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        let path = std::env::temp_dir().join("twilight-games-pc-setup.exe");
+        let _ = std::fs::remove_file(&path);
+        let status = std::process::Command::new("curl.exe")
+            .args(["-L", "--fail", "--silent", "--max-time", "300", "-o"])
+            .arg(&path)
+            .arg(DOWNLOAD)
+            .creation_flags(CREATE_NO_WINDOW)
+            .status()
+            .map_err(|e| format!("내려받기를 시작하지 못했습니다: {e}"))?;
+        if !status.success() {
+            return Err("설치 파일을 받지 못했습니다. 인터넷 연결을 확인해 주세요.".into());
+        }
+        // 받은 것이 실행 파일인지 확인한다 (크기와 머리 글자 "MZ")
+        let mut head = [0u8; 2];
+        let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+        let read = std::fs::File::open(&path).and_then(|mut f| f.read_exact(&mut head));
+        if read.is_err() || &head != b"MZ" || size < 1_000_000 {
+            let _ = std::fs::remove_file(&path);
+            return Err("받은 설치 파일이 올바르지 않습니다. 다시 시도해 주세요.".into());
+        }
+        std::process::Command::new(&path)
+            .args(["/P", "/R"])
+            .spawn()
+            .map_err(|e| format!("설치 프로그램을 실행하지 못했습니다: {e}"))?;
+        app.exit(0);
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = app;
+        Err("윈도우에서만 쓸 수 있습니다".into())
+    }
+}

@@ -52,6 +52,13 @@
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
   let newVersion = $state<string | null>(null); // PC판: 켤 때 찾은 새 버전
+  let updating = $state(false);
+  let updateError = $state<string | null>(null);
+  async function runUpdate() {
+    updating = true; updateError = null;
+    try { await api.installPcUpdate(); } // 성공하면 프로그램이 꺼지고 설치가 시작된다
+    catch (e) { updateError = String(e instanceof Error ? e.message : e); updating = false; }
+  }
   // ---- 뽑기 감지 (화면 읽기 결과 → 확인 대기) ----
   const DETECT_KEY = "tg-detections";
   const genshinItems = ((genshinItemsFile as { items?: ItemTable }).items ?? {}) as ItemTable;
@@ -638,9 +645,14 @@
   {:else}
     {#if newVersion}
       <div class="update">
-        <span>새 버전 {newVersion}이 있습니다</span>
-        <button onclick={() => api.openPcDownload()}>설치 파일 받기</button>
-        <button class="later" onclick={() => (newVersion = null)}>나중에</button>
+        {#if updating}
+          <span>새 버전을 받는 중… 곧 설치가 시작됩니다</span>
+        {:else}
+          <span>{updateError ?? `새 버전 ${newVersion}이 있습니다`}</span>
+          <button onclick={runUpdate}>{updateError ? "다시 시도" : "업데이트"}</button>
+          {#if updateError}<button onclick={() => api.openPcDownload()}>직접 받기</button>{/if}
+          <button class="later" onclick={() => (newVersion = null)}>나중에</button>
+        {/if}
       </div>
     {/if}
     <header data-tauri-drag-region>

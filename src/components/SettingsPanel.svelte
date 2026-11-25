@@ -1,7 +1,7 @@
 <script lang="ts">
   import { GAMES, GAME_IDS } from "../lib/games";
   import { emptyBaseline } from "../lib/ledger";
-  import { android, androidMode, inTauri, listProcesses, openPcDownload, pcVersion } from "../lib/api";
+  import { android, androidMode, inTauri, installPcUpdate, listProcesses, openPcDownload, pcVersion } from "../lib/api";
   import { isNewer, latestRelease } from "../lib/version";
   import type { Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
@@ -53,6 +53,13 @@
   let pcVer = $state<string | null>(null);
   let pcUpdate = $state<"" | "checking" | "latest" | "new" | "wait" | "fail">("");
   let pcLatest = $state("");
+  let pcInstalling = $state(false);
+  let pcInstallError = $state("");
+  async function runPcUpdate() {
+    pcInstalling = true; pcInstallError = "";
+    try { await installPcUpdate(); }
+    catch (e) { pcInstallError = String(e instanceof Error ? e.message : e); pcInstalling = false; }
+  }
   async function checkPcUpdate() {
     if (!pcVer) return;
     pcUpdate = "checking";
@@ -146,9 +153,13 @@
       {#if pcUpdate === "new"}
         <div class="row">
           <span>새 버전 {pcLatest}이 있습니다.</span>
-          <button onclick={() => openPcDownload()}>설치 파일 받기</button>
+          <button onclick={runPcUpdate} disabled={pcInstalling}>{pcInstalling ? "받는 중…" : "업데이트"}</button>
         </div>
-        <p class="muted hint">브라우저로 설치 파일을 받습니다. 받은 파일을 실행하면 기록은 그대로 두고 새 버전으로 바뀝니다.</p>
+        {#if pcInstallError}
+          <p class="muted hint">{pcInstallError} <button onclick={() => openPcDownload()}>브라우저로 직접 받기</button></p>
+        {:else}
+          <p class="muted hint">누르면 새 버전을 받아 설치하고 프로그램이 다시 켜집니다. 기록은 그대로 남습니다.</p>
+        {/if}
       {:else if pcUpdate === "latest"}
         <p class="muted hint">최신 버전입니다. 프로그램을 켤 때마다 새 버전을 확인해서 있으면 알려줍니다.</p>
       {:else if pcUpdate === "wait"}

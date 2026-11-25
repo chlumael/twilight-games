@@ -92,6 +92,7 @@ pub fn run() {
             screen::screen_reading,
             login::google_login,
             login::open_download,
+            login::install_update,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
