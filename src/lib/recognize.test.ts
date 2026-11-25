@@ -41,7 +41,8 @@ describe("화면 읽기", () => {
   it("엔드필드 메인: 재화, 배너, 천장·확정까지 남은 횟수", () => {
     expect(readScreen(frame(endfield))).toEqual({
       game: "endfield", kind: "gacha-main",
-      currency: { oroberyl: 3675, origeometry: 595 },
+      // 3675는 교환 칸(파생 오리지늄 49 × 75), 595가 오로베릴
+      currency: { oroberyl: 595, origeometry: 49 },
       banner: "불꽃에 그을린 상흔",
       until: "02.07 12:00 (UTC+8)",
       toTop: 73, toFeatured: 50,
@@ -77,7 +78,7 @@ describe("화면 읽기", () => {
     });
   });
 
-  it("엔드필드: 파생 오리지늄 뒤 '+', 허가증 2칸", () => {
+  it("엔드필드: 오로베릴 뒤 '+', 교환 칸 ÷75, 허가증 2칸", () => {
     const r = readScreen(frame([
       L("8", 0.53, 0.04), L("2", 0.61, 0.04), L("10200", 0.73, 0.04), L("52925 (+)", 0.83, 0.04),
       L("잔여 27일 종료: 12. 23 12: 00 (UTC+8)", 0.73, 0.29, 0.02),
@@ -87,7 +88,7 @@ describe("화면 읽기", () => {
     ]));
     expect(r).toMatchObject({
       game: "endfield",
-      currency: { oroberyl: 10200, origeometry: 52925, charteredPermit: 8, limitedPermit: 2 },
+      currency: { oroberyl: 52925, origeometry: 136, charteredPermit: 8, limitedPermit: 2 },
       until: "12. 23 12: 00 (UTC+8)", toTop: 73, toFeatured: 120,
     });
   });

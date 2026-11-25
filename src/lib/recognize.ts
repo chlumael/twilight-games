@@ -52,16 +52,18 @@ const numbersIn = (lines: ScreenLine[], area: (l: ScreenLine) => boolean) =>
 
 function endfield(lines: ScreenLine[]): ScreenReading | null {
   if (!has(lines, /10회헤드헌팅/) || !has(lines, /1회헤드헌팅/)) return null;
-  // 위쪽 오른편 숫자: [허가증들…] 오로베릴, 파생 오리지늄[+]. 실기(2026-11-25): 파생 오리지늄 뒤에 "+"가 붙어
-  // 숫자만으로 된 줄이 아니게 읽힌다 → 줄 안의 숫자 조각으로 읽는다.
+  // 위쪽 오른편 숫자: [허가증들…] [파생 오리지늄 교환 칸] 오로베릴[+].
+  // 사용자 확인(2026-11-25): 교환 칸은 보유 파생 오리지늄이 아니라 "전부 오로베릴로 바꾸면 받는 양"(× 75)이다.
+  // 맨 오른쪽 숫자 뒤의 "+" 때문에 숫자만으로 된 줄로 읽히지 않으므로 줄 안의 숫자 조각으로 읽는다.
   const top = numberTokens(lines.filter((l) => l.y < 0.1 && l.x > 0.4));
   const currency: Record<string, number> = {};
   if (top.length >= 2) {
-    currency.oroberyl = top[top.length - 2].n;
-    currency.origeometry = top[top.length - 1].n;
+    currency.oroberyl = top[top.length - 1].n;
+    const exchange = top[top.length - 2].n;
+    if (exchange % ORIGEOMETRY_TO_OROBERYL === 0) currency.origeometry = exchange / ORIGEOMETRY_TO_OROBERYL;
   }
   // 허가증이 정확히 2칸일 때만: 앞 칸 = 특별 허가 헤드헌팅 허가증(한정 헤드헌팅 허가증), 뒤 칸 = 이번 배너 전용
-  // 허가증(기간 한정 허가증). 근거: 10회 버튼의 "뒤 칸 ×2, 앞 칸 ×8" — 배너 전용을 먼저 쓴다(추정, 사용자 확인 필요).
+  // 허가증(기간 한정 허가증). 배너 전용을 먼저 쓴다(사용자 확인 2026-11-25).
   if (top.length === 4) {
     currency.charteredPermit = top[0].n;
     currency.limitedPermit = top[1].n;
@@ -161,7 +163,7 @@ function genshin(lines: ScreenLine[]): ScreenReading | null {
 
 function arknights(lines: ScreenLine[]): ScreenReading | null {
   if (!has(lines, /10회진행/) || !has(lines, /1회진행/)) return null;
-  // 위쪽 오른편 숫자: 용문폐, (공개모집 허가증), [오리지늄 → 합성옥 교환 시 받는 양], 합성옥.
+  // 위쪽 오른편 숫자: 용문폐, 공개모집 허가증(사용자 확인), [오리지늄 → 합성옥 교환 시 받는 양], 합성옥.
   // 실기(2026-11-25): 교환 칸은 보유 오리지늄이 아니라 "전부 바꾸면 받는 합성옥"(179 × 180 = 32220)이 적혀 있다.
   const top = numberTokens(lines.filter((l) => l.y < 0.1 && l.x > 0.5));
   const currency: Record<string, number> = {};
@@ -188,6 +190,9 @@ function arknights(lines: ScreenLine[]): ScreenReading | null {
     notes: remain ? [`화면에 적힌 잔여 ${remain[1]}회 헤드헌팅`] : [],
   };
 }
+
+/** 엔드필드 파생 오리지늄 1개 = 오로베릴 75개 (DESIGN.md, Game8 확인) */
+const ORIGEOMETRY_TO_OROBERYL = 75;
 
 /** 명일방주 오리지늄 1개 = 합성옥 180개 */
 const ORIGINITE_TO_ORUNDUM = 180;
