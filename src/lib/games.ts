@@ -188,6 +188,18 @@ export const GAMES: Record<GameId, GameDef> = {
         bannerCounters: [{ at: 120, label: "픽업 확정", untilFeatured: true }],
         spend: [{ key: "oroberyl", cost: 500, pulls: 1 }],
       },
+      {
+        // 무기 배너(무기고). 10회 단위만, 무기고 증표 1980개. 40회 안에 6성 무기, 80회 안에 픽업 무기 확정.
+        // 배너가 바뀌면 이월되지 않는다. 출처: Game8·Mobalytics·Icy Veins 등 공략(2026-11-25 확인, 공식 공지는 미확인)
+        id: "endfield-arsenal",
+        name: "무기고",
+        hardPity: 40,
+        softFrom: null,
+        carryOver: false,
+        featuredRule: "none",
+        bannerCounters: [{ at: 80, label: "픽업 무기 확정", untilFeatured: true }],
+        spend: [{ key: "arsenalTicket", cost: 1980, pulls: 10 }],
+      },
     ],
     // Unconfirmed: verify on a real install.
     processNames: ["Endfield.exe"],

@@ -203,3 +203,22 @@ describe("화면에 적힌 남은 횟수로 천장 맞추기", () => {
     expect(syncPityFromScreen(r, "endfield", "endfield-chartered", null, null)).toBe(r);
   });
 });
+
+describe("엔드필드 무기고", () => {
+  const spend = GAMES.endfield.groups.find((g) => g.id === "endfield-arsenal")!.spend;
+  it("10회 단위로만 센다 (무기고 증표 1980 = 10회)", () => {
+    expect(availablePulls({ arsenalTicket: 4000 }, spend)).toBe(20);
+    expect(availablePulls({ arsenalTicket: 1979 }, spend)).toBe(0);
+    expect(deduct({ arsenalTicket: 4000 }, spend, 10).currency.arsenalTicket).toBe(2020);
+    expect(deduct({ arsenalTicket: 4000 }, spend, 1).shortfall).toBe(1);
+  });
+  it("40회 천장, 80회 픽업 확정", () => {
+    let r = emptyRecords();
+    r.games.endfield.currentBanner["endfield-arsenal"] = "테스트 무기고";
+    r = recordSession(r, "endfield", "endfield-arsenal", 10, new Map(), t(0));
+    const st = groupStatus(r.games.endfield, "endfield", "endfield-arsenal");
+    expect(st.hardPity).toBe(40);
+    expect(st.pity).toBe(10);
+    expect(st.counters[0]).toMatchObject({ at: 80, remaining: 70 });
+  });
+});

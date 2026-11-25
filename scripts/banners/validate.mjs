@@ -8,7 +8,7 @@ const problems = [];
 const groups = {
   genshin: ["genshin-char", "genshin-weapon", "genshin-chronicled"],
   arknights: ["arknights-limited", "arknights-standard"],
-  endfield: ["endfield-chartered", "endfield-refactor"],
+  endfield: ["endfield-chartered", "endfield-refactor", "endfield-arsenal"],
   limbus: ["limbus-extraction"],
 };
 
