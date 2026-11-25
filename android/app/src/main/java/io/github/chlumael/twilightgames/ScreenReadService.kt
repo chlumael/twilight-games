@@ -10,6 +10,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Point
+import android.graphics.RectF
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
@@ -21,6 +26,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.view.WindowManager
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
@@ -96,20 +102,45 @@ class ScreenReadService : Service() {
             override fun onStop() { stopSelf() }
         }, main)
 
-        val metrics = resources.displayMetrics
-        // 글자 인식에는 긴 쪽 1280픽셀이면 충분하다. 작게 찍어 배터리를 아낀다.
-        val scale = minOf(1f, 1280f / maxOf(metrics.widthPixels, metrics.heightPixels))
-        width = (metrics.widthPixels * scale).toInt() / 2 * 2
-        height = (metrics.heightPixels * scale).toInt() / 2 * 2
+        val size = screenSize()
+        fitTo(size)
         val r = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
         reader = r
         display = mp.createVirtualDisplay(
-            "twilight-screen", width, height, metrics.densityDpi,
+            "twilight-screen", width, height, resources.displayMetrics.densityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, r.surface, null, main,
         )
         running = true
         report("started", "")
         main.postDelayed(tick, FIRST_DELAY_MS)
+    }
+
+    /** 지금 화면의 실제 크기(회전 반영). */
+    private fun screenSize(): Point {
+        val p = Point()
+        @Suppress("DEPRECATION")
+        getSystemService(WindowManager::class.java).defaultDisplay.getRealSize(p)
+        return p
+    }
+
+    /** 글자 인식에는 긴 쪽 1280픽셀이면 충분하다. 작게 찍어 배터리를 아낀다. */
+    private fun fitTo(size: Point) {
+        val scale = minOf(1f, 1280f / maxOf(size.x, size.y))
+        width = (size.x * scale).toInt() / 2 * 2
+        height = (size.y * scale).toInt() / 2 * 2
+    }
+
+    /** 게임이 가로로 돌면 찍는 화면도 같이 돌린다. 안 그러면 가로 화면이 세로 틀에 작게 들어간다. */
+    private fun followRotation() {
+        val size = screenSize()
+        if ((size.x > size.y) == (width > height)) return
+        fitTo(size)
+        val r = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
+        val old = reader
+        display?.resize(width, height, resources.displayMetrics.densityDpi)
+        display?.surface = r.surface
+        reader = r
+        old?.close()
     }
 
     private val tick = object : Runnable {
@@ -122,7 +153,13 @@ class ScreenReadService : Service() {
 
     private fun readOnce() {
         if (busy) return
+        followRotation()
         val image = reader?.acquireLatestImage() ?: return
+        if (OverlayService.isExpanded()) {
+            // 펼친 창이 게임을 가리고 있으니 읽지 않는다(창 글자를 게임 글자로 착각하지 않게).
+            image.close()
+            return
+        }
         val bitmap = try {
             val plane = image.planes[0]
             val rowPadding = plane.rowStride - plane.pixelStride * image.width
@@ -130,13 +167,15 @@ class ScreenReadService : Service() {
                 image.width + rowPadding / plane.pixelStride, image.height, Bitmap.Config.ARGB_8888,
             )
             padded.copyPixelsFromBuffer(plane.buffer)
-            if (rowPadding == 0) padded else Bitmap.createBitmap(padded, 0, 0, image.width, image.height).also { padded.recycle() }
+            if (rowPadding == 0) padded
+            else Bitmap.createBitmap(padded, 0, 0, image.width, image.height).copy(Bitmap.Config.ARGB_8888, true).also { padded.recycle() }
         } catch (e: Exception) {
             null
         } finally {
             image.close()
         }
         bitmap ?: return
+        maskOverlay(bitmap)
         busy = true
         val w = bitmap.width.toFloat()
         val h = bitmap.height.toFloat()
@@ -162,6 +201,16 @@ class ScreenReadService : Service() {
                 bitmap.recycle()
                 busy = false
             }
+    }
+
+    /** 우리 창(접힌 막대)이 있는 자리를 검게 지워서 그 글자를 읽지 않게 한다. */
+    private fun maskOverlay(bitmap: Bitmap) {
+        val rect = OverlayService.overlayRect() ?: return
+        val size = screenSize()
+        val sx = bitmap.width.toFloat() / size.x
+        val sy = bitmap.height.toFloat() / size.y
+        val paint = Paint().apply { color = Color.BLACK }
+        Canvas(bitmap).drawRect(RectF(rect.left * sx, rect.top * sy, rect.right * sx, rect.bottom * sy), paint)
     }
 
     private fun report(state: String, message: String) {

@@ -375,6 +375,20 @@ class OverlayService : Service() {
         /** 웹 화면이 아직 뜨기 전에 온 상태 알림은 잠깐 뒤에 다시 보낸다. */
         @Volatile private var lastState: String? = null
 
+        /** 펼친 창이 떠 있으면 게임 화면을 크게 가리므로 그동안은 화면을 읽지 않는다. 메인 스레드에서 부른다. */
+        fun isExpanded(): Boolean = instance?.expanded == true
+
+        /** 지금 떠 있는 우리 창(접힌 막대)의 화면 위치. 화면 읽기에서 이 부분을 지우고 읽는다. 메인 스레드에서 부른다. */
+        fun overlayRect(): android.graphics.Rect? {
+            val self = instance ?: return null
+            if (!self.created) return null
+            val v: View = if (self.expanded) self.panel else self.bubble
+            if (!v.isAttachedToWindow || v.width == 0) return null
+            val loc = IntArray(2)
+            v.getLocationOnScreen(loc)
+            return android.graphics.Rect(loc[0], loc[1], loc[0] + v.width, loc[1] + v.height)
+        }
+
         /** 화면에서 읽은 글자(JSON)를 오버레이의 웹 화면으로 넘긴다. */
         fun screenText(json: String) { mainHandler.post { instance?.callPage("__twilightScreen", json) } }
         fun screenState(json: String) { lastState = json; mainHandler.post { instance?.callPage("__twilightScreenState", json) } }

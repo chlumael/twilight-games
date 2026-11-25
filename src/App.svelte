@@ -358,6 +358,8 @@
         screenFrame = f;
         const r = readScreen(f);
         if (r) {
+          // 이번에 일부를 못 읽었으면(가려짐 등) 같은 게임에서 직전에 읽은 값을 남겨 둔다
+          if (screenResult?.game === r.game) r.currency = { ...screenResult.currency, ...r.currency };
           screenResult = r;
           // 읽은 화면이 다른 게임이면 그 게임으로 바꾼다 (기록은 건드리지 않는다)
           if (r.game !== game) { game = r.game; settings = { ...settings, lastGame: r.game }; }

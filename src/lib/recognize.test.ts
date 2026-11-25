@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { frameText, parseNumber, readScreen, type ScreenLine } from "./recognize";
+import { readFileSync } from "node:fs";
+import { frameText, numberTokens, parseFrameText, parseNumber, readScreen, type ScreenLine } from "./recognize";
+
+/** 사용자 휴대폰에서 "읽은 글자 복사"로 받은 실제 인식 결과 */
+const phone = (name: string) => parseFrameText(readFileSync(new URL(`./fixtures/${name}.txt`, import.meta.url), "utf8"));
 
 const L = (t: string, x: number, y: number, h = 0.03, w = 0.1): ScreenLine => ({ t, x, y, w, h });
 const frame = (lines: ScreenLine[]) => ({ time: 0, landscape: true, lines });
@@ -76,5 +80,26 @@ describe("화면 읽기", () => {
 
   it("복사용 글은 위에서 아래 순서", () => {
     expect(frameText(frame([L("나", 0.5, 0.5), L("가", 0.1, 0.1)])).split("\n")[0]).toBe("0.10,0.10 0.10x0.03 가");
+  });
+
+  it("실기: 원신 메인 — 숫자 4개 중 '+'가 붙은 원석과 맨 오른쪽 인연", () => {
+    expect(readScreen(phone("genshin-main-phone"))).toMatchObject({
+      game: "genshin", currency: { primogem: 789, intertwined: 171 },
+    });
+  });
+
+  it("원신: '+'가 안 읽히고 숫자가 셋 이상이면 확신이 없어 비운다", () => {
+    const r = readScreen(frame([L("4", 0.61, 0.04), L("850", 0.68, 0.04), L("789", 0.74, 0.04), L("171", 0.86, 0.04), L("기원 1회", 0.62, 0.89), L("기원 10회", 0.81, 0.89)]));
+    expect(r?.currency).toEqual({});
+  });
+
+  it("숫자 조각: 한 줄에 여러 숫자, 뒤의 '+' 표시", () => {
+    expect(numberTokens([L("850 수789 +", 0.68, 0.04, 0.03, 0.13)]).map((t) => [t.n, t.plus])).toEqual([[850, false], [789, true]]);
+  });
+
+  it("실기: 림버스 발푸르기스 메인 — 광기, 회차(로마 숫자)로 배너", () => {
+    expect(readScreen(phone("limbus-main-phone"))).toMatchObject({
+      game: "limbus", currency: { lunacy: 598 }, banner: "제10회 발푸르기스의 밤 특정 추출", until: null,
+    });
   });
 });
