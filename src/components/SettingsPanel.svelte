@@ -5,7 +5,10 @@
   import type { Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
 
-  let { settings, game, web = false, record, onSettings, onBaseline, onExport, onImport, onClose }: {
+  let {
+    settings, game, web = false, record, onSettings, onBaseline, onExport, onImport, onClose,
+    syncConfigured = false, account = null, syncState = "idle", lastSync = null, onSignIn, onSignOut, onSync,
+  }: {
     settings: Settings;
     game: GameId;
     /** Web app: hide desktop-only options (overlay, hotkeys, process detection). */
@@ -16,6 +19,13 @@
     onExport: () => void;
     onImport: () => void;
     onClose: () => void;
+    syncConfigured?: boolean;
+    account?: { uid: string; email: string | null; name: string | null } | null;
+    syncState?: "idle" | "syncing" | "ok" | "error";
+    lastSync?: string | null;
+    onSignIn?: () => void;
+    onSignOut?: () => void;
+    onSync?: () => void;
   } = $props();
 
   let processes = $state<string[]>([]);
@@ -121,6 +131,28 @@
     </section>
   {/if}
 
+  {#if syncConfigured}
+    <section>
+      <h4>트래커 계정</h4>
+      {#if account}
+        <div class="row">
+          <span>{account.name ?? account.email}</span>
+          <span class="muted small">{syncState === "syncing" ? "동기화 중…" : syncState === "error" ? "동기화 오류" : lastSync ? `저장됨 ${new Date(lastSync).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}` : ""}</span>
+        </div>
+        <div class="row">
+          <button onclick={onSync}>지금 동기화</button>
+          <button onclick={onSignOut}>로그아웃</button>
+        </div>
+        <p class="muted hint">기록이 계정에 저장됩니다. 앱을 지우거나 기기를 바꿔도 같은 계정으로 로그인하면 돌아옵니다.</p>
+      {:else if androidMode === "overlay"}
+        <p class="muted hint">로그인은 앱 화면의 설정에서 할 수 있습니다.</p>
+      {:else}
+        <button onclick={onSignIn}>구글 계정으로 로그인</button>
+        <p class="muted hint">로그인하면 기록이 계정에 저장되어, 앱을 지우거나 기기를 바꿔도 남습니다. 지금 이 기기의 기록은 계정 기록과 합쳐집니다.</p>
+      {/if}
+    </section>
+  {/if}
+
   <section>
     <h4>백업</h4>
     <div class="row">
@@ -140,6 +172,7 @@
   section { display: flex; flex-direction: column; gap: 5px; }
   .row { display: flex; gap: 6px; align-items: center; }
   .hint { margin: 0; font-size: 11px; }
+  .small { font-size: 11px; }
   .base { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; padding: 6px; background: var(--panel); border-radius: 6px; }
   .base .gname { grid-column: 1 / -1; font-weight: 600; }
   .base label { display: flex; flex-direction: column; gap: 2px; }

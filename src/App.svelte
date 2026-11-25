@@ -12,6 +12,8 @@
     normalizeRecords, recentPulls, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo,
   } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
+  import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
+  import * as sync from "./lib/sync";
   import bundledPack from "../data/banners.json";
   import { autoBanner, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
@@ -79,7 +81,85 @@
   }
 
   function update(next: Records) {
-    records = next;
+    records = stampChanged(records, next);
+  }
+
+  // ---- tracker account (sync) ----
+  let account = $state<sync.Account | null>(null);
+  let syncState = $state<"idle" | "syncing" | "ok" | "error">("idle");
+  let lastSync = $state<string | null>(null);
+  const pushedKey = (uid: string) => `tg-sync-pushed-${uid}`;
+  const linkedKey = (uid: string) => `tg-sync-linked-${uid}`;
+  function readJson<T>(key: string, fallback: T): T {
+    try { return JSON.parse(localStorage.getItem(key) ?? "") as T; } catch { return fallback; }
+  }
+
+  /** Pull the account's copy, merge it in, push whatever is newer here. */
+  async function syncNow() {
+    const a = account;
+    if (!a || syncState === "syncing") return;
+    syncState = "syncing";
+    try {
+      const remote = await sync.pullAll(a.uid);
+      const firstLink = localStorage.getItem(linkedKey(a.uid)) !== "1";
+      const merged = mergeRecords(records, remote.games, firstLink ? "union" : "newer");
+      if (firstLink && remote.settings) settings = normalizeSettings(remote.settings);
+      records = merged;
+      const pushed: Record<string, string> = {};
+      for (const id of GAME_IDS) if (remote.games[id]) pushed[id] = gameFingerprint(remote.games[id]!);
+      await pushPending(a.uid, pushed);
+      if (firstLink) await sync.pushSettings(a.uid, settings);
+      localStorage.setItem(linkedKey(a.uid), "1");
+      syncState = "ok";
+      lastSync = new Date().toISOString();
+    } catch (e) {
+      syncState = "error";
+      notify(`동기화 실패: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
+  async function pushPending(uid: string, known?: Record<string, string>) {
+    const pushed = known ?? readJson<Record<string, string>>(pushedKey(uid), {});
+    for (const id of gamesToPush(records, pushed)) {
+      await sync.pushGame(uid, id, records.games[id]);
+      pushed[id] = gameFingerprint(records.games[id]);
+    }
+    localStorage.setItem(pushedKey(uid), JSON.stringify(pushed));
+  }
+
+  // Push local edits a moment after they happen.
+  let pushTimer: ReturnType<typeof setTimeout> | undefined;
+  $effect(() => {
+    const _r = records;
+    const a = account;
+    if (!loaded || !a) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(async () => {
+      try {
+        await pushPending(a.uid);
+        lastSync = new Date().toISOString();
+        syncState = "ok";
+      } catch {
+        syncState = "error"; // retried on the next change or sync
+      }
+    }, 2000);
+  });
+
+  async function signInAccount() {
+    try {
+      account = await sync.signIn();
+      await syncNow();
+      notify("로그인했습니다. 기록이 계정에 저장됩니다");
+    } catch (e) {
+      notify(`로그인 실패: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
+  async function signOutAccount() {
+    await sync.signOutAccount();
+    account = null;
+    syncState = "idle";
+    notify("로그아웃했습니다. 이 기기의 기록은 그대로 남습니다");
   }
 
   function changeSettings(next: Settings) {
@@ -260,9 +340,14 @@
     (window as unknown as { __twilightReload?: () => void }).__twilightReload = () => {
       if (loaded) reloadFromStorage();
     };
-    const onVisible = () => document.visibilityState === "visible" && loaded && reloadFromStorage();
+    const onVisible = async () => {
+      if (document.visibilityState !== "visible" || !loaded) return;
+      await reloadFromStorage();
+      if (account) syncNow();
+    };
     document.addEventListener("visibilitychange", onVisible);
     const unlisten: Promise<() => void>[] = [];
+    let unwatch = () => {};
     (async () => {
       try {
         const [r, s] = await Promise.all([api.readStore("records"), api.readStore("settings")]);
@@ -273,6 +358,11 @@
         notify(`불러오기 실패: ${e}`);
       }
       loaded = true;
+      unwatch = sync.watchAccount((a) => {
+        const was = account?.uid;
+        account = a;
+        if (a && a.uid !== was) syncNow();
+      });
       await refreshPack();
     })();
     unlisten.push(api.onEvent<api.Detection>("game-detected", (d) => {
@@ -288,6 +378,7 @@
       else if (action === "undo") doUndo();
     }));
     return () => {
+      unwatch();
       document.removeEventListener("visibilitychange", onVisible);
       unlisten.forEach((p) => p.then((f) => f()));
     };
@@ -351,6 +442,8 @@
           {settings} {game} {web} record={rec}
           onSettings={changeSettings} onBaseline={setBaseline}
           onExport={exportData} onImport={importData} onClose={() => (view = "main")}
+          syncConfigured={sync.syncConfigured} {account} {syncState} {lastSync}
+          onSignIn={signInAccount} onSignOut={signOutAccount} onSync={syncNow}
         />
       {:else if view === "review"}
         <section class="review">

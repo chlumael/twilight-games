@@ -43,6 +43,8 @@ export interface GameRecord {
   baseline: Record<string, Baseline>;
   /** Current banner name per pity group. */
   currentBanner: Record<string, string>;
+  /** Last local change (ISO). Used to pick the newer copy when syncing devices. */
+  updatedAt?: string | null;
 }
 
 export interface UndoEntry {

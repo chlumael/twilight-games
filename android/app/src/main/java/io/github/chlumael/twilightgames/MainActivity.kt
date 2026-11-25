@@ -13,6 +13,7 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.widget.Toast
+import org.json.JSONObject
 
 /** Full-screen app: the same web UI as the overlay, plus permissions and file import/export. */
 class MainActivity : Activity() {
@@ -32,6 +33,8 @@ class MainActivity : Activity() {
                 onStartOverlay = ::startOverlay,
                 onSaveFile = ::saveFile,
                 onCheckUpdate = { checkUpdate(force = true) },
+                onSignIn = ::signIn,
+                onSignOut = { GoogleSignIn.signOut(this) },
             ),
         )
         checkUpdate(force = intent.getBooleanExtra(Updater.EXTRA_SHOW_UPDATE, false))
@@ -80,6 +83,16 @@ class MainActivity : Activity() {
         // Records may have changed here; let the overlay bar catch up.
         if (OverlayService.running) {
             startService(Intent(this, OverlayService::class.java).setAction(OverlayService.ACTION_REFRESH))
+        }
+    }
+
+    /** Native account picker → Google ID token → page signs in to Firebase with it. */
+    private fun signIn(webClientId: String) {
+        GoogleSignIn.requestIdToken(this, webClientId) { token, error ->
+            val js = "window.__twilightAuth && window.__twilightAuth(" +
+                (if (token != null) JSONObject.quote(token) else "null") + ", " +
+                (if (error != null) JSONObject.quote(error) else "null") + ")"
+            webView.evaluateJavascript(js, null)
         }
     }
 

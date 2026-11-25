@@ -18,6 +18,9 @@ interface AndroidBridge {
   updateSummary?(json: string): void;
   appVersion?(): string;
   checkUpdate?(): void;
+  /** Native Google account picker; answers via window.__twilightAuth(idToken | null, error?). */
+  signIn?(webClientId: string): void;
+  signOut?(): void;
 }
 const androidBridge = (window as unknown as { TwilightAndroid?: AndroidBridge }).TwilightAndroid;
 export const android = androidBridge ?? null;

@@ -58,6 +58,8 @@ class WebBridge(
     private val onSaveFile: (name: String, content: String) -> Unit = { _, _ -> },
     private val onSummary: (json: String) -> Unit = {},
     private val onCheckUpdate: () -> Unit = {},
+    private val onSignIn: (webClientId: String) -> Unit = {},
+    private val onSignOut: () -> Unit = {},
 ) {
     private val main = Handler(Looper.getMainLooper())
 
@@ -69,4 +71,6 @@ class WebBridge(
     @JavascriptInterface fun updateSummary(json: String) { main.post { onSummary(json) } }
     @JavascriptInterface fun appVersion(): String = BuildConfig.VERSION_NAME
     @JavascriptInterface fun checkUpdate() { main.post(onCheckUpdate) }
+    @JavascriptInterface fun signIn(webClientId: String) { main.post { onSignIn(webClientId) } }
+    @JavascriptInterface fun signOut() { main.post(onSignOut) }
 }
