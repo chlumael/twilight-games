@@ -60,3 +60,11 @@ for g,l in d['games'].items():
 - 원신 배너의 5성 목록(`pool`, 픽뚫 후보): 공식 기원 상세의 `r5_prob_list`에서 픽업이 아닌 이름(`genshin-official.mjs`의 `fetchWishDetails`·`applyWishPools`). 지금 열린 기원만 나오므로 지난 배너는 이전 팩에서 이어받는다.
 - 엔드필드 캐릭터 배너의 6성 목록(`pool`, 픽뚫 후보): 배너 공지의 "획득 가능(한) 6성 오퍼레이터 목록" 줄(공지마다 "가능"/"가능한" 두 표기), 없으면 「확률 상세 안내」의 [6성 오퍼레이터] 표(`parseHeadhuntPools`, 재구축은 이 표만 있음). 둘 다 없는 배너는 앱이 규칙으로 계산한다(`games.ts`의 `rotation`, `banners.ts`의 `bannerPool`, DESIGN.md §8). 이름을 손으로 채우지 않는다.
 - 엔드필드 상시 무기 배너("확률 상세 안내" 구간에 "개방 시간" 줄이 없는 것)는 수집하지 않는다(사용자 2026-11-26). 원신·엔드필드 상시 캐릭터 배너를 추적하지 않는 것과 같은 방침.
+
+## 달력 일정 (`events`)
+
+배너 데이터 팩에는 달력 일정도 들어 있다(`pack.events.<게임>`, `scripts/banners/events.mjs`, DESIGN.md §6-3). `npm run banners` 한 번에 같이 만들어진다.
+- 종류: `event`(게임 안 이벤트), `version`(버전·시즌), `offline`(외부 행사·소식). 픽업은 배너에서 앱이 만든다.
+- 출처: 원신 게임 안 공지 목록, 명일방주 `ArknightsAssets/ArknightsGamedata` kr `activity_table.json`(18MB), 엔드필드 공지 안의 "이벤트 시간·개방 시간" 구역과 "버전 업데이트 설명", 림버스 스팀 공지.
+- 확인: `python3 -I -c "import json; d=json.load(open('data/banners.json')); [print(g, len(l)) for g,l in d['events'].items()]"` 후 진행 중·다가오는 일정 제목이 이상하지 않은지 본다(제목 줄을 잘못 잡으면 긴 문장이 제목이 된다).
+- 한 출처가 실패하면 그 게임은 이전 팩의 일정을 그대로 쓰고 `errors`에 `events:<게임>`이 남는다.

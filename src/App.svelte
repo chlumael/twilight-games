@@ -9,6 +9,8 @@
   import ScreenPanel from "./components/ScreenPanel.svelte";
   import SettingsPanel from "./components/SettingsPanel.svelte";
   import StatsPanel from "./components/StatsPanel.svelte";
+  import CalendarPanel from "./components/CalendarPanel.svelte";
+  import { mergeMine } from "./lib/calendar";
   import PromptBar from "./components/PromptBar.svelte";
   import ForecastPanel from "./components/ForecastPanel.svelte";
   import type { IncomePlan } from "./lib/income";
@@ -53,7 +55,7 @@
   const web = !api.inTauri;
   const overlay = api.androidMode === "overlay";
   let collapsed = $state(!web);
-  let view = $state<"main" | "settings" | "review" | "top" | "stats">("main");
+  let view = $state<"main" | "settings" | "review" | "top" | "stats" | "calendar">("main");
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
   let newVersion = $state<string | null>(null); // PC판: 켤 때 찾은 새 버전
@@ -482,11 +484,17 @@
       const firstLink = localStorage.getItem(linkedKey(a.uid)) !== "1";
       const merged = mergeRecords(records, remote.games, firstLink ? "union" : "newer");
       if (firstLink && remote.settings) settings = normalizeSettings(remote.settings);
+      else if (remote.settings) {
+        // 달력의 내 일정은 기기끼리 합친다(그 밖의 설정은 기기마다 따로)
+        const r = normalizeSettings(remote.settings);
+        const removed = [...new Set([...(settings.calendarRemoved ?? []), ...(r.calendarRemoved ?? [])])];
+        settings = { ...settings, calendar: mergeMine(settings.calendar ?? [], r.calendar ?? [], removed), calendarRemoved: removed };
+      }
       records = merged;
       const pushed: Record<string, string> = {};
       for (const id of GAME_IDS) if (remote.games[id]) pushed[id] = gameFingerprint(remote.games[id]!);
       await pushPending(a.uid, pushed);
-      if (firstLink) await sync.pushSettings(a.uid, settings);
+      await sync.pushSettings(a.uid, settings);
       localStorage.setItem(linkedKey(a.uid), "1");
       syncState = "ok";
       lastSync = new Date().toISOString();
@@ -930,6 +938,7 @@
       <button class="icon pend" class:has={pending > 0} onclick={() => (view = view === "review" ? "main" : "review")} title="확인 대기">
         확인 {pending}
       </button>
+      <button class="icon" onclick={() => (view = view === "calendar" ? "main" : "calendar")} title="달력">달력</button>
       <button class="icon" onclick={() => (view = view === "stats" ? "main" : "stats")} title="통계">통계</button>
       <button class="icon" onclick={() => (view = view === "settings" ? "main" : "settings")} aria-label="설정">⚙</button>
       {#if !web}<button class="icon" onclick={() => { collapsed = true; view = "main"; }} aria-label="접기">▴</button>{/if}
@@ -958,6 +967,13 @@
           onSignIn={signInAccount} onSignOut={signOutAccount} onSync={syncNow}
           onGenshinWishes={api.inTauri ? loadGenshinWishes : undefined} genshinWishBusy={wishBusy} genshinWishMsg={wishMsg}
         />
+      {:else if view === "calendar"}
+        <CalendarPanel {pack} {game} mine={settings.calendar ?? []} onClose={() => (view = "main")}
+          onMine={(list) => {
+            const gone = (settings.calendar ?? []).filter((m) => !list.some((x) => x.id === m.id)).map((m) => m.id);
+            changeSettings({ ...settings, calendar: list, calendarRemoved: [...new Set([...(settings.calendarRemoved ?? []), ...gone])].slice(-500) });
+            if (account) setTimeout(() => void syncNow(), 800);
+          }} />
       {:else if view === "stats"}
         <StatsPanel {game} record={rec} bannerName={packBannerName} onClose={() => (view = "main")}
           onReset={(gid) => { update(resetGroup(records, game, gid)); lastApply = `${findGroup(game, gid).name} 기록 전부 지우기`; notify(`${findGroup(game, gid).name} 기록을 지웠습니다. 뽑기는 "확인"에서 되돌릴 수 있습니다`); }}

@@ -1,7 +1,8 @@
 <script lang="ts">
-  // 재화 예측 (DESIGN.md §6-2). 지급량·출처 설명은 화면에 쓰지 않고 문서에만 둔다(화면 정리, 사용자 2026-11-26).
+  // 재화 예측 (DESIGN.md §6-2, 사용자 2026-11-26): 목표일까지 일일·주간 과제 + 켠 월정액으로 모이는 재화.
+  // 목표일은 자유(게임 안 월정액 최대 기간과 상관없음). 지급량 출처는 화면에 쓰지 않고 문서에만 둔다.
   import { GAMES } from "../lib/games";
-  import { dayStart, emptyPlan, forecast, PASSES, today, type IncomePlan } from "../lib/income";
+  import { dayStart, emptyPlan, forecast, passOn, PASSES, ROUTINES, today, type IncomePlan } from "../lib/income";
   import type { GameId, GameRecord } from "../lib/types";
 
   let { game, record, groupId, bannerEnd = null, onPlan }: {
@@ -23,24 +24,23 @@
   const targetStr = $derived(plan.target ?? (bannerEnd ? ymd(Date.parse(bannerEnd)) : ymd(today() + 30 * 864e5)));
   const result = $derived(forecast(record, game, groupId, plan, dayStart(targetStr)));
   const label = (key: string) => GAMES[game].currencies.find((c) => c.key === key)?.label ?? key;
-  const gainText = $derived(Object.entries(result.gains).map(([k, v]) => `${label(k)} +${v.toLocaleString()}`).join(" · "));
+  const gainsText = (g: Record<string, number>) => Object.entries(g).map(([k, v]) => `${label(k)} +${v.toLocaleString()}`).join(" · ");
   const ok = (need: number | null) => need !== null && result.laterPulls >= need;
   const need = (n: number) => (result.laterPulls >= n ? "✓" : `${n - result.laterPulls} 부족`);
+  const routineOn = $derived(plan.routine !== false);
+  const hasRoutine = $derived(ROUTINES[game].length > 0);
+  /** 하루에 받는 양을 한 줄로 (스위치 옆 설명) */
+  const perDay = (g: Record<string, number>) => Object.entries(g).map(([k, v]) => `${label(k)} ${v}`).join(", ");
 
   function set(patch: Partial<IncomePlan>) {
     onPlan({ ...plan, ...patch });
   }
-  function setUntil(id: string, v: string) {
-    const until = { ...plan.until };
-    if (v) until[id] = v; else delete until[id];
-    set({ until });
-  }
-  /** 월정액 30일 더하기 (최대 일수까지) */
-  function extend(id: string, days: number, maxDays: number | null) {
-    const base = Math.max(today(), plan.until[id] ? dayStart(plan.until[id]) : today());
-    let end = base + days * 864e5;
-    if (maxDays) end = Math.min(end, today() + maxDays * 864e5);
-    setUntil(id, ymd(end));
+  function togglePass(id: string) {
+    // 켜고 끈 상태를 모든 월정액에 대해 적어 둔다(예전 "끝나는 날" 형식은 이걸로 대체)
+    const passes: Record<string, boolean> = {};
+    for (const p of PASSES[game]) passes[p.id] = passOn(plan, p.id);
+    passes[id] = !passes[id];
+    set({ passes, until: undefined });
   }
 </script>
 
@@ -53,8 +53,39 @@
 
   {#if open}
     <div class="body">
+      <label class="row">
+        <span class="name">목표일</span>
+        <input type="date" value={targetStr} min={ymd(today())} onchange={(e) => set({ target: (e.currentTarget as HTMLInputElement).value || null })} />
+      </label>
+
+      <div class="toggles">
+        {#if hasRoutine}
+          <button class="tg" class:on={routineOn} onclick={() => set({ routine: !routineOn })} aria-pressed={routineOn}>
+            <span class="sw"></span>
+            <span class="tname">일일·주간 과제</span>
+          </button>
+        {/if}
+        {#each PASSES[game] as p (p.id)}
+          {@const on = passOn(plan, p.id)}
+          <button class="tg" class:on onclick={() => togglePass(p.id)} aria-pressed={on}>
+            <span class="sw"></span>
+            <span class="tname">{p.label}</span>
+            <span class="tsub">매일 {perDay(p.daily)}</span>
+          </button>
+        {/each}
+      </div>
+
+      {#if result.lines.length}
+        <div class="lines">
+          {#each result.lines as l (l.label)}
+            <div class="line"><span>{l.label} <small>{l.detail}</small></span><span>{gainsText(l.gains)}</span></div>
+          {/each}
+        </div>
+      {:else}
+        <p class="muted none">켠 수입이 없습니다. 위에서 일일 과제나 월정액을 켜세요.</p>
+      {/if}
+
       <div class="stats">
-        {#if gainText}<span class="gain">{gainText}</span>{/if}
         {#if result.toTop !== null}
           <span class:good={ok(result.toTop)} class:bad={!ok(result.toTop)}>천장 {result.toTop}회 {need(result.toTop)}</span>
         {/if}
@@ -63,26 +94,6 @@
           <span class:good={ok(result.toFeatured)} class:bad={!ok(result.toFeatured)}>픽업 확정 {result.toFeatured}회 {need(result.toFeatured)}</span>
         {/if}
       </div>
-
-      <label class="row">
-        <span class="name">목표일</span>
-        <input type="date" value={targetStr} onchange={(e) => set({ target: (e.currentTarget as HTMLInputElement).value || null })} />
-      </label>
-      {#each PASSES[game] as p (p.id)}
-        <div class="row">
-          <span class="name">{p.label} 종료일</span>
-          <input type="date" value={plan.until[p.id] ?? ""} aria-label="{p.label} 끝나는 날"
-            onchange={(e) => setUntil(p.id, (e.currentTarget as HTMLInputElement).value)} />
-          <button class="small" onclick={() => extend(p.id, p.days, p.maxDays)}>+{p.days}일</button>
-        </div>
-      {/each}
-      {#each GAMES[game].currencies.filter((c) => !c.manualOnly).slice(0, 1) as c (c.key)}
-        <label class="row">
-          <span class="name">하루 수입({c.label})</span>
-          <input type="number" min="0" placeholder="0" value={plan.extraDaily[c.key] || ""}
-            onchange={(e) => set({ extraDaily: { ...plan.extraDaily, [c.key]: Math.max(0, Number((e.currentTarget as HTMLInputElement).value) || 0) } })} />
-        </label>
-      {/each}
     </div>
   {/if}
 </section>
@@ -93,13 +104,23 @@
   .sum { flex: 1; font-size: 12px; color: var(--muted); text-align: right; }
   .sum b { color: var(--text); }
   .arrow { font-size: 10px; color: var(--muted); }
-  .body { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+  .body { display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+  .row { display: flex; align-items: center; gap: 6px; }
+  .name { min-width: 4em; color: var(--muted); }
+  .row input { flex: 1; min-width: 0; }
+  .toggles { display: flex; flex-direction: column; gap: 4px; }
+  .tg { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 6px 8px; }
+  .sw { flex: none; width: 30px; height: 17px; border-radius: 9px; background: var(--line); position: relative; transition: background 0.15s; }
+  .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: var(--muted); transition: transform 0.15s; }
+  .tg.on .sw { background: var(--good); }
+  .tg.on .sw::after { transform: translateX(13px); background: #fff; }
+  .tname { font-weight: 600; }
+  .tsub { margin-left: auto; color: var(--muted); font-size: 11px; }
+  .lines { display: flex; flex-direction: column; gap: 3px; }
+  .line { display: flex; justify-content: space-between; gap: 8px; }
+  .line small { color: var(--muted); }
+  .none { margin: 0; }
   .stats { display: flex; flex-wrap: wrap; gap: 4px 10px; font-weight: 600; }
-  .gain { color: var(--muted); font-weight: 400; flex-basis: 100%; }
   .good { color: var(--good); }
   .bad { color: #ff8a7a; }
-  .row { display: flex; align-items: center; gap: 6px; }
-  .name { min-width: 8.5em; color: var(--muted); }
-  .row input { flex: 1; min-width: 0; }
-  .small { font-size: 11px; padding: 2px 6px; }
 </style>

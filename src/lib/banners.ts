@@ -40,6 +40,21 @@ export interface BannerPack {
   schemaVersion: 1;
   generatedAt: string;
   games: Partial<Record<GameId, PackBanner[]>>;
+  /** 달력 일정(게임 안 이벤트·버전·외부 소식). scripts/banners/events.mjs */
+  events?: Partial<Record<GameId, PackEvent[]>>;
+}
+
+/** 배너 자료 파일에 들어 있는 달력 일정 한 건 */
+export interface PackEvent {
+  id: string;
+  kind: "event" | "version" | "offline";
+  title: string;
+  start: string;
+  end: string | null;
+  startApprox?: boolean;
+  endApprox?: boolean;
+  source?: string;
+  url?: string;
 }
 
 export const PACK_URL = "https://raw.githubusercontent.com/chlumael/twilight-games/main/data/banners.json";

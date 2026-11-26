@@ -5,6 +5,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import JSON5 from "json5";
 import { arknightsOfficial as arknights } from "./arknights-official.mjs";
 import { collectedSixStars, endfieldOfficial, mergeArsenal, skippedNotices } from "./endfield-official.mjs";
+import { collectEvents } from "./events.mjs";
 import { applyKoreanNames, applyWishPools, fetchWishAnnouncements, fetchWishDetails } from "./genshin-official.mjs";
 import { limbusOfficial as limbus } from "./limbus-official.mjs";
 
@@ -212,7 +213,12 @@ try {
 
 // 해석하지 못한 공지(형식이 바뀌었을 수 있음) — 주간 PR에서 눈에 띄게 팩에 남긴다
 const warnings = skippedNotices.length ? { endfield: [...skippedNotices] } : {};
-const pack = { schemaVersion: 1, generatedAt: new Date().toISOString(), games, errors, ...(Object.keys(warnings).length ? { warnings } : {}) };
+// 달력 일정(게임 안 이벤트·버전·외부 소식). 배너 자료와 같은 파일에 넣어 앱 업데이트 없이 반영되게 한다
+const previousEvents = await readFile(new URL("../../data/banners.json", import.meta.url), "utf8")
+  .then((t) => JSON.parse(t).events ?? {}).catch(() => ({}));
+const { events, errors: eventErrors } = await collectEvents(previousEvents);
+for (const [g, e] of Object.entries(eventErrors)) errors[`events:${g}`] = e;
+const pack = { schemaVersion: 1, generatedAt: new Date().toISOString(), games, events, errors, ...(Object.keys(warnings).length ? { warnings } : {}) };
 const outFile = process.argv[2] ?? new URL("../../data/banners.json", import.meta.url);
 await writeFile(outFile, JSON.stringify(pack, null, 1) + "\n");
 console.log(Object.entries(games).map(([k, v]) => `${k}: ${v.length}`).join(", "), errors, warnings);

@@ -26,6 +26,17 @@ for (const [game, list] of Object.entries(pack.games ?? {})) {
     if (!Array.isArray(b.featured)) problems.push(`${b.id}: featured must be a list`);
   }
 }
+for (const [game, list] of Object.entries(pack.events ?? {})) {
+  if (!groups[game]) problems.push(`events: unknown game ${game}`);
+  const ids = new Set();
+  for (const e of list) {
+    if (ids.has(e.id)) problems.push(`events ${game}: duplicate id ${e.id}`);
+    ids.add(e.id);
+    if (!["event", "version", "offline"].includes(e.kind)) problems.push(`${e.id}: unknown kind ${e.kind}`);
+    if (!e.title || !e.start || Number.isNaN(Date.parse(e.start))) problems.push(`${e.id}: title/start missing`);
+    if (e.end && e.start > e.end) problems.push(`${e.id}: ends before it starts`);
+  }
+}
 // A source that worked last time should not silently vanish.
 if (!pack.games?.genshin?.length) problems.push("genshin: no banners (source failed?)");
 if (!pack.games?.endfield?.length) problems.push("endfield: no banners (source failed?)");
@@ -36,4 +47,4 @@ if (problems.length) {
   console.error(problems.join("\n"));
   process.exit(1);
 }
-console.log(`ok: ${Object.entries(pack.games).map(([k, v]) => `${k} ${v.length}`).join(", ")}`);
+console.log(`ok: ${Object.entries(pack.games).map(([k, v]) => `${k} ${v.length}`).join(", ")}; events: ${Object.entries(pack.events ?? {}).map(([k, v]) => `${k} ${v.length}`).join(", ")}`);

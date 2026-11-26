@@ -1,4 +1,4 @@
-// 재화 예측 (DESIGN.md §6-2, 사용자 요청 2026-11-26): 월정액으로 앞으로 받을 재화를 목표일까지 더해 가능 횟수를 계산한다.
+// 재화 예측 (DESIGN.md §6-2, 사용자 요청 2026-11-26): 일일·주간 과제 + 켠 월정액으로 목표일까지 모일 재화를 더해 가능 횟수를 계산한다.
 // 지급량은 출처를 확인한 것만 넣는다. 출처와 상태(확인됨/추정)는 note에 적는다.
 import { availablePulls, groupStatus } from "./ledger";
 import { findGroup } from "./games";
@@ -40,17 +40,58 @@ export const PASSES: Record<GameId, Pass[]> = {
   ],
 };
 
-/** 게임별 예측 설정 (기록과 함께 저장·동기화) */
-export interface IncomePlan {
-  /** 매일형 월정액: 끝나는 날(YYYY-MM-DD). 없으면 사용 안 함 */
-  until: Record<string, string>;
-  /** 직접 입력: 하루 평균 무과금 수입(일일 임무 등). 게임이 정한 값이 아니라 사용자가 정한다 */
-  extraDaily: Record<string, number>;
-  /** 목표일(YYYY-MM-DD). 없으면 지금 배너가 끝나는 날 */
-  target: string | null;
+/**
+ * 일일·주간 과제처럼 매번 받는 무과금 수입 (사용자 요청 2026-11-26: 예측 = 일일 과제 + 월정액).
+ * weekly는 주간 초기화(resetDay 요일, 0=일요일)마다, monthly는 매달 1일마다 받는다고 본다.
+ * 지급량은 출처를 확인한 것만 넣고 출처·상태를 note에 적는다(DESIGN.md §6-2).
+ */
+export interface Routine {
+  id: string;
+  label: string;
+  daily?: Record<string, number>;
+  weekly?: Record<string, number>;
+  monthly?: Record<string, number>;
+  /** 주간 초기화 요일 (0=일, 1=월 …). 기본 월요일 */
+  resetDay?: number;
+  note: string;
 }
 
-export const emptyPlan = (): IncomePlan => ({ until: {}, extraDaily: {}, target: null });
+export const ROUTINES: Record<GameId, Routine[]> = {
+  genshin: [
+    { id: "commissions", label: "일일 의뢰", daily: { primogem: 60 },
+      note: "의뢰 4개 10×4 + 캐서린 20 = 원석 60(모험 등급 12부터). 출처: Game8 일본어·영어판 일치(2026-11-26). 스타더스트 교환 인연은 스타더스트가 있어야 해서 넣지 않음" },
+  ],
+  arknights: [
+    { id: "missions", label: "일일·주간 임무", daily: { orundum: 100 }, weekly: { orundum: 500 }, resetDay: 1,
+      note: "일일 임무 누적 보상 합성옥 100, 주간 임무 누적 보상 합성옥 500. 출처: 한국 서버 게임 데이터 mission_table.json(2026-11-26)" },
+    { id: "annihilation", label: "섬멸 작전(주간 최대)", weekly: { orundum: 1800 }, resetDay: 1,
+      note: "주간 합성옥 한도 1200 + 확장 600 = 최대 1800(진행도에 따라 1200~1800). 출처: 한국 서버 게임 데이터 gamedata_const·campaign_table + 일본 공략(2026-11-26). 최대치로 계산하므로 확장을 다 안 열었으면 실제보다 많게 잡힘" },
+  ],
+  endfield: [
+    { id: "daily-weekly", label: "일일·주간 과제", daily: { oroberyl: 200 }, weekly: { oroberyl: 500 }, resetDay: 1,
+      note: "일일 활약도 100 → 오로베릴 200, 주간 → 500(월요일 초기화). 출처: GameWith·Altema·AppMedia 일치(2026-11-26)" },
+  ],
+  limbus: [
+    { id: "mirror-weekly", label: "거울 던전 주간 보너스", weekly: { lunacy: 750 }, resetDay: 4,
+      note: "일일·주간 임무는 광기를 주지 않음(패스 경험치만). 거울 던전 주간 보너스: 1회 완주 250 × 주 3회 = 광기 750, 목요일 초기화. 출처: 게임 데이터 사본(OpenLethe static-data) + 공략 일치(2026-11-26)" },
+  ],
+};
+
+/** 게임별 예측 설정 (기록과 함께 저장·동기화) */
+export interface IncomePlan {
+  /** 월정액 켜기/끄기 (월정액 id → 켬). 켜면 목표일까지 매일 받는다고 본다(게임 안 최대 기간과 상관없이) */
+  passes?: Record<string, boolean>;
+  /** 일일·주간 과제를 더할지. 없으면 켬 */
+  routine?: boolean;
+  /** 목표일(YYYY-MM-DD). 없으면 지금 배너가 끝나는 날 */
+  target: string | null;
+  /** 예전 형식(월정액 끝나는 날). 읽기만 한다: 그날이 오늘 뒤면 켠 것으로 본다 */
+  until?: Record<string, string>;
+  /** 예전 형식(직접 입력 하루 수입). 더 이상 쓰지 않는다 */
+  extraDaily?: Record<string, number>;
+}
+
+export const emptyPlan = (): IncomePlan => ({ passes: {}, routine: true, target: null });
 
 const DAY = 864e5;
 /** YYYY-MM-DD → 그날 0시(현지) */
@@ -65,33 +106,65 @@ export function today(now: Date = new Date()): number {
 export function daysUntil(to: number, from: number): number {
   return Math.max(0, Math.round((to - from) / DAY));
 }
+/** 오늘 다음 날부터 to까지(포함) 그 요일이 몇 번 오는지 */
+export function weekdaysUntil(to: number, from: number, weekday: number): number {
+  let n = 0;
+  for (let t = from + DAY; t <= to + 1; t += DAY) if (new Date(t).getDay() === weekday) n++;
+  return n;
+}
+/** 오늘 다음 날부터 to까지(포함) 1일이 몇 번 오는지 */
+export function monthStartsUntil(to: number, from: number): number {
+  let n = 0;
+  for (let t = from + DAY; t <= to + 1; t += DAY) if (new Date(t).getDate() === 1) n++;
+  return n;
+}
+
+/** 월정액이 켜져 있는지 (예전 형식이면 끝나는 날이 오늘 뒤인지) */
+export function passOn(plan: IncomePlan, id: string, now: Date = new Date()): boolean {
+  if (plan.passes && id in plan.passes) return !!plan.passes[id];
+  const until = plan.until?.[id];
+  return !!until && dayStart(until) > today(now);
+}
 
 export interface ForecastLine {
   label: string;
   gains: Record<string, number>;
-  days?: number;
+  /** "10일", "주간 2번" 같은 설명 */
+  detail: string;
 }
 
-/** 목표일까지 받을 재화 */
+/** 목표일까지 받을 재화: 켠 월정액(매일) + 일일·주간 과제 */
 export function projectIncome(game: GameId, plan: IncomePlan, target: number, now: Date = new Date()): { gains: Record<string, number>; lines: ForecastLine[] } {
   const from = today(now);
+  const days = daysUntil(target, from);
   const gains: Record<string, number> = {};
   const lines: ForecastLine[] = [];
   const add = (g: Record<string, number>) => { for (const [k, v] of Object.entries(g)) gains[k] = (gains[k] ?? 0) + v; };
-  for (const p of PASSES[game]) {
-    const until = plan.until[p.id];
-    if (!until) continue;
-    const days = daysUntil(Math.min(dayStart(until), target), from);
-    if (!days) continue;
-    const g = Object.fromEntries(Object.entries(p.daily).map(([k, v]) => [k, v * days]));
-    add(g);
-    lines.push({ label: p.label, gains: g, days });
+  const times = (g: Record<string, number> | undefined, n: number): Record<string, number> => {
+    const out: Record<string, number> = {};
+    for (const [k, v] of Object.entries(g ?? {})) if (v * n > 0) out[k] = v * n;
+    return out;
+  };
+  if (!days) return { gains, lines };
+  if (plan.routine !== false) {
+    for (const r of ROUTINES[game]) {
+      const weeks = r.weekly ? weekdaysUntil(target, from, r.resetDay ?? 1) : 0;
+      const months = r.monthly ? monthStartsUntil(target, from) : 0;
+      const g: Record<string, number> = {};
+      for (const part of [times(r.daily, days), times(r.weekly, weeks), times(r.monthly, months)]) {
+        for (const [k, v] of Object.entries(part)) g[k] = (g[k] ?? 0) + v;
+      }
+      if (!Object.keys(g).length) continue;
+      add(g);
+      const bits = [r.daily ? `${days}일` : "", weeks ? `주간 ${weeks}번` : "", months ? `매달 ${months}번` : ""].filter(Boolean);
+      lines.push({ label: r.label, gains: g, detail: bits.join(" · ") });
+    }
   }
-  const days = daysUntil(target, from);
-  const extra = Object.fromEntries(Object.entries(plan.extraDaily).filter(([, v]) => v > 0).map(([k, v]) => [k, v * days]));
-  if (Object.keys(extra).length && days) {
-    add(extra);
-    lines.push({ label: "직접 입력한 하루 수입", gains: extra, days });
+  for (const p of PASSES[game]) {
+    if (!passOn(plan, p.id, now)) continue;
+    const g = times(p.daily, days);
+    add(g);
+    lines.push({ label: p.label, gains: g, detail: `${days}일` });
   }
   return { gains, lines };
 }
