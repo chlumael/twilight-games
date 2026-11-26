@@ -109,7 +109,12 @@
       // 감지되면 바로 기록한다(사용자 요청 2026-11-25). 확실하지 않은 것은 "확인"에 표시해 취소할 수 있게 한다.
       const d = out.detection;
       const gid = settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id;
-      saveDetection(d, gid, d.count, true);
+      // 한 번에 20회를 넘거나, 확실하지 않은데 10회를 넘으면 잘못 읽은 것일 수 있다 → 기록하지 않고 "확인"에서 묻는다
+      // (실제 기록이 부풀었던 문제, 2026-11-26)
+      if (d.count > 20 || (d.uncertain && d.count > 10)) {
+        saveDetections([...loadDetections(), d]);
+        notify(`${GAMES[d.game].shortName} ${d.count}회로 읽혔습니다. 맞는지 "확인"에서 골라 주세요`);
+      } else saveDetection(d, gid, d.count, true);
     }
   }
   // ---- 새 화면 인식 (PC, DESIGN.md §4.8): 정해진 위치만 잘라 읽은 결과 → 틀로 해석 → 검증 → 반영 ----
@@ -399,8 +404,15 @@
     let next: Records | null = null;
     for (const id of GAME_IDS) {
       for (const g of GAMES[id].groups) {
-        const cur = (next ?? records).games[id].currentBanner[g.id] ?? "";
-        const to = autoBanner(groupBanners(pack, id, g.id), cur);
+        let cur = (next ?? records).games[id].currentBanner[g.id] ?? "";
+        const list = groupBanners(pack, id, g.id);
+        // 배너가 다른 종류로 옮겨졌으면(예: 명일방주 콜라보 분리) 이 종류에서는 비운다
+        if (cur && !list.some((b) => b.id === cur) && (pack.games[id] ?? []).some((b) => b.id === cur)) {
+          next ??= structuredClone(records);
+          next.games[id].currentBanner[g.id] = "";
+          cur = "";
+        }
+        const to = autoBanner(list, cur);
         if (to) {
           next ??= structuredClone(records);
           next.games[id].currentBanner[g.id] = to;

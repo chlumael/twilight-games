@@ -405,3 +405,20 @@ describe("교환(확천)", () => {
     expect(topHistory(r.games.arknights, "arknights-collab").map(hitLabel)).toEqual(["픽뚫/반천", "픽업/확천"]);
   });
 });
+
+describe("검수에서 찾은 문제", () => {
+  it("이월 안 되는 종류는 배너가 바뀌면 최고 등급 횟수도 새로 센다", () => {
+    let r = emptyRecords();
+    r.games.arknights.currentBanner["arknights-limited"] = "A";
+    r = recordSession(r, "arknights", "arknights-limited", 40, new Map(), t(0));
+    r.games.arknights.currentBanner["arknights-limited"] = "B";
+    r = recordSession(r, "arknights", "arknights-limited", 10, new Map([[9, { name: "가", featured: true }]]), t(1));
+    expect(topHistory(r.games.arknights, "arknights-limited").map((h) => h.count)).toEqual([10]);
+  });
+  it("무기 신청: 묶음 안에서 6성이 나오면 천장은 0부터", () => {
+    let e = emptyRecords();
+    e.games.endfield.currentBanner["endfield-arsenal"] = "W";
+    e = recordSession(e, "endfield", "endfield-arsenal", 40, new Map([[35, { name: "무기", featured: false }]]), t(0));
+    expect(groupStatus(e.games.endfield, "endfield", "endfield-arsenal").pity).toBe(0);
+  });
+});

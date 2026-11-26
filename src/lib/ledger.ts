@@ -110,6 +110,10 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
   }
 
   // 배너 카운터: 보통은 이 배너 것만, 시리즈 범위면 같은 시리즈 배너를 이어서 센다
+  // 묶음 단위(엔드필드 무기 신청 10개): 묶음 안에서 최고 등급이 나오면 그 묶음까지로 천장이 끝난다
+  const unit = group.odds?.unit ?? 1;
+  if (unit > 1 && lastTop) pity = Math.floor(pity / unit) * unit;
+
   const onBanner = rec.pulls.filter((p) => p.group === groupId && (p.banner === banner ||
     (group.counterScope === "series" && !!banner && seriesOf(p.banner) === seriesOf(banner))));
   const bannerPulls = (baseOnThisBanner ? base.bannerPulls : 0) + onBanner.length;
@@ -163,11 +167,18 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
   const base = rec.baseline[groupId] ?? emptyBaseline();
   const group = GAME_IDS.flatMap((g) => GAMES[g].groups).find((g) => g.id === groupId);
   const featuredAt = group?.bannerCounters.find((c) => c.untilFeatured)?.at ?? null;
-  let since = base.pity;
+  // 이월 안 되는 종류(명일방주, 무기고 등)는 배너마다 따로 센다
+  const perBanner = group?.carryOver === false;
+  let since = perBanner ? 0 : base.pity;
+  let lastBanner: string | null = null;
   let guaranteed = base.guaranteed;
   const onBanner = new Map<string, number>(base.banner ? [[base.banner, base.bannerPulls]] : []);
   const hits: TopHit[] = [];
   for (const p of rec.pulls.filter((x) => x.group === groupId).sort(byTime)) {
+    if (perBanner && p.banner !== lastBanner) {
+      since = p.banner === base.banner ? base.pity : 0;
+      lastBanner = p.banner;
+    }
     since++;
     const n = (onBanner.get(p.banner) ?? 0) + 1;
     onBanner.set(p.banner, n);

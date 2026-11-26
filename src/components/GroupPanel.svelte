@@ -81,7 +81,7 @@
     {/if}
     {#if inSoft}<span class="chip hot">확률 상승 중</span>{/if}
     {#if status.hardPity}
-      <span class="hint">천장까지 {Math.max(0, status.hardPity - status.pity)}회{#if !inSoft && toSoft !== null} · 확률 상승까지 {toSoft}회{/if}</span>
+      <span class="hint">천장까지 {Math.max(0, status.hardPity - status.pity)}회{#if !inSoft && toSoft !== null}{" · "}확률 상승까지 {toSoft}회{/if}</span>
     {/if}
   </div>
 </section>
