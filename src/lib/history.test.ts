@@ -71,6 +71,16 @@ describe("엔드필드 공식 기록 읽기", () => {
     expect(out.records.games.endfield.pulls.filter((p) => p.source === "manual")).toHaveLength(1);
   });
 
+  it("반영: 직접 입력 기록은 그대로 두는 것이 기본, replaceManual이면 공식 기록으로 바꾼다", () => {
+    let r = emptyRecords();
+    r.games.endfield.currentBanner["endfield-chartered"] = banner.id;
+    r = recordSession(r, "endfield", "endfield-chartered", 5, new Map(), new Date("2026-11-26T00:00:00Z")); // 나중에 손으로 넣은 5회
+    const rows = parseEndfieldHistory(phone)!.rows;
+    expect(importHistory(r, "endfield", rows, ctx).records.games.endfield.pulls.filter((p) => p.source === "manual")).toHaveLength(5);
+    const out = importHistory(r, "endfield", rows, { ...ctx, replaceManual: true });
+    expect(out.records.games.endfield.pulls.every((p) => p.source === "official")).toBe(true);
+  });
+
   it("배너를 못 찾으면(기초 헤드헌팅 등) 건너뛴다", () => {
     const out = importHistory(emptyRecords(), "endfield", [{ banner: "기초 헤드헌팅", name: "가", time: "2026-11-01T00:00:00.000Z", emergency: false }], ctx);
     expect(out).toMatchObject({ added: 0, skipped: 1 });

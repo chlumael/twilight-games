@@ -3,7 +3,7 @@
   import type { HistoryRow } from "../lib/history";
   import type { GameId } from "../lib/types";
 
-  let { game, rows, isTop, needsChoice = false, defaultGroup, hideBelow = 0, onApply, onClear }: {
+  let { game, rows, isTop, needsChoice = false, defaultGroup, hideBelow = 0, manualCount = 0, onApply, onClear }: {
     /** 이 등급보다 낮은 줄은 목록에 보이지 않는다(원신 3성) — 횟수에는 들어간다 */
     hideBelow?: number;
     game: GameId;
@@ -13,7 +13,9 @@
     needsChoice?: boolean;
     /** 배너 이름 → 처음 골라 둘 종류("" = 넣지 않음) */
     defaultGroup?: (banner: string) => string;
-    onApply: (choices: Record<string, string>) => void;
+    /** 이 게임에 직접 입력으로 들어가 있는 뽑기 수 (겹칠 수 있어 물어본다) */
+    manualCount?: number;
+    onApply: (choices: Record<string, string>, replaceManual: boolean) => void;
     onClear: () => void;
   } = $props();
 
@@ -27,6 +29,7 @@
   const emergency = $derived(rows.filter((r) => r.emergency).length);
   const banners = $derived([...new Set(rows.map((r) => r.banner))]);
   let choices = $state<Record<string, string>>({});
+  let replaceManual = $state(true);
   const choiceOf = (b: string) => choices[b] ?? defaultGroup?.(b) ?? "";
   const day = (iso: string) => {
     const d = new Date(iso);
@@ -36,6 +39,10 @@
 
 <div class="hist card">
   <div class="head"><b>{def.shortName} 공식 기록 {rows.length}개 읽음</b><span class="muted">{def.topLabel} {tops}개{fours ? ` · 4성 ${fours}개` : ""}</span></div>
+  {#if manualCount > 0}
+    <label class="warn small"><input type="checkbox" bind:checked={replaceManual} />
+      직접 입력한 기록 {manualCount}회가 있습니다. 같은 뽑기라면 직접 입력을 지우고 공식 기록으로 바꿉니다(끄면 둘 다 남아 두 번 셉니다). 직접 입력한 구간을 끝까지 넘겨 본 뒤 누르세요.</label>
+  {/if}
   <p class="muted small">
     쪽을 넘기거나 아래로 내리면서 각 화면을 1초쯤 보여 주면 계속 쌓입니다. 다 읽었으면 "기록에 반영"을 누르세요.
     공식 기록이 덮는 시간대의 기존 기록(화면 감지·직접 입력)은 공식 기록으로 바뀝니다.
@@ -63,7 +70,7 @@
     {/each}
   </div>
   <div class="actions">
-    <button class="save" onclick={() => onApply(Object.fromEntries(banners.map((b) => [b, choiceOf(b)])))}>기록에 반영</button>
+    <button class="save" onclick={() => onApply(Object.fromEntries(banners.map((b) => [b, choiceOf(b)])), manualCount > 0 && replaceManual)}>기록에 반영</button>
     <button onclick={onClear}>비우기</button>
   </div>
 </div>

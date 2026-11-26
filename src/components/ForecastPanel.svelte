@@ -70,7 +70,7 @@
       </label>
       {#each PASSES[game] as p (p.id)}
         <div class="row">
-          <span class="name">{p.label}</span>
+          <span class="name">{p.label} 종료일</span>
           <input type="date" value={plan.until[p.id] ?? ""} aria-label="{p.label} 끝나는 날"
             onchange={(e) => setUntil(p.id, (e.currentTarget as HTMLInputElement).value)} />
           <button class="small" onclick={() => extend(p.id, p.days, p.maxDays)}>+{p.days}일</button>
@@ -78,7 +78,7 @@
       {/each}
       {#each GAMES[game].currencies.filter((c) => !c.manualOnly).slice(0, 1) as c (c.key)}
         <label class="row">
-          <span class="name">하루 {c.label}</span>
+          <span class="name">하루 수입({c.label})</span>
           <input type="number" min="0" placeholder="0" value={plan.extraDaily[c.key] || ""}
             onchange={(e) => set({ extraDaily: { ...plan.extraDaily, [c.key]: Math.max(0, Number((e.currentTarget as HTMLInputElement).value) || 0) } })} />
         </label>
@@ -99,7 +99,7 @@
   .good { color: var(--good); }
   .bad { color: #ff8a7a; }
   .row { display: flex; align-items: center; gap: 6px; }
-  .name { min-width: 6.5em; color: var(--muted); }
+  .name { min-width: 8.5em; color: var(--muted); }
   .row input { flex: 1; min-width: 0; }
   .small { font-size: 11px; padding: 2px 6px; }
 </style>

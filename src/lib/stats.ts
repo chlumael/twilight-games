@@ -172,5 +172,7 @@ export function luckPercentile(game: GameId, groupId: string, counts: number[]):
 export function luckLabel(s: GroupStats, game: GameId): string | null {
   const p = luckPercentile(game, s.groupId, s.hits.map((h) => h.count));
   if (p === null) return null;
-  return `상위 ${p < 1 ? p.toFixed(1) : Math.round(p)}%`;
+  // 절반보다 나쁘면 "하위 N%"로 보여 준다("상위 86%"가 좋은 것으로 읽히지 않게)
+  if (p > 50) return `운 하위 ${Math.max(1, Math.round(100 - p))}%`;
+  return `운 상위 ${p < 1 ? p.toFixed(1) : Math.round(p)}%`;
 }

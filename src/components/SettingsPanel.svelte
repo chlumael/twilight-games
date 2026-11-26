@@ -57,7 +57,8 @@
   }
 
   function editBaseline(groupId: string, patch: Partial<Baseline>) {
-    onBaseline(groupId, { ...baseline(groupId), ...patch });
+    // 배너 관련 값은 항상 "지금 배너" 기준으로 저장한다(배너 이름을 따로 적게 하면 어긋나서 값이 무시됐다)
+    onBaseline(groupId, { ...baseline(groupId), ...patch, banner: record.currentBanner[groupId] ?? "" });
   }
   // PC판 버전 확인: 설정을 열 때 한 번 확인하고, 버튼으로 다시 확인할 수 있다
   let pcVer = $state<string | null>(null);
@@ -106,12 +107,12 @@
 
   <section>
     <h4>{GAMES[game].name} 시작 상태</h4>
-    <p class="muted hint">앱을 쓰기 전 기록입니다. 처음 한 번만 입력하면 됩니다.</p>
+    <p class="muted hint">앱을 쓰기 전 기록입니다. 천장 스택 = 마지막 {GAMES[game].topLabel} 뒤로 뽑은 횟수(게임의 "N회 내 확정"은 남은 횟수라 반대입니다). 지금 배너 누적 = 앱에 기록하기 전에 이 배너에서 뽑은 횟수.</p>
     {#each GAMES[game].groups as g (g.id)}
       {@const b = baseline(g.id)}
       <div class="base">
         <span class="gname">{g.name}</span>
-        <label>천장 누적 <input type="number" min="0" value={b.pity}
+        <label>천장 스택 <input type="number" min="0" value={Math.max(0, b.pity)}
           onchange={(e) => editBaseline(g.id, { pity: Number((e.currentTarget as HTMLInputElement).value) || 0 })} /></label>
         {#if g.featuredRule !== "none"}
           <label class="check"><input type="checkbox" checked={b.guaranteed}
@@ -119,9 +120,7 @@
             {g.featuredRule === "fifty-fifty" ? "다음 확정" : "운명 포인트 1"}</label>
         {/if}
         {#if g.bannerCounters.length}
-          <label>배너 이름 <input value={b.banner}
-            onchange={(e) => editBaseline(g.id, { banner: (e.currentTarget as HTMLInputElement).value.trim() })} /></label>
-          <label>이 배너 뽑기 수 <input type="number" min="0" value={b.bannerPulls}
+          <label>지금 배너 누적 <input type="number" min="0" value={b.banner === (record.currentBanner[g.id] ?? "") ? Math.max(0, b.bannerPulls) : 0}
             onchange={(e) => editBaseline(g.id, { bannerPulls: Number((e.currentTarget as HTMLInputElement).value) || 0 })} /></label>
           {#if g.bannerCounters.some((c) => c.untilFeatured)}
             <label class="check"><input type="checkbox" checked={b.bannerFeaturedGot}

@@ -484,3 +484,16 @@ describe("직접 입력: 횟수만 맞추기", () => {
     expect(recordPullsTo(out.records, "endfield", A, 30, t(3)).mode).toBe("invalid");
   });
 });
+
+describe("종류 초기화", () => {
+  it("뽑기·시작 상태·교환을 비우고, 그 뒤 누적 입력이 0부터 시작한다", async () => {
+    const { resetGroup, recordTopAt } = await import("./ledger");
+    const G = "endfield-chartered";
+    let r = recordSession(emptyRecords(), "endfield", G, 322, new Map(), t(0));
+    r.games.endfield.baseline[G] = { ...emptyBaseline(), pity: -74, banner: "", bannerPulls: -202 };
+    r = resetGroup(r, "endfield", G);
+    expect(groupStatus(r.games.endfield, "endfield", G)).toMatchObject({ pity: 0, bannerPulls: 0 });
+    expect(recordTopAt(r, "endfield", G, 52, { name: "가", featured: false }, t(1)).records.games.endfield.pulls).toHaveLength(52);
+    expect(undo(r).records.games.endfield.pulls).toHaveLength(322);
+  });
+});

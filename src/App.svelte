@@ -20,7 +20,7 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, removeExchange, recordPullsTo } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, removeExchange, recordPullsTo, resetGroup } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
@@ -86,6 +86,18 @@
     detections = list;
     try { localStorage.setItem(DETECT_KEY, JSON.stringify(list)); } catch { /* 저장 공간 문제는 무시 */ }
   }
+  /**
+   * 엔드필드 헤드헌팅 화면이 한정인지 재구축인지: 화면 글자에 그 칸의 지금 배너 픽업 이름이 보이는 쪽.
+   * 둘 다 보이거나 둘 다 안 보이면 null(모름 — 추측하지 않는다).
+   */
+  function endfieldGroupOnScreen(f: ScreenFrame): string | null {
+    const text = f.lines.map((l) => l.t.replace(/\s+/g, "")).join("\n");
+    const hit = ["endfield-chartered", "endfield-refactor"].filter((gid) => {
+      const b = groupBanners(pack, "endfield", gid).find((x) => x.id === records.games.endfield.currentBanner[gid]);
+      return !!b && b.featured.some((it) => { const n = itemName(it).replace(/\s+/g, ""); return n.length >= 1 && text.includes(n); });
+    });
+    return hit.length === 1 ? hit[0] : null;
+  }
   function onScreenFrame(f: ScreenFrame, r: ScreenReading | null) {
     const out = detectStep(detectState, f, r, {
       spendOf: (g) => findGroup(g, settings.activeGroup[g] ?? GAMES[g].groups[0].id).spend,
@@ -108,7 +120,8 @@
     if (out.detection && !resultCountingReady(out.detection.game)) {
       // 감지되면 바로 기록한다(사용자 요청 2026-11-25). 확실하지 않은 것은 "확인"에 표시해 취소할 수 있게 한다.
       const d = out.detection;
-      const gid = settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id;
+      // 엔드필드는 화면의 픽업 이름으로 한정/재구축을 알 수 있으면 그 칸에, 아니면 골라 둔 칸에 기록한다
+      const gid = (d.game === "endfield" ? endfieldGroupOnScreen(f) : null) ?? settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id;
       // 한 번에 20회를 넘거나, 확실하지 않은데 10회를 넘으면 잘못 읽은 것일 수 있다 → 기록하지 않고 "확인"에서 묻는다
       // (실제 기록이 부풀었던 문제, 2026-11-26)
       if (d.count > 20 || (d.uncertain && d.count > 10)) {
@@ -244,6 +257,8 @@
   const isTopRow = (g: GameId) => (r: HistoryRow) => (r.rarity != null ? r.rarity >= topRarityOf(g) : !!sixStars[g]?.has(r.name));
   let lastHistoryAt = 0;
   /** 기록 화면을 떠난 뒤 몇 초 지나면 읽어 둔 기록을 자동으로 반영한다(사용자 요청 2026-11-25) */
+  const manualPulls = (g: GameId) => records.games[g].pulls.filter((p) => p.source === "manual").length;
+  let askedManual: GameId | null = null;
   function autoApplyHistories() {
     if (!lastHistoryAt || Date.now() - lastHistoryAt < 4000) return;
     lastHistoryAt = 0;
@@ -251,6 +266,11 @@
       const rows = historyRowsOf(g);
       if (!rows.length) continue;
       // 중간 쪽을 건너뛰었으면 반영하지 않는다(사이 기록이 빠지지 않게). 읽어 둔 쪽은 남겨 두니 빠진 쪽만 보여 주면 된다
+      // 직접 입력한 기록이 있으면 같은 뽑기를 두 번 셀 수 있다 → 자동 반영하지 않고 "확인"에서 고르게 한다
+      if (manualPulls(g) > 0) {
+        if (askedManual !== g) { askedManual = g; notify(`${GAMES[g].shortName} 공식 기록을 읽었습니다. 직접 입력 기록과 겹칠 수 있어 "확인"에서 반영해 주세요`); }
+        continue;
+      }
       const gap = missingPages(historyStore[g] ?? {});
       if (gap.length) { notify(`${GAMES[g].shortName} 기록 ${gap.join(", ")}쪽을 못 읽었습니다. 그 쪽을 열어 주세요`); continue; }
       const choices = Object.fromEntries([...new Set(rows.map((r) => r.banner))].map((b) => [b, g === "arknights" ? arknightsDefault(b) : ""]));
@@ -285,13 +305,14 @@
 
   /** 명일방주 요스타 기록의 배너 이름 → 종류 처음 값 (커널·상시는 넣지 않음, 사용자가 바꿀 수 있음) */
   const arknightsDefault = (b: string) => (/커널|상시|기초|초심자/.test(b) ? "" : "arknights-limited");
-  function applyHistory(game: GameId, choices: Record<string, string>) {
+  function applyHistory(game: GameId, choices: Record<string, string>, replaceManual = false) {
     const out = importHistory(records, game, historyRowsOf(game), {
       banners: pack?.games[game] ?? [],
       topRarity: topRarityOf(game),
       isTop: (n) => !!sixStars[game]?.has(n),
       groupOf: (b) => choices[b] || null,
       minNamedRarity: game === "genshin" ? 4 : undefined,
+      replaceManual,
       newId: () => `off-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     });
     // 반영으로 최고 등급 기록이 어떻게 바뀌는지 요약한다(잘못 읽혔으면 "확인"에서 바로 되돌릴 수 있게)
@@ -748,11 +769,13 @@
           // 재화 변화가 아직 확인 중이면(방금 뽑은 것이 기록되기 전) 기다린다. 먼저 맞추면 직전 묶음에 잘못 붙는다.
           const stableNow = detectState.stable.endfield ?? {};
           const currencySettled = Object.entries(r.currency).every(([k, v]) => stableNow[k] === v);
-          if (r.game === "endfield" && counts.settled && r.toFeatured !== null && currencySettled) {
+          // 한정·재구축 화면이 같은 문구를 쓰므로, 화면에 보이는 픽업 이름이 어느 배너 것인지 확인된 때만 그 칸에 맞춘다
+          const efGroup = r.game === "endfield" ? endfieldGroupOnScreen(f) : null;
+          if (efGroup && counts.settled && r.toFeatured !== null && currencySettled) {
             // 천장이 다시 시작됐으면(6성 나옴) 방금 뽑은 묶음에서 그 자리를 표시하고, 남은 차이는 기준값으로 맞춘다
-            const marked = inferTopFromScreen(records, "endfield", "endfield-chartered", r.toTop, r.toFeatured);
+            const marked = inferTopFromScreen(records, "endfield", efGroup, r.toTop, r.toFeatured);
             if (marked !== records) notify("6성 획득을 화면 천장 숫자로 기록했습니다 (이름은 헤드헌팅 기록 화면에서 채워집니다)");
-            const synced = syncPityFromScreen(marked, "endfield", "endfield-chartered", r.toTop, r.toFeatured);
+            const synced = syncPityFromScreen(marked, "endfield", efGroup, r.toTop, r.toFeatured);
             if (synced !== records) update(synced);
           }
           screenResult = r;
@@ -916,6 +939,7 @@
         />
       {:else if view === "stats"}
         <StatsPanel {game} record={rec} bannerName={packBannerName} onClose={() => (view = "main")}
+          onReset={(gid) => { update(resetGroup(records, game, gid)); lastApply = `${findGroup(game, gid).name} 기록 전부 지우기`; notify(`${findGroup(game, gid).name} 기록을 지웠습니다. 뽑기는 "확인"에서 되돌릴 수 있습니다`); }}
           onRemove={(keys, label) => { update(removeBatches(records, game, keys, label)); lastApply = label; notify(`${label} — "확인"에서 되돌릴 수 있습니다`); }} />
       {:else if view === "review"}
         <section class="review">
@@ -931,7 +955,8 @@
           {#each HISTORY_GAMES.filter((g) => historyRowsOf(g).length) as g (g)}
             <HistoryCard game={g} rows={historyRowsOf(g)} hideBelow={g === "genshin" ? 4 : 0} isTop={isTopRow(g)} needsChoice={g === "arknights"}
               defaultGroup={g === "arknights" ? arknightsDefault : undefined}
-              onApply={(choices) => applyHistory(g, choices)} onClear={() => saveHistory(g, {})} />
+              manualCount={manualPulls(g)}
+              onApply={(choices, replaceManual) => applyHistory(g, choices, replaceManual)} onClear={() => saveHistory(g, {})} />
           {/each}
           {#if autoLog.length}
             <div class="card autolog">

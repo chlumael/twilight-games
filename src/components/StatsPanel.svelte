@@ -4,7 +4,7 @@
   import type { GameId, GameRecord } from "../lib/types";
   import { hitLabel, pullBatches } from "../lib/ledger";
 
-  let { game, record, bannerName, onClose, onRemove }: {
+  let { game, record, bannerName, onClose, onRemove, onReset }: {
     game: GameId;
     record: GameRecord;
     /** 배너 ID → 보여 줄 이름 (팩에 없으면 입력한 이름 그대로) */
@@ -12,10 +12,13 @@
     onClose: () => void;
     /** 기록 묶음 지우기 (묶음 키들, 되돌리기에 남길 이름) */
     onRemove?: (keys: string[], label: string) => void;
+    /** 한 종류를 전부 지우고 시작 상태도 비우기 */
+    onReset?: (groupId: string) => void;
   } = $props();
 
   // 기록 정리: 묶음별로 보고 잘못 들어간 것을 지운다
   let tidy = $state(false);
+  let confirmReset = $state("");
   const batches = $derived(pullBatches(record));
   const SOURCE: Record<string, string> = { screen: "화면 감지", manual: "직접 입력", official: "공식 기록" };
   const bySource = $derived(Object.entries(SOURCE).map(([k, label]) => ({ k, label, n: batches.filter((b) => b.source === k).reduce((a, b) => a + b.count, 0) })).filter((x) => x.n > 0));
@@ -97,6 +100,14 @@
           {#each bySource.filter((x) => x.k === "screen") as x (x.k)}
             <button onclick={() => onRemove(batches.filter((b) => b.source === "screen").map((b) => b.sessionId), `화면 감지 기록 ${x.n}회 지우기`)}>화면 감지 기록 {x.n}회 모두 지우기</button>
           {/each}
+          {#if onReset}
+            <div class="bmeta">
+              {#each def.groups.filter((g) => record.pulls.some((p) => p.group === g.id) || record.baseline[g.id]) as g (g.id)}
+                <button onclick={() => { if (confirmReset === g.id) { onReset(g.id); confirmReset = ""; } else confirmReset = g.id; }}>
+                  {confirmReset === g.id ? `한 번 더 누르면 ${g.name} 기록을 전부 지웁니다` : `${g.name} 처음부터 다시`}</button>
+              {/each}
+            </div>
+          {/if}
           {#each batches.slice(0, 80) as b (b.sessionId)}
             <div class="trow">
               <span>{when(b.time)}</span><span>{groupName(b.group)}</span><b>{b.count}회</b><span>{SOURCE[b.source] ?? b.source}</span>

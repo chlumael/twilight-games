@@ -195,6 +195,8 @@ export function importHistory(
     minNamedRarity?: number;
     /** 픽업 판정을 따로 할 때 (원신 기원 기록: 동시에 열린 기원들을 함께 본다) */
     featuredOf?: (row: HistoryRow, group: string) => boolean | null;
+    /** 같은 종류의 직접 입력 기록(공식 기록 구간 시작 이후에 넣은 것)을 지우고 공식 기록으로 바꾼다 — 두 번 세지 않게 */
+    replaceManual?: boolean;
     newId: () => string;
   },
 ): ImportResult {
@@ -223,6 +225,8 @@ export function importHistory(
   const inRange = (p: Pull) => {
     if (!groups.has(p.group)) return false;
     const t = Date.parse(p.time);
+    // 직접 입력은 넣은 시각으로 찍혀 있어(실제 뽑은 시각이 아님) 구간 뒤에 있어도 같은 뽑기일 수 있다
+    if (p.source === "manual" && ctx.replaceManual) return t >= from;
     return t >= from && t <= (p.source === "screen" ? to + SCREEN_LAG_MS : to);
   };
   const replacedPulls = rec.pulls.filter(inRange);

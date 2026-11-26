@@ -72,7 +72,7 @@ describe("통계", () => {
     const mid = luckPercentile("genshin", "genshin-char", [62, 62])!;
     expect(mid).toBeGreaterThan(20);
     expect(mid).toBeLessThan(50);
-    expect(luckLabel(groupStats(sample().games.genshin, "genshin", "genshin-char"), "genshin")).toMatch(/^상위 /);
+    expect(luckLabel(groupStats(sample().games.genshin, "genshin", "genshin-char"), "genshin")).toMatch(/^운 (상위|하위) /);
     // 무기 신청은 10개 묶음 단위: 첫 신청(10개)에 6성 무기 = 33.5% 안
     expect(luckPercentile("endfield", "endfield-arsenal", [10])!).toBeCloseTo(33.5167, 1);
     expect(luckPercentile("endfield", "endfield-arsenal", [40])!).toBeCloseTo(100, 5);

@@ -713,3 +713,15 @@ export function recordPullsTo(
   if (last) last.label = `${GAMES[game].shortName} 배너 ${n}번째까지 횟수 맞추기`;
   return { records: next, mode: "added" };
 }
+
+/** 한 종류의 기록을 전부 지우고 시작 상태(기준값)·교환 기록도 비운다. 뽑기는 되돌리기로 복구할 수 있다(시작 상태는 복구 안 됨) */
+export function resetGroup(records: Records, game: GameId, groupId: string): Records {
+  const next = structuredClone(records);
+  const rec = next.games[game];
+  const gone = rec.pulls.filter((p) => p.group === groupId);
+  rec.pulls = rec.pulls.filter((p) => p.group !== groupId);
+  rec.baseline[groupId] = emptyBaseline(); // 지우지 않고 빈 값으로(다른 기기와 합칠 때 예전 값이 되살아나지 않게)
+  rec.exchanges = (rec.exchanges ?? []).filter((e) => e.group !== groupId);
+  pushUndo(next, { game, label: `${GAMES[game].shortName} ${findGroup(game, groupId).name} 기록 전부 지우기`, addedPullIds: [], replacedPulls: gone, prevCurrency: { ...rec.currency } });
+  return next;
+}
