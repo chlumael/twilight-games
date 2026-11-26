@@ -340,6 +340,7 @@ export function undo(records: Records): { records: Records; label: string | null
   for (const old of entry.replacedPulls) {
     const i = rec.pulls.findIndex((p) => p.id === old.id);
     if (i >= 0) rec.pulls[i] = old;
+    else rec.pulls.push(old); // 지워졌던 뽑기(공식 기록 반영·기록 정리)는 다시 넣는다
   }
   rec.currency = entry.prevCurrency;
   return { records: next, label: entry.label };
@@ -554,4 +555,40 @@ export function recordTopAt(
   next.games[game].baseline[groupId] = base;
   next.games[game].updatedAt = new Date().toISOString();
   return { records: next, mode: "baseline" };
+}
+
+/** 기록 묶음(한 번에 기록된 뽑기들) — 기록 정리 화면용. 최근 것부터 */
+export interface PullBatch {
+  sessionId: string;
+  group: string;
+  time: string;
+  count: number;
+  source: Pull["source"];
+  tops: string[];
+}
+
+export function pullBatches(rec: GameRecord): PullBatch[] {
+  const map = new Map<string, PullBatch>();
+  for (const p of rec.pulls) {
+    const key = `${p.sessionId}|${p.group}|${p.source}`;
+    const b = map.get(key) ?? { sessionId: key, group: p.group, time: p.time, count: 0, source: p.source, tops: [] };
+    b.count++;
+    if (p.time < b.time) b.time = p.time;
+    if (p.top) b.tops.push(p.name ?? "이름 없음");
+    map.set(key, b);
+  }
+  return [...map.values()].sort((a, b) => (a.time < b.time ? 1 : -1));
+}
+
+/** 기록 묶음을 지운다(되돌리기 가능). keys = pullBatches의 sessionId */
+export function removeBatches(records: Records, game: GameId, keys: string[], label: string): Records {
+  const want = new Set(keys);
+  const next = structuredClone(records);
+  const rec = next.games[game];
+  const gone = rec.pulls.filter((p) => want.has(`${p.sessionId}|${p.group}|${p.source}`));
+  if (!gone.length) return records;
+  const ids = new Set(gone.map((p) => p.id));
+  rec.pulls = rec.pulls.filter((p) => !ids.has(p.id));
+  pushUndo(next, { game, label, addedPullIds: [], replacedPulls: gone, prevCurrency: { ...rec.currency } });
+  return next;
 }

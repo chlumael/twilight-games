@@ -2,14 +2,24 @@
   import { GAMES } from "../lib/games";
   import { gameStats, luckLabel } from "../lib/stats";
   import type { GameId, GameRecord } from "../lib/types";
+  import { pullBatches } from "../lib/ledger";
 
-  let { game, record, bannerName, onClose }: {
+  let { game, record, bannerName, onClose, onRemove }: {
     game: GameId;
     record: GameRecord;
     /** 배너 ID → 보여 줄 이름 (팩에 없으면 입력한 이름 그대로) */
     bannerName: (id: string) => string;
     onClose: () => void;
+    /** 기록 묶음 지우기 (묶음 키들, 되돌리기에 남길 이름) */
+    onRemove?: (keys: string[], label: string) => void;
   } = $props();
+
+  // 기록 정리: 묶음별로 보고 잘못 들어간 것을 지운다
+  let tidy = $state(false);
+  const batches = $derived(pullBatches(record));
+  const SOURCE: Record<string, string> = { screen: "화면 감지", manual: "직접 입력", official: "공식 기록" };
+  const bySource = $derived(Object.entries(SOURCE).map(([k, label]) => ({ k, label, n: batches.filter((b) => b.source === k).reduce((a, b) => a + b.count, 0) })).filter((x) => x.n > 0));
+  const when = (iso: string) => { const d = new Date(iso); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
 
   const def = $derived(GAMES[game]);
   const stats = $derived(gameStats(record, game));
@@ -79,6 +89,26 @@
       </div>
     {/each}
 
+    {#if onRemove}
+      <div class="group card">
+        <div class="gtitle"><b>기록 정리</b><button onclick={() => (tidy = !tidy)}>{tidy ? "접기" : "펼치기"}</button></div>
+        <div class="bmeta">{#each bySource as x (x.k)}<span>{x.label} {x.n}회</span>{/each}</div>
+        {#if tidy}
+          {#each bySource.filter((x) => x.k === "screen") as x (x.k)}
+            <button onclick={() => onRemove(batches.filter((b) => b.source === "screen").map((b) => b.sessionId), `화면 감지 기록 ${x.n}회 지우기`)}>화면 감지 기록 {x.n}회 모두 지우기</button>
+          {/each}
+          {#each batches.slice(0, 80) as b (b.sessionId)}
+            <div class="trow">
+              <span>{when(b.time)}</span><span>{groupName(b.group)}</span><b>{b.count}회</b><span>{SOURCE[b.source] ?? b.source}</span>
+              {#if b.tops.length}<span class="bnames">{b.tops.join(", ")}</span>{/if}
+              <button onclick={() => onRemove([b.sessionId], `${groupName(b.group)} ${b.count}회 지우기`)}>지우기</button>
+            </div>
+          {/each}
+          <p class="muted small">잘못 들어간 묶음을 지우세요. 지운 것은 "확인" 화면의 되돌리기나 Ctrl+Alt+Z로 복구할 수 있습니다. 천장 숫자는 가챠 화면을 다시 읽거나 "시작 상태"에서 맞춥니다.</p>
+        {/if}
+      </div>
+    {/if}
+
     <div class="group card">
       <div class="gtitle"><b>배너별 기록</b></div>
       {#each stats.banners.slice(0, 15) as b (b.groupId + b.banner)}
@@ -96,6 +126,8 @@
 </section>
 
 <style>
+  .trow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 4px 0; border-top: 1px solid var(--line); }
+  .trow button { margin-left: auto; font-size: 11px; padding: 2px 8px; }
   .stats { display: flex; flex-direction: column; gap: 10px; font-size: 12px; }
   .shead { display: flex; justify-content: space-between; align-items: center; }
   .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }

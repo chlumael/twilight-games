@@ -348,3 +348,16 @@ describe("원신 무기: 고른 무기(신각의 길)", () => {
     expect(groupStatus(r.games.genshin, "genshin", "genshin-weapon").guaranteed).toBe(false);
   });
 });
+
+describe("기록 묶음 정리", () => {
+  it("묶음 목록을 보여 주고, 지우면 되돌릴 수 있다", async () => {
+    const { pullBatches, removeBatches, recordDetected } = await import("./ledger");
+    let r = recordSession(emptyRecords(), "endfield", "endfield-chartered", 10, new Map([[3, { name: "케르", featured: true }]]), t(0));
+    r = recordDetected(r, "endfield", "endfield-chartered", 99, [], {}, t(5)); // 잘못 감지된 묶음
+    const batches = pullBatches(r.games.endfield);
+    expect(batches.map((b) => [b.count, b.source, b.tops])).toEqual([[99, "screen", []], [10, "manual", ["케르"]]]);
+    const cut = removeBatches(r, "endfield", [batches[0].sessionId], "정리");
+    expect(cut.games.endfield.pulls).toHaveLength(10);
+    expect(undo(cut).records.games.endfield.pulls).toHaveLength(109);
+  });
+});
