@@ -55,7 +55,7 @@ SendUserFile(display: attach)로 보내고, 답변에는 다음을 적는다.
 
 설치된 앱은 GitHub Releases의 최신 버전을 6시간마다 확인해서 알림·대화상자로 업데이트를 안내한다(`Updater.kt`). 그래서 **새 버전은 이 방식으로 배포하는 것이 기본**이다. 이 세션은 태그를 푸시할 수 없다(403). 사용자가 2026-11-25에 "워크플로가 직접 태그를 만들어 게시"하는 방식을 승인했다.
 
-1. `android/app/build.gradle.kts`의 `versionCode` +1, `versionName` 올리기
+1. `android/app/build.gradle.kts`의 `versionCode` +1, `versionName` 올리기 — **정식 배포 전까지는 `0.9.x`의 마지막 숫자만 올린다**(0.9.9 다음은 0.9.10, 1.0.0으로 가지 않음. 사용자 지시 2026-11-26). PC판 `src-tauri/tauri.conf.json`·`Cargo.toml`도 같은 번호
 2. `android/RELEASE_NOTES.md`를 이번 버전의 바뀐 점으로 **덮어쓴다**. 앱의 업데이트 안내문으로 그대로 보이니 사용자가 읽을 한국어로, 짧은 목록으로 쓴다.
 3. 커밋·푸시(작업 브랜치). `.github/workflows/android-release.yml`이 "이 버전의 Release가 아직 없으면" 고정 키로 빌드 → 서명 지문 검사 → 태그 `v<versionName>` 생성 → Release 게시. 이미 게시된 버전이면 아무것도 하지 않는다.
 4. 결과는 `twilight-ship`의 CI 확인 방법으로 본다. Secrets가 없으면 "Signing key present" 단계에서 실패한다.

@@ -39,6 +39,10 @@
 - 외부에서 받은 코드는 실행하지 않는다(데이터로만 파싱).
 - 천장 계산, 기록 병합, 저장 같은 순수 로직은 단위 테스트를 붙인다.
 
+## 버전 번호 (사용자 지시 2026-11-26)
+- **정식 배포 전까지는 `0.9.x`에서 마지막 숫자만 1씩 올린다**: 0.9.0 → 0.9.1 → … → 0.9.9 → 0.9.10 → 0.9.11 … `1.0.0`이나 `0.10.0`으로 넘어가지 않는다.
+- 같은 번호를 `android/app/build.gradle.kts`(versionName, versionCode +1), `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml`에 맞춘다. 버전 비교는 숫자로 해서 0.9.10이 0.9.9보다 새 버전으로 잡힌다(휴대폰 `Updater.kt`, PC `src/lib/version.ts`).
+
 ## 명령어
 ```bash
 npm install
