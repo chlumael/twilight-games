@@ -368,6 +368,26 @@ describe("교환(확천)", () => {
     expect(st().counters[0]).toMatchObject({ remaining: 170, done: false });
     expect(r.games.limbus.pulls).toHaveLength(230);
   });
+  it("엔드필드 긴급 모집(무료)에서 나온 6성: 천장·누적 횟수·허가증은 그대로, 무기고 징표만 2000", async () => {
+    const { recordFreeTop, removeExchange } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.endfield.currentBanner["endfield-chartered"] = "B";
+    r.games.endfield.currency = { oroberyl: 5000, charteredPermit: 3, arsenalTicket: 100 };
+    r = recordSession(r, "endfield", "endfield-chartered", 40, new Map(), t(0));
+    const before = groupStatus(r.games.endfield, "endfield", "endfield-chartered");
+    const cur = { ...r.games.endfield.currency };
+    r = recordFreeTop(r, "endfield", "endfield-chartered", { name: "명하", featured: false }, t(1));
+    const after = groupStatus(r.games.endfield, "endfield", "endfield-chartered");
+    expect([after.pity, after.bannerPulls]).toEqual([before.pity, before.bannerPulls]);
+    expect(after.counters).toEqual(before.counters);
+    expect(r.games.endfield.currency).toEqual({ ...cur, arsenalTicket: cur.arsenalTicket + 2000 });
+    expect(r.games.endfield.exchanges?.[0]).toMatchObject({ kind: "free", name: "명하", featured: false, banner: "B" });
+    // 지우면 징표도 되돌린다
+    r = removeExchange(r, "endfield", r.games.endfield.exchanges![0].id);
+    expect(r.games.endfield.currency.arsenalTicket).toBe(cur.arsenalTicket);
+    // 무료 뽑기가 없는 종류에는 기록하지 않는다
+    expect(recordFreeTop(r, "limbus", "limbus-extraction", { name: "가", featured: null }, t(2))).toBe(r);
+  });
   it("명일방주: 콜라보는 120회 픽업 확정, 51회부터 반천", async () => {
     const { hitLabel } = await import("./ledger");
     let r = emptyRecords();

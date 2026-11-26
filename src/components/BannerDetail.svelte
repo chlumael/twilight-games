@@ -1,10 +1,12 @@
 <script lang="ts">
   import {
-    bannerDays, bannerLabel, bannerProgress, bannerState, formatMoment, itemName, remainingText,
-    type PackBanner, type PackItem,
+    bannerDays, bannerLabel, bannerProgress, bannerState, formatMoment, itemName, leftText, remainingText,
+    type PackBanner, type PackItem, type PoolEntry,
   } from "../lib/banners";
 
-  let { banner, banners, groupLabel, topLabel, pulls, selected, onSelect, onClose }: {
+  let { banner, banners, groupLabel, topLabel, pulls, pool = null, selected, onSelect, onClose }: {
+    /** 이 배너에서 나올 수 있는 최고 등급(규칙이 있는 종류만). byRule = 공지 목록이 없어 규칙으로 만든 것 */
+    pool?: { entries: PoolEntry[]; byRule: boolean } | null;
     banner: PackBanner;
     /** 같은 종류의 배너 전체 (일정 목록용) */
     banners: PackBanner[];
@@ -24,6 +26,13 @@
   const days = $derived(bannerDays(banner));
   const schedule = $derived([...banners].sort((a, b) => (b.start ?? "").localeCompare(a.start ?? "")).slice(0, 12));
 
+  const offBanner = $derived((pool?.entries ?? []).filter((e) => !e.featured));
+  /** 픽업이 앞으로 얼마나 더 나오는지 한 줄 (엔드필드 특별 허가: 다음 두 배너) */
+  const upLeft = $derived.by(() => {
+    const left = pool?.entries.find((e) => e.featured)?.left;
+    if (left == null) return "";
+    return left <= 1 ? "이 배너가 끝나면 목록에서 빠집니다." : `다음 ${left - 1}개 배너 동안 픽뚫로 나오고, 그 뒤에는 목록에서 빠집니다.`;
+  });
   function gradeLabel(i: PackItem, top: boolean): string {
     if (!i.grade) {
       if (top) return topLabel;
@@ -82,6 +91,18 @@
     {#if !banner.featured.length && !banner.featuredRare.length}<p class="note">픽업 정보가 없습니다.</p>{/if}
   </div>
 
+  {#if offBanner.length}
+    <div class="block">
+      <div class="label">픽뚫로 나올 수 있는 {topLabel}{pool?.byRule ? " (규칙으로 계산)" : ""}</div>
+      <div class="pool">
+        {#each offBanner as e (e.name)}
+          <span class="pchip" class:lim={e.left != null}>{e.name}{#if leftText(e.left)}<small>{leftText(e.left)}</small>{/if}</span>
+        {/each}
+      </div>
+      {#if upLeft}<p class="note">픽업 {topLabel}은 {upLeft}</p>{/if}
+    </div>
+  {/if}
+
   <div class="block rows">
     {#if pulls !== null}<div><span class="label">이 배너에서 뽑은 횟수</span><b>{pulls}회</b></div>{/if}
     {#if banner.source}<div><span class="label">정보 출처</span><span>{banner.source}</span></div>{/if}
@@ -119,6 +140,10 @@
   .bar div { height: 100%; background: var(--accent); }
   .meta { display: flex; gap: 10px; align-items: baseline; color: var(--muted); }
   .meta b { color: var(--warn); font-size: 13px; }
+  .pool { display: flex; flex-wrap: wrap; gap: 5px; }
+  .pchip { display: inline-flex; align-items: baseline; gap: 5px; padding: 4px 8px; border-radius: var(--btn-radius); background: var(--panel); border: 1px solid var(--line); }
+  .pchip.lim { border-color: var(--top); }
+  .pchip small { color: var(--top); font-size: 10px; }
   .note { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
   .item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 8px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 14%, transparent); }
   .iname { font-weight: 600; color: var(--text); font-size: 13px; word-break: keep-all; }

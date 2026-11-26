@@ -46,6 +46,13 @@ export interface PityGroup {
   gain?: { key: string; top: number; other: number };
   /** 배너 누적 at회에 받는 무료 뽑기(재화 안 씀, 천장 스택에 안 들어감) — 엔드필드 긴급 모집 등. 각각 1회 */
   bonuses?: { at: number; pulls: number; label: string }[];
+  /**
+   * 픽업 최고 등급이 이 종류의 "나올 수 있는 목록"에 남는 배너 수(그 배너 포함). 엔드필드 특별 허가 = 3:
+   * 픽업 배너 + 다음 두 배너에서는 픽뚫로 나오고, 그 뒤에는 목록에서 빠진다(상시에도 안 들어감). 재구축 = 1.
+   */
+  rotation?: { stays: number };
+  /** 긴급 모집처럼 무료 뽑기에서 나온 최고 등급을 따로 적을 때 쓰는 이름. 천장·누적 횟수에 안 들어간다 */
+  freeLabel?: string;
   /** 배너 카운터(픽업 확정·누적 보상)를 세는 범위. "series" = 같은 시리즈 배너끼리 이어서 셈(엔드필드 재구축) */
   counterScope?: "series";
 }
@@ -214,6 +221,9 @@ export const GAMES: Record<GameId, GameDef> = {
           { at: 60, pulls: 10, label: "헤드헌팅 정보서(다음 한정 10회)" },
         ],
         odds: { base: 0.008, softFrom: 66, step: 0.05 },
+        // 픽업 6성은 특별 허가 3회(그 배너 포함)가 끝나면 목록에서 빠진다(공식 「오퍼레이터 제외 규칙」)
+        rotation: { stays: 3 },
+        freeLabel: "긴급 모집",
         // 무기고 징표: 6성 2000, 그 밖은 최소 20(4성). 5성(200)은 앱이 알 수 없어 20으로 센다 → 실제보다 적게 잡힐 수 있음
         gain: { key: "arsenalTicket", top: 2000, other: 20 },
         spend: [
@@ -240,6 +250,9 @@ export const GAMES: Record<GameId, GameDef> = {
           { at: 90, pulls: 10, label: "긴급 모집" },
         ],
         odds: { base: 0.008, softFrom: 66, step: 0.05 },
+        // 픽업 6성은 그 재구축 배너가 끝나면 재구축 목록에서 빠진다(공식). 픽뚫는 늘 나오는 6성뿐
+        rotation: { stays: 1 },
+        freeLabel: "긴급 모집",
         // 무기고 징표: 6성 2000, 그 밖은 최소 20(4성). 5성(200)은 앱이 알 수 없어 20으로 센다 → 실제보다 적게 잡힐 수 있음
         gain: { key: "arsenalTicket", top: 2000, other: 20 },
         spend: [

@@ -17,6 +17,8 @@ description: 황혼 게임즈의 가챠 규칙을 바꿀 때 사용. 재화·티
   - `bannerCounters[]`: `{ at, label, untilFeatured?, repeat? }` 배너별 누적 카운터
   - `spend[]`: **차감 순서**. `{ key, cost, pulls, topUp? }`를 앞에서부터 쓴다.
     - 10회권: `{ key: "tenPermit", cost: 1, pulls: 10 }`. 10회 이상 남았을 때만 쓴다.
+  - `rotation: { stays }`: 픽업 최고 등급이 "나올 수 있는 목록"에 남는 배너 수(그 배너 포함). 엔드필드 특별 허가 3, 재구축 1 (공식 「오퍼레이터 제외 규칙」). 목록 계산은 `banners.ts`의 `bannerPool`.
+  - `freeLabel`: 무료 뽑기(엔드필드 긴급 모집)에서 나온 최고 등급을 천장·횟수에 넣지 않고 기록할 때의 이름 (`recordFreeTop`).
     - 교환: `topUp: { key: "genesis", rate: 1 }`. 모자란 만큼만 다른 재화를 바꿔서 쓴다.
 
 ## 사용자와 합의된 규칙 (바꾸기 전에 확인)

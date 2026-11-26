@@ -78,4 +78,8 @@ export interface Exchange {
   group: string;
   banner: string;
   name: string | null;
+  /** "free" = 무료 뽑기(엔드필드 긴급 모집)에서 나온 것. 없으면 교환 */
+  kind?: "free";
+  /** 무료 뽑기에서 나온 것이 픽업인지 */
+  featured?: boolean | null;
 }

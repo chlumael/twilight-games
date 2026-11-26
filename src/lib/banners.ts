@@ -32,7 +32,7 @@ export interface PackBanner {
   series?: string;
   featured: PackItem[];
   featuredRare: PackItem[];
-  /** 이 배너에서 나올 수 있는 픽업 아닌 최고 등급 목록 (엔드필드 무기 배너: 픽뚫로 나오는 6성 무기) */
+  /** 이 배너에서 나올 수 있는 픽업 아닌 최고 등급 목록 (엔드필드: 공지의 6성 목록·[6성 무기] 표) */
   pool?: PackItem[];
 }
 
@@ -164,4 +164,54 @@ export function bannerProgress(b: PackBanner, now: Date = new Date()): number | 
 export function bannerDays(b: PackBanner): number | null {
   if (!b.start || !b.end) return null;
   return Math.round((Date.parse(b.end) - Date.parse(b.start)) / 864e5);
+}
+
+export interface PoolEntry {
+  name: string;
+  /** 이 배너의 픽업인지 */
+  featured: boolean;
+  /**
+   * 이 배너를 포함해 앞으로 몇 번의 배너까지 나오는지. null = 계속 나옴(늘 있는 최고 등급),
+   * undefined = 알 수 없음(규칙으로 설명되지 않는 이름).
+   */
+  left?: number | null;
+}
+
+/**
+ * 이 배너에서 나올 수 있는 최고 등급 목록을 규칙에 맞춰 만든다 (DESIGN.md §6 엔드필드 「오퍼레이터 제외 규칙」).
+ * - 팩에 공식 목록(`pool`)이 있으면 그 이름들을 쓰고, 없으면 규칙으로 만든다:
+ *   늘 나오는 최고 등급 + 같은 종류의 앞선 (stays−1)개 배너의 픽업.
+ * - 늘 나오는 최고 등급 = 규칙이 있는 종류의 배너들 공식 목록에 한 번도 빠지지 않고 들어 있는 이름.
+ * `all` = 그 게임의 배너 전체, `rules` = 종류별 `rotation.stays`.
+ */
+export function bannerPool(all: PackBanner[], banner: PackBanner, rules: Record<string, number>): { entries: PoolEntry[]; byRule: boolean } {
+  const stays = rules[banner.group];
+  const featured = banner.featured.map(itemName);
+  if (!stays) {
+    return { entries: [...featured.map((name) => ({ name, featured: true })), ...(banner.pool ?? []).map((i) => ({ name: itemName(i), featured: false }))], byRule: false };
+  }
+  const listed = all.filter((b) => rules[b.group] && b.pool?.length);
+  const always = new Set(listed.length ? listed[0].pool!.map(itemName).filter((n) => listed.every((b) => b.pool!.some((i) => itemName(i) === n))) : []);
+  const same = all.filter((b) => b.group === banner.group && b.start).sort((a, b) => a.start!.localeCompare(b.start!));
+  const at = same.findIndex((b) => b.id === banner.id);
+  // 앞선 배너의 픽업: k개 앞 배너의 픽업은 이 배너 포함 (stays − k)번 더 나온다
+  const limited = new Map<string, number>();
+  for (let k = stays - 1; k >= 1; k--) {
+    for (const f of at >= k ? same[at - k].featured : []) limited.set(itemName(f), stays - k);
+  }
+  for (const n of featured) limited.delete(n);
+  const names = banner.pool?.length ? banner.pool.map(itemName) : [...limited.keys()].reverse().concat([...always].filter((n) => !limited.has(n)));
+  const entries: PoolEntry[] = [
+    ...featured.map((name) => ({ name, featured: true, left: stays })),
+    ...names.filter((n) => !featured.includes(n)).map((name) => ({ name, featured: false, left: limited.get(name) ?? (always.has(name) ? null : undefined) })),
+  ];
+  return { entries, byRule: !banner.pool?.length };
+}
+
+/** "이번 배너까지" 같은 남은 기간 문구. 계속 나오거나 모르면 빈 글 */
+export function leftText(left: number | null | undefined): string {
+  if (left == null) return "";
+  if (left <= 1) return "이번 배너까지";
+  if (left === 2) return "다음 배너까지";
+  return `이번 포함 ${left}개 배너`;
 }

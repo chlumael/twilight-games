@@ -132,7 +132,7 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
     if (c.untilFeatured && featuredGot) return { label: c.label, at: c.at, remaining: 0, done: true };
     if (c.repeat) return { label: c.label, at: c.at, remaining: c.at - (bannerPulls % c.at), done: false };
     // 교환 카운터: 이미 교환한 만큼(at × 횟수) 빼고 남은 재화로 본다
-    const used = c.exchange ? c.at * (rec.exchanges ?? []).filter((e) => e.group === groupId && e.banner === banner).length : 0;
+    const used = c.exchange ? c.at * (rec.exchanges ?? []).filter((e) => !e.kind && e.group === groupId && e.banner === banner).length : 0;
     const remaining = Math.max(0, c.at - (bannerPulls - used));
     return { label: c.label, at: c.at, remaining, done: remaining === 0 };
   });
@@ -671,9 +671,32 @@ export function recordExchange(records: Records, game: GameId, groupId: string, 
   return next;
 }
 
+/**
+ * 무료 뽑기(엔드필드 긴급 모집)에서 나온 최고 등급을 기록한다.
+ * 공식 규칙: 긴급 모집은 천장 횟수·누적 횟수에 들어가지 않는다 → 뽑기 수·천장·재화(허가증·오로베릴)는 그대로 두고,
+ * 오퍼레이터를 얻을 때 함께 받는 재화(무기고 징표 6성분)만 더한다.
+ */
+export function recordFreeTop(records: Records, game: GameId, groupId: string, info: TopInfo, now: Date = new Date()): Records {
+  const next = structuredClone(records);
+  const rec = next.games[game];
+  const group = GAMES[game].groups.find((g) => g.id === groupId);
+  if (!group?.freeLabel) return records;
+  rec.exchanges = [...(rec.exchanges ?? []), {
+    id: newId(), time: now.toISOString(), group: groupId, banner: rec.currentBanner[groupId] ?? "",
+    name: info.name ?? null, kind: "free", featured: info.featured ?? null,
+  }];
+  if (group.gain) rec.currency[group.gain.key] = (rec.currency[group.gain.key] ?? 0) + group.gain.top;
+  return next;
+}
+
 export function removeExchange(records: Records, game: GameId, id: string): Records {
   const next = structuredClone(records);
-  next.games[game].exchanges = (next.games[game].exchanges ?? []).filter((e) => e.id !== id);
+  const rec = next.games[game];
+  const gone = (rec.exchanges ?? []).find((e) => e.id === id);
+  rec.exchanges = (rec.exchanges ?? []).filter((e) => e.id !== id);
+  // 무료 뽑기 기록을 지우면 그때 더한 재화도 되돌린다
+  const gain = gone?.kind === "free" ? GAMES[game].groups.find((g) => g.id === gone.group)?.gain : undefined;
+  if (gain) rec.currency[gain.key] = Math.max(0, (rec.currency[gain.key] ?? 0) - gain.top);
   return next;
 }
 

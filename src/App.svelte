@@ -20,12 +20,12 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, removeExchange, recordPullsTo, resetGroup } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, recordFreeTop, removeExchange, recordPullsTo, resetGroup } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
   import bundledPack from "../data/banners.json";
-  import { autoBanner, bannerLabel, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
+  import { autoBanner, bannerLabel, bannerPool, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
   import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading, type SteadyCounts, normalizeFrame, steadyCounts } from "./lib/recognize";
   import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "./lib/detect";
@@ -653,12 +653,17 @@
     next.games[game].chosen = chosen;
     update(next);
   }
+  /** 종류별 "픽업이 목록에 남는 배너 수" 규칙 (games.ts의 rotation) */
+  const rotationRules = $derived(Object.fromEntries(def.groups.filter((g) => g.rotation).map((g) => [g.id, g.rotation!.stays])));
+  /** 지금 배너에서 나올 수 있는 최고 등급과, 각각 몇 배너 더 나오는지 (규칙이 있는 종류만) */
+  const poolInfo = $derived(currentPackBanner && rotationRules[groupId] ? bannerPool(pack?.games[game] ?? [], currentPackBanner, rotationRules) : null);
   /** 이름 후보: 지금 배너 픽업 → 그 배너에서 나올 수 있는 것(있으면) → 이 종류의 최고 등급 이름들 */
   const topNames = $derived.by(() => {
     const featured = (currentPackBanner?.featured ?? []).map(itemName);
-    const pool = (currentPackBanner?.pool ?? []).map(itemName);
+    // 배너에 정해진 목록(공식 6성 목록)이 있거나 규칙으로 만들 수 있으면 그것만 (엔드필드)
+    const pool = poolInfo ? poolInfo.entries.filter((e) => !e.featured).map((e) => e.name) : (currentPackBanner?.pool ?? []).map(itemName);
     let all: string[];
-    if (pool.length) all = pool; // 배너에 정해진 목록이 있으면 그것만 (엔드필드 무기 배너의 6성 무기)
+    if (pool.length) all = pool;
     else if (game === "genshin") {
       // 캐릭터 기원은 캐릭터, 무기 기원은 무기, 집록은 둘 다
       const kind = groupId === "genshin-char" ? "character" : groupId === "genshin-weapon" ? "weapon" : null;
@@ -1017,6 +1022,12 @@
           exchanges={(rec.exchanges ?? []).filter((e) => e.group === groupId && e.banner === status.banner)}
           onExchange={(name) => { update(recordExchange(records, game, groupId, name || null)); notify(`${name || def.topLabel} 교환 기록`); }}
           onRemoveExchange={(id) => update(removeExchange(records, game, id))}
+          poolOf={(b) => (rotationRules[b.group] ? bannerPool(pack?.games[game] ?? [], b, rotationRules) : null)}
+          freeLabel={group.freeLabel ?? ""}
+          onFreeTop={(name) => {
+            update(recordFreeTop(records, game, groupId, { name: name || null, featured: name ? matchFeatured(currentPackBanner, name) : null }));
+            notify(`${group.freeLabel} ${name || def.topLabel} 기록 (천장·횟수는 그대로)`);
+          }}
           onPullsTo={(n) => {
             const out = recordPullsTo(records, game, groupId, n);
             if (out.mode === "added") { update(out.records); notify(`배너 ${n}번째까지 횟수를 맞췄습니다`); }

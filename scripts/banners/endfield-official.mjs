@@ -46,7 +46,8 @@ export function parseNotice(bulletin) {
   const [from = "", to = ""] = line.split("~");
   const announced = new Date(bulletin.displayTime * 1000).toISOString();
   // "획득 가능 6성 오퍼레이터 목록: 가/나/다" → 픽업을 뺀 나머지(픽뚫 후보)
-  const listLine = text.split("\n").find((l) => l.includes("획득 가능 6성 오퍼레이터 목록"));
+  // 공지마다 "획득 가능 6성…" / "획득 가능한 6성…" 두 가지로 적힌다
+  const listLine = text.split("\n").find((l) => /획득 가능한? 6성 오퍼레이터 목록/.test(l));
   const pool = (listLine?.split(/목록\s*[:：]/)[1] ?? "").split("/").map((n) => n.trim()).filter((n) => n && n !== up[1]);
   return {
     id: `endfield:official:${bulletin.cid}`,
@@ -111,6 +112,35 @@ export function sixStarNames(html) {
 
 /** 마지막으로 모은 6성 이름 (build.mjs가 파일로 저장) */
 export const collectedSixStars = new Set();
+
+/**
+ * 「확률 상세 안내」 공지에서 지금 열려 있는 캐릭터 배너의 6성 목록을 뽑는다.
+ * 구간 제목 "「이름」 헤드헌팅 확률 상세 안내"(특별 허가) / "「이름」 재구축 헤드헌팅#N 확률 상세 안내" 아래
+ * "[6성 오퍼레이터]" 표에서 "6성 오퍼레이터" 줄 바로 다음 줄이 이름이고, "(UP)"이 픽업이다.
+ * 재구축 헤드헌팅 공지에는 목록 줄이 없어서 이 표가 유일한 출처다.
+ */
+export function parseHeadhuntPools(text) {
+  const lines = String(text).split("\n");
+  const heads = lines.map((l, i) => ({ m: l.match(/^「([^」]+)」\s*(재구축 )?헤드헌팅(?:#\d+)?\s*확률 상세 안내$/), i })).filter((h) => h.m);
+  const out = [];
+  for (const h of heads) {
+    const from = lines.indexOf("[6성 오퍼레이터]", h.i);
+    const to = lines.findIndex((l, i) => i > from && /^\[\d성 오퍼레이터\]$/.test(l));
+    if (from < 0 || to < 0 || lines.slice(h.i + 1, from).some((l) => /확률 상세 안내$/.test(l))) continue;
+    let featured = null;
+    const pool = [];
+    for (let i = from + 1; i < to - 1; i++) {
+      if (lines[i] !== "6성 오퍼레이터") continue;
+      const raw = lines[i + 1].trim();
+      const nm = raw.replace(/\s*\(UP\)$/, "").trim();
+      if (!nm || nm === "오퍼레이터 성급" || /%/.test(nm)) continue;
+      if (/\(UP\)$/.test(raw)) featured = nm;
+      else if (!pool.includes(nm)) pool.push(nm);
+    }
+    if (featured) out.push({ name: `「${h.m[1]}」 ${h.m[2] ? "재구축" : "특별 허가"} 헤드헌팅`, featured, pool });
+  }
+  return out;
+}
 
 /**
  * 「확률 상세 안내」 공지에서 지금 열려 있는 무기 배너(무기고 신청·재구축 신청)를 뽑는다.
@@ -202,7 +232,14 @@ export async function endfieldOfficial() {
   // 무기 배너: 「확률 상세 안내」 공지 한 건에서
   let arsenal = [];
   const odds = notices.find((n) => n.title?.trim() === "확률 상세 안내");
-  if (odds) arsenal = parseArsenal(plainText((await get(`${API}/${odds.cid}?${QUERY}`)).data));
-  else skippedNotices.push("확률 상세 안내(무기 배너) 공지를 찾지 못함");
+  if (odds) {
+    const text = plainText((await get(`${API}/${odds.cid}?${QUERY}`)).data);
+    arsenal = parseArsenal(text);
+    // 지금 열린 캐릭터 배너의 6성 목록: 공지에 목록 줄이 없는 배너(재구축)만 채운다. 이름·픽업이 같을 때만.
+    for (const p of parseHeadhuntPools(text)) {
+      const b = parsed.find((x) => x.name === p.name && x.featured[0]?.ko === p.featured);
+      if (b && !b.pool && p.pool.length) b.pool = p.pool.map((ko) => ({ id: `ko:${ko}`, ko }));
+    }
+  } else skippedNotices.push("확률 상세 안내(무기 배너) 공지를 찾지 못함");
   return [...resolveSchedule(parsed), ...arsenal];
 }

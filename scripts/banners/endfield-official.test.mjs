@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseNotice, plainText, resolveSchedule, sixStarNames } from "./endfield-official.mjs";
-import { mergeArsenal, parseArsenal } from "./endfield-official.mjs";
+import { mergeArsenal, parseArsenal, parseHeadhuntPools } from "./endfield-official.mjs";
 
 const notice = (cid, title, displayTime, lines) => ({
   cid, title, displayTime, data: lines.map((l) => `<p>${l}</p>`).join(""),
@@ -98,5 +98,32 @@ describe("엔드필드 공식 공지 해석", () => {
     // 다음 주에 유영 신청이 안 보이면 끝난 것으로
     const later = mergeArsenal([list[1]], first, "2026-12-03T00:00:00.000Z");
     expect(later.find((b) => b.id.endsWith("유영 신청"))).toMatchObject({ start: now, end: "2026-12-03T00:00:00.000Z", endApprox: true });
+  });
+
+  it("6성 목록 줄: '획득 가능'과 '획득 가능한' 두 표기 모두, 픽업은 뺀다", () => {
+    const mk = (word) => parseNotice(notice("9", "「가」 특별 허가 헤드헌팅", 1, [
+      "· 「가」 특별 허가 헤드헌팅에서 확률 증가 6성 오퍼레이터: [결]",
+      `· 「가」 특별 허가 헤드헌팅에서 ${word} 6성 오퍼레이터 목록: 결/카뮤/미브/엠버/라스트 라이트`,
+    ]));
+    for (const word of ["획득 가능", "획득 가능한"]) {
+      expect(mk(word).pool.map((p) => p.ko)).toEqual(["카뮤", "미브", "엠버", "라스트 라이트"]);
+    }
+  });
+
+  it("확률 상세 안내의 캐릭터 6성 표: 재구축 헤드헌팅의 픽업과 나머지", () => {
+    const text = [
+      "「모루」 헤드헌팅 확률 상세 안내", "개방 시간: …",
+      "[6성 오퍼레이터]", "6성 오퍼레이터를 획득할 기본 확률: 0.8000%.", "6성 오퍼레이터", "오퍼레이터 성급", "오퍼레이터", "기본 확률",
+      "6성 오퍼레이터", "케르 (UP)", "0.4000%", "6성 오퍼레이터", "명하", "0.0571%", "6성 오퍼레이터", "엠버", "0.0571%",
+      "[5성 오퍼레이터]", "5성 오퍼레이터", "체엔", "1.0000%",
+      "재구축 헤드헌팅", "「떠도는 모든 소망에게」 재구축 헤드헌팅#1 확률 상세 안내",
+      "[6성 오퍼레이터]", "6성 오퍼레이터", "오퍼레이터 성급", "6성 오퍼레이터", "질베르타 (UP)", "0.4000%", "6성 오퍼레이터", "엠버", "0.0800%", "6성 오퍼레이터", "여풍", "0.0800%",
+      "[5성 오퍼레이터]",
+      "여정의 시작 헤드헌팅 확률 상세 안내", "[6성 오퍼레이터]", "6성 오퍼레이터", "아델리아", "0.1600%", "[5성 오퍼레이터]",
+    ].join("\n");
+    expect(parseHeadhuntPools(text)).toEqual([
+      { name: "「모루」 특별 허가 헤드헌팅", featured: "케르", pool: ["명하", "엠버"] },
+      { name: "「떠도는 모든 소망에게」 재구축 헤드헌팅", featured: "질베르타", pool: ["엠버", "여풍"] },
+    ]);
   });
 });

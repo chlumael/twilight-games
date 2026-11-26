@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { activeBanners, bannerLabel, daysLeft, itemName, type PackBanner } from "../lib/banners";
+  import { activeBanners, bannerLabel, daysLeft, itemName, type PackBanner, type PoolEntry } from "../lib/banners";
   import { hitLabel, type GroupStatus, type TopHit } from "../lib/ledger";
   import type { Exchange, Pull } from "../lib/types";
   import BannerDetail from "./BannerDetail.svelte";
@@ -7,7 +7,7 @@
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo }: {
+  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo, poolOf, freeLabel = "", onFreeTop }: {
     groupLabel?: string;
     status: GroupStatus;
     /** Known banners for this group from the data pack. */
@@ -31,7 +31,13 @@
     onRemoveExchange?: (id: string) => void;
     /** 최고 등급 없이 "이 배너에서 n번째까지 뽑았다"만 맞추기 */
     onPullsTo?: (n: number) => void;
+    /** 배너에서 나올 수 있는 최고 등급 목록(규칙이 있는 종류만) */
+    poolOf?: (b: PackBanner) => { entries: PoolEntry[]; byRule: boolean } | null;
+    /** 무료 뽑기(엔드필드 긴급 모집) 이름. 있으면 "천장·횟수에 안 들어가는 기록"을 넣을 수 있다 */
+    freeLabel?: string;
+    onFreeTop?: (name: string) => void;
   } = $props();
+  let byFree = $state(false);
   let countOnly = $state(false);
   const canExchange = $derived(!!onExchange && status.counters.some((c) => /교환/.test(c.label)));
   let byExchange = $state(false);
@@ -51,6 +57,7 @@
   });
   const addFeatured = $derived(addName.trim() && guessFeatured ? guessFeatured(addName.trim()) : null);
   function saveAdd() {
+    if (byFree) { onFreeTop?.(addName.trim()); adding = false; byFree = false; addName = ""; return; }
     if (byExchange) { onExchange?.(addName.trim()); adding = false; byExchange = false; addName = ""; return; }
     if (countOnly) { if (addN && addN > 0) onPullsTo?.(addN); adding = false; countOnly = false; addN = null; return; }
     if (!addN || addN < 1 || !onTopAt) return;
@@ -167,6 +174,7 @@
       {groupLabel}
       {topLabel}
       pulls={status.counters.length ? status.bannerPulls : null}
+      pool={poolOf?.(current) ?? null}
       selected={status.banner}
       onSelect={onBanner}
       onClose={() => (detail = false)}
@@ -178,13 +186,14 @@
   {#if adding}
     <form class="add" onsubmit={(e) => { e.preventDefault(); saveAdd(); }}>
       <div class="aline">
-        {#if !byExchange}
+        {#if !byExchange && !byFree}
           <span>배너</span>
           <input class="n" type="number" inputmode="numeric" min="1" step={step} placeholder={String(status.bannerPulls + step)} bind:value={addN} aria-label="이 배너에서 몇 번째" />
           <span>번째</span>
         {/if}
         {#if canExchange}<label class="exch"><input type="checkbox" bind:checked={byExchange} />교환</label>{/if}
-        {#if onPullsTo && !byExchange}<label class="exch"><input type="checkbox" bind:checked={countOnly} />횟수만</label>{/if}
+        {#if freeLabel && onFreeTop && !countOnly}<label class="exch"><input type="checkbox" bind:checked={byFree} />{freeLabel}(무료)</label>{/if}
+        {#if onPullsTo && !byExchange && !byFree}<label class="exch"><input type="checkbox" bind:checked={countOnly} />횟수만</label>{/if}
       </div>
       {#if !countOnly}
         <div class="aline">
@@ -201,7 +210,7 @@
         {/if}
       {/if}
       <div class="aline end">
-        <button type="submit" class="save" disabled={byExchange ? !addName.trim() : !addN}>저장</button>
+        <button type="submit" class="save" disabled={byExchange ? !addName.trim() : byFree ? false : !addN}>저장</button>
         <button type="button" onclick={() => (adding = false)}>취소</button>
       </div>
     </form>
@@ -214,10 +223,14 @@
   <section class="hits">
     {#each exchanges as e (e.id)}
       <div class="hit">
-        <span class="count">교환</span>
+        <span class="count txt">{e.kind === "free" ? freeLabel || "무료" : "교환"}</span>
         <span class="name">{e.name ?? `${topLabel} (이름 미입력)`}</span>
-        <span class="badge win">픽업/확천(교환)</span>
-        {#if onRemoveExchange}<button class="x" onclick={() => onRemoveExchange(e.id)} aria-label="교환 기록 지우기">✕</button>{/if}
+        {#if e.kind === "free"}
+          {#if e.featured != null}<span class="badge" class:win={e.featured}>{e.featured ? "픽업" : "픽뚫"}</span>{/if}
+        {:else}
+          <span class="badge win">픽업/확천(교환)</span>
+        {/if}
+        {#if onRemoveExchange}<button class="x" onclick={() => onRemoveExchange(e.id)} aria-label="기록 지우기">✕</button>{/if}
       </div>
     {/each}
   </section>
@@ -293,6 +306,7 @@
   .hit.lost { border-left-style: dashed; }
   .count { font-family: var(--num-font); font-size: 19px; font-weight: 700; color: var(--top); font-variant-numeric: tabular-nums; }
   .count { white-space: nowrap; }
+  .count.txt { font-family: inherit; font-size: 13px; }
   .count small { font-size: 10px; font-weight: 500; margin-left: 1px; color: var(--muted); }
   .took { font-size: 11px; color: var(--muted); white-space: nowrap; }
   .name { flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
