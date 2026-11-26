@@ -422,3 +422,37 @@ describe("검수에서 찾은 문제", () => {
     expect(groupStatus(e.games.endfield, "endfield", "endfield-arsenal").pity).toBe(0);
   });
 });
+
+describe("기준값이 음수로 남는 문제 (−64뽑)", () => {
+  it("잘못된 기록을 화면 값으로 맞춘 뒤 지워도 횟수·천장이 음수가 되지 않는다", async () => {
+    const { removeBatches, pullBatches, recordDetected, repairBaselines } = await import("./ledger");
+    const G = "endfield-chartered";
+    let r = recordDetected(emptyRecords(), "endfield", G, 99, [], {}, t(0)); // 잘못 감지된 99회
+    r = syncPityFromScreen(r, "endfield", G, 55, null); // 화면: 25스택 → 기준값 −74
+    expect(r.games.endfield.baseline[G].pity).toBe(-74);
+    r = recordSession(r, "endfield", G, 10, new Map([[9, { name: "포그라니치니크", featured: false }]]), t(5));
+    const bad = pullBatches(r.games.endfield).find((b) => b.count === 99)!;
+    r = removeBatches(r, "endfield", [bad.sessionId], "정리");
+    expect(topHistory(r.games.endfield, G).map((h) => h.count)).toEqual([10]);
+    expect(groupStatus(r.games.endfield, "endfield", G).pity).toBe(0);
+    expect(repairBaselines(r)).toBe(r);
+    // 이미 음수로 저장된 기록도 고친다
+    const broken = structuredClone(r);
+    broken.games.endfield.pulls = broken.games.endfield.pulls.filter((p) => !p.top);
+    broken.games.endfield.baseline[G].pity = -74;
+    expect(groupStatus(repairBaselines(broken).games.endfield, "endfield", G).pity).toBe(0);
+    expect(repairBaselines(broken).games.endfield.baseline[G].pity).toBe(-9);
+  });
+});
+
+describe("직접 입력 안전장치", () => {
+  it("기준값이 음수여도 n뽑 입력이 뽑기를 부풀리지 않고, 천장보다 큰 숫자는 받지 않는다", async () => {
+    const { recordTopAt } = await import("./ledger");
+    const G = "endfield-chartered";
+    const r = emptyRecords();
+    r.games.endfield.baseline[G] = { ...emptyBaseline(), pity: -74 };
+    const out = recordTopAt(r, "endfield", G, 39, { name: "가", featured: null }, t(0));
+    expect(out.records.games.endfield.pulls).toHaveLength(39);
+    expect(recordTopAt(r, "endfield", G, 200, { name: "가", featured: null }, t(0)).records).toBe(r);
+  });
+});

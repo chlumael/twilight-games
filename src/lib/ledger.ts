@@ -22,7 +22,7 @@ export function normalizeRecords(raw: unknown): Records {
     base.games[id] = { ...emptyGameRecord(), ...(r.games?.[id] ?? {}) };
   }
   base.undo = Array.isArray(r.undo) ? r.undo : [];
-  return base;
+  return repairBaselines(base); // 음수로 남은 기준값 고치기
 }
 
 export function emptyBaseline(): Baseline {
@@ -110,6 +110,7 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
   }
 
   // 배너 카운터: 보통은 이 배너 것만, 시리즈 범위면 같은 시리즈 배너를 이어서 센다
+  if (pity < 0) pity = 0; // 기준값이 음수로 남은 경우(아래 repairBaselines가 고친다)
   // 묶음 단위(엔드필드 무기 신청 10개): 묶음 안에서 최고 등급이 나오면 그 묶음까지로 천장이 끝난다
   const unit = group.odds?.unit ?? 1;
   if (unit > 1 && lastTop) pity = Math.floor(pity / unit) * unit;
@@ -171,6 +172,7 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
   const perBanner = group?.carryOver === false;
   let since = perBanner ? 0 : base.pity;
   let lastBanner: string | null = null;
+  let seen = 0; // 직전 최고 등급 이후 기록된 뽑기 수
   let guaranteed = base.guaranteed;
   const onBanner = new Map<string, number>(base.banner ? [[base.banner, base.bannerPulls]] : []);
   const hits: TopHit[] = [];
@@ -180,6 +182,7 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       lastBanner = p.banner;
     }
     since++;
+    seen++;
     const n = (onBanner.get(p.banner) ?? 0) + 1;
     onBanner.set(p.banner, n);
     if (p.top) {
@@ -192,8 +195,10 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       let ceiling: TopHit["ceiling"] = null;
       if (featuredAt !== null && up(n) === featuredAt && p.featured === true) ceiling = "full";
       else if (atHard) ceiling = group?.featuredRule !== "none" && guaranteed ? "full" : "half";
-      hits.push({ pull: p, count: since, ceiling });
+      // 기준값이 음수라(화면 값에 맞추느라 뺀 뒤 기록을 지운 경우) 횟수가 0 이하로 나오면, 기록된 뽑기 수로 센다
+      hits.push({ pull: p, count: since > 0 ? since : seen, ceiling });
       since = 0;
+      seen = 0;
       if (group && group.featuredRule !== "none") guaranteed = p.featured === false;
     }
   }
@@ -568,6 +573,9 @@ export function recordTopAt(
 ): { records: Records; mode: "added" | "marked" | "baseline" } {
   const rec = records.games[game];
   const st = groupStatus(rec, game, groupId);
+  // 천장보다 큰 숫자는 받지 않는다(잘못 넣으면 그만큼 뽑기가 더해지므로)
+  const hard = findGroup(game, groupId).hardPity;
+  if (!Number.isInteger(n) || n < 1 || (hard !== null && n > hard)) return { records, mode: "baseline" };
   const pulls = countedPulls(rec, game, groupId);
   const lastTop = pulls.map((p) => p.top).lastIndexOf(true);
   const since = pulls.slice(lastTop + 1);
@@ -631,7 +639,7 @@ export function removeBatches(records: Records, game: GameId, keys: string[], la
   const ids = new Set(gone.map((p) => p.id));
   rec.pulls = rec.pulls.filter((p) => !ids.has(p.id));
   pushUndo(next, { game, label, addedPullIds: [], replacedPulls: gone, prevCurrency: { ...rec.currency } });
-  return next;
+  return repairBaselines(next);
 }
 
 /** 교환으로 얻은 최고 등급을 기록한다(뽑기 수·천장에는 영향 없음, 교환 재화만 줄어든다) */
@@ -646,4 +654,28 @@ export function removeExchange(records: Records, game: GameId, id: string): Reco
   const next = structuredClone(records);
   next.games[game].exchanges = (next.games[game].exchanges ?? []).filter((e) => e.id !== id);
   return next;
+}
+
+/**
+ * 천장 스택이 음수가 되지 않게 기준값을 고친다. 화면 값에 맞추느라 기준값을 뺀 뒤(잘못 들어간 기록이 있을 때)
+ * 그 기록을 지우면 기준값만 음수로 남아 "−64뽑"처럼 보이던 문제(2026-11-26). 바꿀 것이 없으면 그대로 돌려준다.
+ */
+export function repairBaselines(records: Records): Records {
+  let next: Records | null = null;
+  for (const game of GAME_IDS) {
+    for (const group of GAMES[game].groups) {
+      const rec = (next ?? records).games[game];
+      const base = rec.baseline[group.id];
+      if (!base || base.pity >= 0) continue;
+      // 마지막 최고 등급 이후 기록된 뽑기 수 + 기준값이 음수면 그만큼 올린다
+      const pulls = countedPulls(rec, game, group.id);
+      const lastTop = pulls.map((p) => p.top).lastIndexOf(true);
+      const raw = lastTop >= 0 ? 0 : base.pity + pulls.length;
+      const fixed = lastTop >= 0 ? 0 : base.pity - Math.min(0, raw);
+      if (fixed === base.pity) continue;
+      next ??= structuredClone(records);
+      next.games[game].baseline[group.id] = { ...base, pity: fixed };
+    }
+  }
+  return next ?? records;
 }
