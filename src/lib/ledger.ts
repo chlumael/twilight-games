@@ -324,6 +324,11 @@ export function recordSession(
   }
   const prevCurrency = { ...rec.currency };
   rec.currency = deduct(rec.currency, group.spend, count).currency;
+  // 뽑으면서 함께 받는 재화 (엔드필드 무기고 징표)
+  if (group.gain) {
+    const topN = added.filter((p) => p.top).length;
+    rec.currency[group.gain.key] = (rec.currency[group.gain.key] ?? 0) + topN * group.gain.top + (count - topN) * group.gain.other;
+  }
   rec.pulls.push(...added);
   pushUndo(next, {
     game,
@@ -350,6 +355,10 @@ export function markTopInLastSession(
   const target = rec.pulls.find((p) => p.sessionId === last.sessionId && p.indexInSession === position);
   if (!target) throw new Error(`직전 뽑기에 ${position + 1}번째가 없습니다`);
   const before = structuredClone(target);
+  const prevCurrency = { ...rec.currency };
+  // 방금 뽑은 것 중 하나가 최고 등급으로 밝혀졌으면 받는 재화도 그만큼 더한다
+  const gain = findGroup(game, groupId).gain;
+  if (gain && !target.top) rec.currency[gain.key] = (rec.currency[gain.key] ?? 0) + gain.top - gain.other;
   target.top = true;
   target.name = info.name;
   target.featured = info.featured;
@@ -358,7 +367,7 @@ export function markTopInLastSession(
     label: `${GAMES[game].shortName} 최고 등급 표시`,
     addedPullIds: [],
     replacedPulls: [before],
-    prevCurrency: { ...rec.currency },
+    prevCurrency,
   });
   return next;
 }

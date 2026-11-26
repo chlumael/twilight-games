@@ -525,3 +525,26 @@ describe("직접 입력은 보유 재화를 건드리지 않는다", () => {
     expect(r.games.endfield.pulls).toHaveLength(60);
   });
 });
+
+describe("엔드필드: 오퍼레이터를 뽑으면 무기고 징표를 받는다", () => {
+  const G = "endfield-chartered";
+  it("10회에 6성 하나 → 2000 + 20×9, 나중에 6성으로 밝혀지면 차이만큼 더, 되돌리면 원래대로", () => {
+    let r = emptyRecords();
+    r.games.endfield.currency = { oroberyl: 10000, arsenalTicket: 100 };
+    const a = recordSession(r, "endfield", G, 10, new Map([[3, { name: "케르", featured: true }]]), t(0));
+    expect(a.games.endfield.currency.arsenalTicket).toBe(100 + 2000 + 180);
+    const b = recordSession(r, "endfield", G, 10, new Map(), t(0));
+    expect(b.games.endfield.currency.arsenalTicket).toBe(300);
+    const c = markTopInLastSession(b, "endfield", G, 9, { name: null, featured: null });
+    expect(c.games.endfield.currency.arsenalTicket).toBe(300 + 1980);
+    expect(undo(c).records.games.endfield.currency.arsenalTicket).toBe(300);
+  });
+  it("지난 뽑기를 적는 직접 입력은 징표도 건드리지 않고, 무기고 뽑기는 징표를 주지 않는다", async () => {
+    const { recordTopAt } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.endfield.currency = { arsenalTicket: 5000 };
+    expect(recordTopAt(r, "endfield", G, 52, { name: "가", featured: false }, t(0)).records.games.endfield.currency.arsenalTicket).toBe(5000);
+    r = recordSession(r, "endfield", "endfield-arsenal", 10, new Map(), t(1));
+    expect(r.games.endfield.currency.arsenalTicket).toBe(5000 - 1980);
+  });
+});

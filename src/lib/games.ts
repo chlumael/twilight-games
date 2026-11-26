@@ -42,6 +42,8 @@ export interface PityGroup {
    * 확률을 모르는 그룹은 비워 두고 운 등급을 표시하지 않는다.
    */
   odds?: { base: number; softFrom: number | null; step: number; unit?: number };
+  /** 뽑을 때마다 함께 받는 재화: 최고 등급이면 top개, 아니면 other개 (엔드필드: 오퍼레이터를 얻을 때마다 무기고 징표) */
+  gain?: { key: string; top: number; other: number };
   /** 배너 누적 at회에 받는 무료 뽑기(재화 안 씀, 천장 스택에 안 들어감) — 엔드필드 긴급 모집 등. 각각 1회 */
   bonuses?: { at: number; pulls: number; label: string }[];
   /** 배너 카운터(픽업 확정·누적 보상)를 세는 범위. "series" = 같은 시리즈 배너끼리 이어서 셈(엔드필드 재구축) */
@@ -212,6 +214,8 @@ export const GAMES: Record<GameId, GameDef> = {
           { at: 60, pulls: 10, label: "헤드헌팅 정보서(다음 한정 10회)" },
         ],
         odds: { base: 0.008, softFrom: 66, step: 0.05 },
+        // 무기고 징표: 6성 2000, 그 밖은 최소 20(4성). 5성(200)은 앱이 알 수 없어 20으로 센다 → 실제보다 적게 잡힐 수 있음
+        gain: { key: "arsenalTicket", top: 2000, other: 20 },
         spend: [
           { key: "limitedPermit", cost: 1, pulls: 1 },
           { key: "charteredPermit", cost: 1, pulls: 1 },
@@ -236,6 +240,8 @@ export const GAMES: Record<GameId, GameDef> = {
           { at: 90, pulls: 10, label: "긴급 모집" },
         ],
         odds: { base: 0.008, softFrom: 66, step: 0.05 },
+        // 무기고 징표: 6성 2000, 그 밖은 최소 20(4성). 5성(200)은 앱이 알 수 없어 20으로 센다 → 실제보다 적게 잡힐 수 있음
+        gain: { key: "arsenalTicket", top: 2000, other: 20 },
         spend: [
           { key: "charteredPermit", cost: 1, pulls: 1 },
           { key: "oroberyl", cost: 500, pulls: 1, topUp: { key: "origeometry", rate: 75 } },
