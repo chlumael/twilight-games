@@ -16,6 +16,8 @@ export interface Settings {
   calendarRemoved?: string[];
   /** 내가 하는 게임만 보이게 (사용자 2026-11-26: 게임이 늘어도 위쪽 게임 줄이 넘치지 않게). 없으면 전부 */
   myGames?: GameId[];
+  /** 친구 공유 (DESIGN.md §8.5): 켜면 들어간 그룹마다 내 요약을 올린다 */
+  share?: { on: boolean; nickname: string; groups: { code: string; name: string }[] };
 }
 
 export function defaultSettings(): Settings {

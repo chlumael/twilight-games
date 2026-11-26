@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import { GAMES, GAME_IDS } from "../lib/games";
   import { emptyBaseline } from "../lib/ledger";
   import { android, androidMode, inTauri, installPcUpdate, listProcesses, openPcDownload, pcVersion } from "../lib/api";
@@ -9,7 +10,7 @@
 
   let {
     settings, game, web = false, record, onSettings, onBaseline, onExport, onImport, onClose,
-    syncConfigured = false, account = null, syncState = "idle", lastSync = null, onSignIn, onSignOut, onSync,
+    syncConfigured = false, account = null, syncState = "idle", lastSync = null, onSignIn, onSignOut, onSync, onDeleteAccount, shareSection,
     onGenshinWishes, genshinWishBusy = false, genshinWishMsg = "",
   }: {
     settings: Settings;
@@ -29,6 +30,10 @@
     onSignIn?: () => void;
     onSignOut?: () => void;
     onSync?: () => void;
+    /** 계정과 서버 기록 삭제 */
+    onDeleteAccount?: () => void;
+    /** 친구 공유 설정 (로그인했을 때 App이 채운다) */
+    shareSection?: Snippet;
     /** PC판 원신 기원 기록 불러오기 */
     onGenshinWishes?: () => void;
     genshinWishBusy?: boolean;
@@ -81,6 +86,8 @@
   }
   if (inTauri) void pcVersion().then((v) => { pcVer = v; void checkPcUpdate(); });
 
+  let confirmDelete = $state(false);
+  let showPrivacy = $state(false);
   let autoRead = $state(android?.autoScreenRead?.() ?? true);
 </script>
 
@@ -235,12 +242,25 @@
           <button onclick={onSync}>지금 동기화</button>
           <button onclick={onSignOut}>로그아웃</button>
         </div>
+        {#if onDeleteAccount}
+          <button class="danger" onclick={() => { if (confirmDelete) { onDeleteAccount(); confirmDelete = false; } else confirmDelete = true; }}>
+            {confirmDelete ? "한 번 더 누르면 계정과 서버 기록을 지웁니다" : "계정 삭제"}
+          </button>
+          {#if confirmDelete}<p class="muted hint">이 기기의 기록은 남습니다(필요하면 먼저 내보내기)</p>{/if}
+        {/if}
       {:else if androidMode === "overlay"}
         <p class="muted hint">로그인은 앱 화면의 설정에서</p>
       {:else}
         <button onclick={onSignIn}>구글 계정으로 로그인</button>
         <p class="muted hint">로그인하면 기기를 바꿔도 기록이 남습니다</p>
       {/if}
+    </section>
+  {/if}
+
+  {#if account && shareSection}
+    <section>
+      <h4>친구 공유</h4>
+      {@render shareSection()}
     </section>
   {/if}
 
@@ -254,6 +274,12 @@
       {account ? "이 기기 + 계정에 저장" : androidMode ? "이 휴대폰에만 저장 · 앱을 지우면 사라짐" : web ? "이 브라우저에만 저장 · 브라우저 데이터를 지우면 사라짐" : "이 PC에만 저장 · 매일 자동 백업(7일)"}
     </p>
   </section>
+
+  <section>
+    <button class="linkish" onclick={() => (showPrivacy = !showPrivacy)} aria-expanded={showPrivacy}>개인정보 처리 방침 {showPrivacy ? "▲" : "▼"}</button>
+    <!-- 앱 안에서 그대로 보이게(휴대폰 앱은 바깥 링크로 나가지 않는다) -->
+    {#if showPrivacy}<iframe class="privacy" src="./privacy.html" title="개인정보 처리 방침"></iframe>{/if}
+  </section>
 </div>
 
 <style>
@@ -263,6 +289,9 @@
   section { display: flex; flex-direction: column; gap: 5px; }
   .row { display: flex; gap: 6px; align-items: center; }
   .hint { margin: 0; font-size: 11px; }
+  .linkish { align-self: flex-start; font-size: 12px; background: none; border: 0; color: var(--muted); padding: 2px 0; text-decoration: underline; text-underline-offset: 3px; }
+  .privacy { width: 100%; height: 60vh; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+  .danger { color: #ff8a7a; font-size: 12px; align-self: flex-start; }
   .mygames { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { font-size: 12px; padding: 4px 12px; border-radius: 999px; opacity: 0.5; }
   .chip.on { opacity: 1; font-weight: 700; border-color: var(--top); }

@@ -10,6 +10,9 @@
   import SettingsPanel from "./components/SettingsPanel.svelte";
   import StatsPanel from "./components/StatsPanel.svelte";
   import CalendarPanel from "./components/CalendarPanel.svelte";
+  import FriendsPanel from "./components/FriendsPanel.svelte";
+  import ShareSettings from "./components/ShareSettings.svelte";
+  import { buildSummary, newGroupCode } from "./lib/share";
   import { mergeMine } from "./lib/calendar";
   import PromptBar from "./components/PromptBar.svelte";
   import ForecastPanel from "./components/ForecastPanel.svelte";
@@ -505,6 +508,8 @@
         const r = normalizeSettings(remote.settings);
         const removed = [...new Set([...(settings.calendarRemoved ?? []), ...(r.calendarRemoved ?? [])])];
         settings = { ...settings, calendar: mergeMine(settings.calendar ?? [], r.calendar ?? [], removed), calendarRemoved: removed };
+        // 친구 공유 설정은 이 기기에 없을 때만 계정 쪽 것을 가져온다(다른 기기에서 만든 그룹)
+        if (!settings.share && r.share) settings = { ...settings, share: r.share };
       }
       records = merged;
       const pushed: Record<string, string> = {};
@@ -562,6 +567,59 @@
     account = null;
     syncState = "idle";
     notify("로그아웃했습니다. 이 기기의 기록은 그대로 남습니다");
+  }
+
+  // ───── 친구 공유 (DESIGN.md §8.5) ─────
+  const share = $derived(settings.share ?? { on: false, nickname: account?.name?.split(" ")[0] ?? "", groups: [] });
+  let shareBusy = $state(false);
+  let statsMode = $state<"mine" | "friends">("mine");
+  function setShare(patch: Partial<NonNullable<Settings["share"]>>) {
+    changeSettings({ ...settings, share: { ...share, ...patch } });
+  }
+  async function shareTask(label: string, fn: () => Promise<void>) {
+    if (!account) return;
+    shareBusy = true;
+    try { await fn(); } catch (e) { notify(`${label} 실패: ${e instanceof Error ? e.message : e}`); } finally { shareBusy = false; }
+  }
+  let lastShared = "";
+  /** 내 요약을 그룹마다 올린다 (공유를 켰고 그룹이 있을 때만). 바뀐 게 없으면 건너뛴다 */
+  async function pushShareNow(force = false) {
+    const a = account;
+    const sh = settings.share;
+    if (!a || !sh?.on || !sh.groups.length || !sh.nickname.trim()) return;
+    const summary = buildSummary(records, sh.nickname, myGames);
+    const key = JSON.stringify({ ...summary, updatedAt: "", groups: sh.groups.map((g) => g.code) });
+    if (!force && key === lastShared) return;
+    await sync.pushShare(a.uid, sh.groups.map((g) => g.code), summary);
+    lastShared = key;
+  }
+  // 기록이 바뀌면 조금 뒤에 요약을 다시 올린다
+  let shareTimer: ReturnType<typeof setTimeout> | undefined;
+  $effect(() => {
+    const _r = records;
+    const _s = settings.share;
+    if (!loaded || !account || !_s?.on) return;
+    clearTimeout(shareTimer);
+    shareTimer = setTimeout(() => void pushShareNow().catch(() => {}), 15_000);
+  });
+  async function deleteAccountAll() {
+    const a = account;
+    if (!a) return;
+    try {
+      const out = await sync.deleteAccount(a.uid, (settings.share?.groups ?? []).map((g) => g.code));
+      if (out === "relogin") {
+        notify("보안을 위해 로그아웃 → 다시 로그인한 뒤 바로 한 번 더 눌러 주세요");
+        return;
+      }
+      localStorage.removeItem(linkedKey(a.uid));
+      localStorage.removeItem(pushedKey(a.uid));
+      account = null;
+      syncState = "idle";
+      changeSettings({ ...settings, share: { on: false, nickname: share.nickname, groups: [] } });
+      notify("계정과 서버 기록을 지웠습니다. 이 기기의 기록은 남아 있습니다");
+    } catch (e) {
+      notify(`계정 삭제 실패: ${e instanceof Error ? e.message : e}`);
+    }
   }
 
   function changeSettings(next: Settings) {
@@ -978,7 +1036,8 @@
           onSettings={changeSettings} onBaseline={setBaseline}
           onExport={exportData} onImport={importData} onClose={() => (view = "main")}
           syncConfigured={sync.syncConfigured} {account} {syncState} {lastSync}
-          onSignIn={signInAccount} onSignOut={signOutAccount} onSync={syncNow}
+          onSignIn={signInAccount} onSignOut={signOutAccount} onSync={syncNow} onDeleteAccount={deleteAccountAll}
+          shareSection={shareSettingsSnippet}
           onGenshinWishes={api.inTauri ? loadGenshinWishes : undefined} genshinWishBusy={wishBusy} genshinWishMsg={wishMsg}
         />
       {:else if view === "calendar"}
@@ -989,10 +1048,21 @@
             if (account) setTimeout(() => void syncNow(), 800);
           }} />
       {:else if view === "stats"}
+        {#if account}
+          <nav class="seg" aria-label="통계 보기">
+            <button class:on={statsMode === "mine"} onclick={() => (statsMode = "mine")}>내 기록</button>
+            <button class:on={statsMode === "friends"} onclick={() => (statsMode = "friends")}>친구</button>
+          </nav>
+        {/if}
+        {#if account && statsMode === "friends"}
+          <FriendsPanel groups={share.groups} me={account.uid} games={myGames}
+            load={async (code) => { await pushShareNow().catch(() => {}); return (await sync.pullGroup(code))?.members ?? null; }} />
+        {:else}
         <StatsPanel {records} games={myGames} {game}
           bannerName={(g, id) => { const b = (pack?.games[g] ?? []).find((x) => x.id === id); return b ? `${bannerLabel(b)} · ${b.name}` : id; }}
           onReset={(g, gid) => { update(resetGroup(records, g, gid)); lastApply = `${findGroup(g, gid).name} 기록 전부 지우기`; notify(`${findGroup(g, gid).name} 기록을 지웠습니다. 뽑기는 "확인"에서 되돌릴 수 있습니다`); }}
           onRemove={(g, keys, label) => { update(removeBatches(records, g, keys, label)); lastApply = label; notify(`${label} — "확인"에서 되돌릴 수 있습니다`); }} />
+        {/if}
       {:else if view === "review"}
         <section class="review">
           <strong>확인 대기</strong>
@@ -1098,6 +1168,36 @@
   {#if toast}<div class="toast">{toast}</div>{/if}
 </main>
 
+{#snippet shareSettingsSnippet()}
+  <ShareSettings {share} busy={shareBusy}
+    onNickname={(name) => { setShare({ nickname: name.trim().slice(0, 20) }); void pushShareNow().catch(() => {}); }}
+    onToggle={(on) => shareTask(on ? "공유 켜기" : "공유 끄기", async () => {
+      setShare({ on });
+      if (on) await pushShareNow(true);
+      else await sync.removeShare(account!.uid, share.groups.map((g) => g.code));
+      notify(on ? "공유를 켰습니다" : "공유를 껐습니다. 그룹에 올린 내 요약을 지웠습니다");
+    })}
+    onCreate={(name) => shareTask("그룹 만들기", async () => {
+      const g = await sync.createGroup(account!.uid, newGroupCode(), name);
+      setShare({ groups: [...share.groups, { code: g.code, name: g.name }] });
+      await pushShareNow(true);
+      notify(`그룹을 만들었습니다. 초대 코드 ${g.code}를 친구에게 알려 주세요`);
+    })}
+    onJoin={(code) => shareTask("참가", async () => {
+      if (share.groups.some((g) => g.code === code)) return notify("이미 들어간 그룹입니다");
+      const g = await sync.joinGroup(account!.uid, code);
+      if (!g) return notify("그 코드의 그룹이 없습니다");
+      setShare({ groups: [...share.groups, { code: g.code, name: g.name }] });
+      await pushShareNow(true);
+      notify(`${g.name}에 참가했습니다`);
+    })}
+    onLeave={(code) => shareTask("나가기", async () => {
+      await sync.leaveGroup(account!.uid, code);
+      setShare({ groups: share.groups.filter((g) => g.code !== code) });
+      notify("그룹에서 나갔습니다");
+    })} />
+{/snippet}
+
 <style>
   main {
     height: 100%; display: flex; flex-direction: column; position: relative; overflow: hidden;
@@ -1141,6 +1241,9 @@
     padding: 5px 12px; border-radius: 999px; font-size: 12px; white-space: nowrap;
   }
   main.collapsed .toast { display: none; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.25); border-radius: var(--radius); }
+  .seg button { border: 0; background: none; color: var(--muted); padding: 5px; font-size: 12px; border-radius: calc(var(--radius) * 0.7); }
+  .seg button.on { background: var(--tab-active-bg); color: var(--tab-active-fg); font-weight: 700; }
   .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); background: rgba(0, 0, 0, 0.22); padding-bottom: env(safe-area-inset-bottom); }
   .tabbar button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0 6px; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 10px; }
   .tabbar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
