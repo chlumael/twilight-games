@@ -434,6 +434,7 @@ describe("직접 입력: 이 배너에서 n번째에 최고 등급 (배너 누�
     expect(r.games.endfield.pulls).toHaveLength(120);
     expect(topHistory(r.games.endfield, G).map((h) => [h.count, hitLabel(h)])).toEqual([[16, "픽뚫"], [42, "픽뚫"], [34, "픽뚫"], [28, "픽업/확천"]]);
     expect(st(r)).toMatchObject({ pity: 0, bannerPulls: 120 });
+    expect(topHistory(r.games.endfield, G).map((h) => h.at)).toEqual([16, 58, 92, 120]);
   });
   it("이미 기록된 뽑기 자리면 그 자리를 표시한다", async () => {
     const { recordTopAt } = await import("./ledger");

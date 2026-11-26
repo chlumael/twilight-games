@@ -78,7 +78,7 @@
           <div class="hits">
             {#each [...g.hits].reverse().slice(0, 12) as h (h.pull.id)}
               <div class="hit" class:lost={h.pull.featured === false}>
-                <span class="count">{h.count}</span>
+                <span class="count">{h.at}번째</span><span class="muted">{h.count}뽑</span>
                 <span class="name">{h.pull.name ?? "이름 미입력"}</span>
                 {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
                 <span class="when">{day(h.pull.time)}</span>

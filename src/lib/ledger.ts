@@ -157,6 +157,8 @@ export interface TopHit {
   pull: Pull;
   /** Pulls it took, counting the top pull itself (e.g. 74). */
   count: number;
+  /** 그 배너에서 몇 번째 뽑기였는지 (배너 누적). 화면에는 이 숫자를 크게 보여 준다(사용자 2026-11-26) */
+  at: number;
   /**
    * 천장으로 얻었는지 (사용자 2026-11-26). half = 반천(확률 상승 구간~최고 등급 확정 천장에서 나옴),
    * full = 확천(픽업 확정 천장: 엔드필드 120회·무기 80개, 원신은 확정 상태에서 천장). 천장이 아니면 null
@@ -204,7 +206,7 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       if (featuredAt !== null && up(n) === featuredAt && p.featured === true) ceiling = "full";
       else if (atHard) ceiling = group?.featuredRule !== "none" && guaranteed ? "full" : "half";
       // 기준값이 음수라(화면 값에 맞추느라 뺀 뒤 기록을 지운 경우) 횟수가 0 이하로 나오면, 기록된 뽑기 수로 센다
-      hits.push({ pull: p, count: up(since > 0 ? since : seen), ceiling });
+      hits.push({ pull: p, count: up(since > 0 ? since : seen), at: up(n), ceiling });
       since = 0;
       seen = 0;
       if (group && group.featuredRule !== "none") guaranteed = p.featured === false;

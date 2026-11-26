@@ -206,8 +206,9 @@
   <section class="hits">
     {#each lastHits as h (h.pull.id)}
       <div class="hit" class:lost={h.pull.featured === false}>
-        <span class="count">{h.count}<small>뽑</small></span>
+        <span class="count">{h.at}<small>번째</small></span>
         <span class="name">{h.pull.name ?? `${topLabel} (이름 미입력)`}</span>
+        <span class="took">{h.count}뽑</span>
         {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
       </div>
     {/each}
@@ -264,6 +265,7 @@
   .hit.lost { border-left-style: dashed; }
   .count { font-family: var(--num-font); font-size: 19px; font-weight: 700; color: var(--top); font-variant-numeric: tabular-nums; }
   .count small { font-size: 10px; font-weight: 500; margin-left: 1px; color: var(--muted); }
+  .took { font-size: 11px; color: var(--muted); white-space: nowrap; }
   .name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .badge { font-size: 10px; padding: 2px 6px; border-radius: var(--btn-radius); background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
   .badge.win { background: var(--top); color: #1a1408; font-weight: 700; }
