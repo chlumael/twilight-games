@@ -1,6 +1,6 @@
 <script lang="ts">
   import { activeBanners, bannerLabel, daysLeft, itemName, type PackBanner } from "../lib/banners";
-  import type { GroupStatus, TopHit } from "../lib/ledger";
+  import { hitLabel, type GroupStatus, type TopHit } from "../lib/ledger";
   import type { Pull } from "../lib/types";
   import BannerDetail from "./BannerDetail.svelte";
   import PityBar from "./PityBar.svelte";
@@ -175,8 +175,7 @@
       <div class="hit" class:lost={h.pull.featured === false}>
         <span class="count">{h.count}<small>뽑</small></span>
         <span class="name">{h.pull.name ?? `${topLabel} (이름 미입력)`}</span>
-        {#if h.pull.featured === true}<span class="badge win">픽업</span>
-        {:else if h.pull.featured === false}<span class="badge">픽뚫</span>{/if}
+        {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
       </div>
     {/each}
   </section>

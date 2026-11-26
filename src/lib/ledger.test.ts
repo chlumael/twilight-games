@@ -361,3 +361,22 @@ describe("기록 묶음 정리", () => {
     expect(undo(cut).records.games.endfield.pulls).toHaveLength(109);
   });
 });
+
+describe("천장 표시 (반천/확천)", () => {
+  it("엔드필드: 80회째 = 반천, 120회째 픽업 = 확천, 그 전은 표시 없음", async () => {
+    const { hitLabel } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.endfield.currentBanner["endfield-chartered"] = "B";
+    r = recordSession(r, "endfield", "endfield-chartered", 80, new Map([[79, { name: "엠버", featured: false }]]), t(0));
+    r = recordSession(r, "endfield", "endfield-chartered", 40, new Map([[39, { name: "케르", featured: true }]]), t(1));
+    r = recordSession(r, "endfield", "endfield-chartered", 10, new Map([[4, { name: "케르", featured: true }]]), t(2));
+    expect(topHistory(r.games.endfield, "endfield-chartered").map((h) => [h.count, hitLabel(h)]))
+      .toEqual([[80, "픽뚫/반천"], [40, "픽업/확천"], [5, "픽업"]]);
+  });
+  it("원신: 확정 상태에서 90회째 = 확천, 50:50 상태에서 90회째 = 반천", async () => {
+    const { hitLabel } = await import("./ledger");
+    let r = recordSession(emptyRecords(), "genshin", "genshin-char", 90, new Map([[89, { name: "치치", featured: false }]]), t(0));
+    r = recordSession(r, "genshin", "genshin-char", 90, new Map([[89, { name: "자백", featured: true }]]), t(1));
+    expect(topHistory(r.games.genshin, "genshin-char").map(hitLabel)).toEqual(["픽뚫/반천", "픽업/확천"]);
+  });
+});

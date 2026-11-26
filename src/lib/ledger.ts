@@ -142,18 +142,44 @@ export interface TopHit {
   pull: Pull;
   /** Pulls it took, counting the top pull itself (e.g. 74). */
   count: number;
+  /**
+   * 천장으로 얻었는지 (사용자 2026-11-26). half = 반천(최고 등급 확정 천장에서 나옴),
+   * full = 확천(픽업 확정 천장: 엔드필드 120회·무기 80개, 원신은 확정 상태에서 천장). 천장이 아니면 null
+   */
+  ceiling: "half" | "full" | null;
+}
+
+/** 표시용: "픽업/확천", "픽뚫/반천", "픽업", "반천" … 표시할 것이 없으면 "" */
+export function hitLabel(h: TopHit): string {
+  const a = h.pull.featured === true ? "픽업" : h.pull.featured === false ? "픽뚫" : "";
+  const b = h.ceiling === "full" ? "확천" : h.ceiling === "half" ? "반천" : "";
+  return [a, b].filter(Boolean).join("/");
 }
 
 /** Every top pull in a group with the number of pulls it took, oldest first. */
 export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
   const base = rec.baseline[groupId] ?? emptyBaseline();
+  const group = GAME_IDS.flatMap((g) => GAMES[g].groups).find((g) => g.id === groupId);
+  const featuredAt = group?.bannerCounters.find((c) => c.untilFeatured)?.at ?? null;
   let since = base.pity;
+  let guaranteed = base.guaranteed;
+  const onBanner = new Map<string, number>(base.banner ? [[base.banner, base.bannerPulls]] : []);
   const hits: TopHit[] = [];
   for (const p of rec.pulls.filter((x) => x.group === groupId).sort(byTime)) {
     since++;
+    const n = (onBanner.get(p.banner) ?? 0) + 1;
+    onBanner.set(p.banner, n);
     if (p.top) {
-      hits.push({ pull: p, count: since });
+      // 묶음 단위(엔드필드 무기 신청 10개)는 묶음 끝으로 올려서 본다
+      const unit = group?.odds?.unit ?? 1;
+      const up = (v: number) => Math.ceil(v / unit) * unit;
+      const atHard = !!group?.hardPity && up(since) >= group.hardPity;
+      let ceiling: TopHit["ceiling"] = null;
+      if (featuredAt !== null && up(n) === featuredAt && p.featured === true) ceiling = "full";
+      else if (atHard) ceiling = group?.featuredRule !== "none" && guaranteed ? "full" : "half";
+      hits.push({ pull: p, count: since, ceiling });
       since = 0;
+      if (group && group.featuredRule !== "none") guaranteed = p.featured === false;
     }
   }
   return hits;

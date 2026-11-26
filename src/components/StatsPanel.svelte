@@ -2,7 +2,7 @@
   import { GAMES } from "../lib/games";
   import { gameStats, luckLabel } from "../lib/stats";
   import type { GameId, GameRecord } from "../lib/types";
-  import { pullBatches } from "../lib/ledger";
+  import { hitLabel, pullBatches } from "../lib/ledger";
 
   let { game, record, bannerName, onClose, onRemove }: {
     game: GameId;
@@ -80,7 +80,7 @@
               <div class="hit" class:lost={h.pull.featured === false}>
                 <span class="count">{h.count}</span>
                 <span class="name">{h.pull.name ?? "이름 미입력"}</span>
-                {#if h.pull.featured === true}<span class="badge win">픽업</span>{:else if h.pull.featured === false}<span class="badge">픽뚫</span>{/if}
+                {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
                 <span class="when">{day(h.pull.time)}</span>
               </div>
             {/each}
