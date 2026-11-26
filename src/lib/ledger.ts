@@ -50,6 +50,8 @@ export interface GroupStatus {
   guaranteed: boolean | null;
   /** A top pull with unknown featured status makes `guaranteed` uncertain. */
   guaranteeUncertain: boolean;
+  /** 확정인 이유가 원신 「별빛 포착」(연속 픽뚫 3번)인지 */
+  radiant: boolean;
   banner: string;
   bannerPulls: number;
   counters: CounterStatus[];
@@ -79,6 +81,24 @@ function countedPulls(rec: GameRecord, game: GameId, groupId: string, seriesOf: 
   return pulls;
 }
 
+/** 픽업 확정 상태: 확정 여부, 연속 픽뚫 수, 별빛 포착으로 확정된 것인지 */
+interface FeaturedState { guaranteed: boolean; losses: number; radiant: boolean }
+
+/**
+ * 최고 등급 하나가 나온 뒤의 확정 상태 (50:50 종류).
+ * - 픽뚫 → 다음 확정, 연속 픽뚫 +1
+ * - 50:50에서 픽업(또는 별빛 포착으로 확정된 픽업) → 연속 픽뚫 0
+ * - 확정으로 픽업: 연속 픽뚫이 `streak`번 이상이면 다음도 확정(원신 별빛 포착), 아니면 다시 50:50
+ * - 픽업 여부를 모르면 처음부터 다시 센다
+ */
+function afterTop(state: FeaturedState, featured: boolean | null, streak: number | undefined): FeaturedState {
+  if (featured === null) return { guaranteed: false, losses: 0, radiant: false };
+  if (featured === false) return { guaranteed: true, losses: state.losses + 1, radiant: false };
+  if (state.guaranteed && !state.radiant && streak && state.losses >= streak) return { guaranteed: true, losses: state.losses, radiant: true };
+  if (state.guaranteed && !state.radiant) return { guaranteed: false, losses: state.losses, radiant: false };
+  return { guaranteed: false, losses: 0, radiant: false };
+}
+
 export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seriesOf: SeriesOf = seriesResolver): GroupStatus {
   const group = findGroup(game, groupId);
   const banner = rec.currentBanner[groupId] ?? "";
@@ -88,7 +108,7 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
   const pulls = countedPulls(rec, game, groupId, seriesOf);
 
   let pity = group.carryOver === true || baseOnThisBanner ? base.pity : 0;
-  let guaranteed = base.guaranteed;
+  let state: FeaturedState = { guaranteed: base.guaranteed, losses: 0, radiant: false };
   let uncertain = false;
   let lastTop: Pull | null = null;
   for (const p of pulls) {
@@ -96,18 +116,25 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
       pity = 0;
       lastTop = p;
       if (group.featuredRule !== "none") {
-        // 원신 무기·집록: 고른 무기(신각의 길)가 있으면 그 이름이 아니면 다음 확정
-        const chosen = group.featuredRule === "fate-point" ? rec.chosen?.[groupId] : undefined;
-        if (chosen && chosen.banner === p.banner && p.name) {
-          uncertain = false;
-          guaranteed = p.name !== chosen.name;
-        } else {
-          uncertain = p.featured === null;
-          guaranteed = p.featured === false;
-        }
+        uncertain = p.featured === null;
+        state = afterTop(state, p.featured, group.lossStreakGuarantee);
       }
     } else {
       pity++;
+    }
+  }
+  let guaranteed = state.guaranteed;
+  // 원신 무기·묶음 기원: 무기를 골랐으면(신의 궤도·묶음 궤도) 운명 포인트로 본다.
+  // 포인트는 그 기원에서만 쌓이고 끝나면 0이 된다(공식) → 지금 배너에서 나온 마지막 최고 등급만 본다
+  const chosen = group.featuredRule === "fate-point" ? rec.chosen?.[groupId] : undefined;
+  if (chosen && chosen.banner === banner) {
+    const last = [...pulls].reverse().find((p) => p.top && p.banner === banner);
+    if (last?.name) {
+      uncertain = false;
+      guaranteed = last.name !== chosen.name;
+    } else if (!last) {
+      uncertain = false;
+      guaranteed = baseOnThisBanner ? base.guaranteed : false;
     }
   }
 
@@ -145,6 +172,7 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
     softFrom: group.softFrom,
     guaranteed: group.featuredRule === "none" ? null : guaranteed,
     guaranteeUncertain: uncertain,
+    radiant: group.featuredRule !== "none" && state.radiant && guaranteed,
     banner,
     bannerPulls,
     counters,
@@ -183,7 +211,7 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
   let since = perBanner ? 0 : base.pity;
   let lastBanner: string | null = null;
   let seen = 0; // 직전 최고 등급 이후 기록된 뽑기 수
-  let guaranteed = base.guaranteed;
+  let state: FeaturedState = { guaranteed: base.guaranteed, losses: 0, radiant: false };
   const onBanner = new Map<string, number>(base.banner ? [[base.banner, base.bannerPulls]] : []);
   const hits: TopHit[] = [];
   for (const p of rec.pulls.filter((x) => x.group === groupId).sort(byTime)) {
@@ -204,12 +232,12 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       const atHard = from !== null && up(since) >= from;
       let ceiling: TopHit["ceiling"] = null;
       if (featuredAt !== null && up(n) === featuredAt && p.featured === true) ceiling = "full";
-      else if (atHard) ceiling = group?.featuredRule !== "none" && guaranteed ? "full" : "half";
+      else if (atHard) ceiling = group?.featuredRule !== "none" && state.guaranteed ? "full" : "half";
       // 기준값이 음수라(화면 값에 맞추느라 뺀 뒤 기록을 지운 경우) 횟수가 0 이하로 나오면, 기록된 뽑기 수로 센다
       hits.push({ pull: p, count: up(since > 0 ? since : seen), at: up(n), ceiling });
       since = 0;
       seen = 0;
-      if (group && group.featuredRule !== "none") guaranteed = p.featured === false;
+      if (group && group.featuredRule !== "none") state = afterTop(state, p.featured, group.lossStreakGuarantee);
     }
   }
   return hits;
@@ -661,6 +689,36 @@ export function removeBatches(records: Records, game: GameId, keys: string[], la
   rec.pulls = rec.pulls.filter((p) => !ids.has(p.id));
   pushUndo(next, { game, label, addedPullIds: [], replacedPulls: gone, prevCurrency: { ...rec.currency } });
   return repairBaselines(next);
+}
+
+/**
+ * 같은 종류의 다음 배너로 넘어갈 때 규칙대로 재화를 바꾼다 (엔드필드 특별 허가, 사용자 2026-11-26):
+ * - 그 배너가 끝나면 사라지는 재화(`expiresWith`)는 0으로
+ * - 지난 배너에서 누적 at회를 채워 받은 "다음 배너 보상"(`bonuses[].nextBanner`)은 그 재화로 더한다
+ * 배너는 아직 바꾸지 않은 상태(지난 배너가 currentBanner)에서 불러야 한다. 바뀐 내용을 글로 돌려준다.
+ */
+export function carryToNextBanner(records: Records, game: GameId, groupId: string, seriesOf?: (banner: string) => string): { records: Records; notes: string[] } {
+  const def = GAMES[game];
+  const group = def.groups.find((g) => g.id === groupId);
+  if (!group || !records.games[game].currentBanner[groupId]) return { records, notes: [] };
+  const expiring = def.currencies.filter((c) => c.expiresWith === groupId);
+  const carried = (group.bonuses ?? []).filter((b) => b.nextBanner);
+  if (!expiring.length && !carried.length) return { records, notes: [] };
+  const pulls = groupStatus(records.games[game], game, groupId, seriesOf).bannerPulls;
+  const next = structuredClone(records);
+  const cur = next.games[game].currency;
+  const notes: string[] = [];
+  const label = (key: string) => def.currencies.find((c) => c.key === key)?.label ?? key;
+  for (const c of expiring) {
+    if ((cur[c.key] ?? 0) > 0) notes.push(`${c.label} ${cur[c.key]}개 소멸`);
+    cur[c.key] = 0;
+  }
+  for (const b of carried) {
+    if (pulls < b.at) continue;
+    cur[b.nextBanner!] = (cur[b.nextBanner!] ?? 0) + b.pulls;
+    notes.push(`${label(b.nextBanner!)} +${b.pulls}`);
+  }
+  return { records: next, notes };
 }
 
 /** 교환으로 얻은 최고 등급을 기록한다(뽑기 수·천장에는 영향 없음, 교환 재화만 줄어든다) */

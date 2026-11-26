@@ -21,7 +21,7 @@
     topNames?: string[];
     guessFeatured?: (name: string) => boolean | null;
     onTopAt?: (n: number, name: string) => void;
-    /** 원신 무기·집록: 고를 수 있는 무기(이 배너 픽업)와 지금 고른 무기 */
+    /** 원신 무기·묶음 기원: 고를 수 있는 무기(이 배너 픽업)와 지금 고른 무기 */
     chooseOptions?: string[];
     chosen?: string;
     onChoose?: (name: string) => void;
@@ -91,7 +91,7 @@
   <div class="side">
     {#if status.guaranteed !== null}
       <span class="chip" class:on={status.guaranteed}>
-        {status.guaranteed ? "다음 픽업 확정" : "다음 50:50"}{status.guaranteeUncertain ? " ?" : ""}
+        {status.guaranteed ? (status.radiant ? "다음 픽업 확정(별빛 포착)" : "다음 픽업 확정") : "다음 50:50"}{status.guaranteeUncertain ? " ?" : ""}
       </span>
     {/if}
     {#if onChoose && chooseOptions.length}

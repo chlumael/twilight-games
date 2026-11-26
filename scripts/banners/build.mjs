@@ -5,7 +5,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import JSON5 from "json5";
 import { arknightsOfficial as arknights } from "./arknights-official.mjs";
 import { collectedSixStars, endfieldOfficial, mergeArsenal, skippedNotices } from "./endfield-official.mjs";
-import { applyKoreanNames, fetchWishAnnouncements } from "./genshin-official.mjs";
+import { applyKoreanNames, applyWishPools, fetchWishAnnouncements, fetchWishDetails } from "./genshin-official.mjs";
 import { limbusOfficial as limbus } from "./limbus-official.mjs";
 
 const PAIMON = "https://raw.githubusercontent.com/MadeBaruna/paimon-moe/main/src";
@@ -141,7 +141,12 @@ async function genshin() {
     console.warn(`원신: 한국어 기원 이름을 읽지 못함 (${e.message})`);
     return [];
   });
-  return applyKoreanNames(list, announcements, previous);
+  // 픽업이 아닌 5성 목록(픽뚫 후보): 공식 기원 상세(지금 열린 기원) + 이전 팩에서 이어받기
+  const details = await fetchWishDetails().catch((e) => {
+    console.warn(`원신: 기원 상세를 읽지 못함 (${e.message})`);
+    return [];
+  });
+  return applyWishPools(applyKoreanNames(list, announcements, previous), details, previous);
 }
 
 /** 엔드필드: 헤드헌팅 배너는 공지에서 매번 다시 만들고, 무기 배너는 이전 팩과 합친다 */

@@ -45,3 +45,50 @@ export async function fetchWishAnnouncements() {
   if (body.retcode !== 0) throw new Error(`원신 공지 응답 오류 ${body.retcode}`);
   return wishAnnouncements(body.data);
 }
+
+// 기원 상세(게임 안 "상세" 화면과 같은 공식 자료): 지금 열린 기원의 규칙 글과 등급별 목록.
+const DETAIL = "https://operation-webstatic.hoyoverse.com/gacha_info/hk4e/os_asia";
+
+/** 기원 상세 한 건 → { up: 픽업 5성 이름들, pool: 픽업이 아닌 5성 이름들 }. 5성 목록이 없으면 null */
+export function wishDetail(detail) {
+  const list = detail?.r5_prob_list ?? [];
+  if (!list.length) return null;
+  const up = list.filter((i) => i.is_up).map((i) => i.item_name);
+  const pool = list.filter((i) => !i.is_up).map((i) => i.item_name);
+  return up.length ? { up, pool } : null;
+}
+
+/**
+ * 배너에 "픽업이 아닌 5성 목록"(pool)을 붙인다.
+ * - 진행 중인 배너: 기원 상세의 픽업 이름이 배너 픽업과 같을 때만 그 상세의 목록
+ * - 그 외: 이전 팩의 목록을 이어받는다(상세에는 지금 열린 기원만 있으므로)
+ */
+export function applyWishPools(banners, details, previous = [], now = new Date()) {
+  const kept = new Map(previous.filter((b) => b.pool?.length).map((b) => [b.id, b.pool]));
+  const t = now.toISOString();
+  return banners.map((b) => {
+    let pool = null;
+    if (b.start <= t && t <= b.end) {
+      const mine = b.featured.map((f) => f.ko).filter(Boolean);
+      const hit = details.find((d) => d.up.length === mine.length && d.up.every((n) => mine.includes(n)));
+      if (hit?.pool.length) pool = hit.pool.map((ko) => ({ id: `ko:${ko}`, ko }));
+    }
+    pool ??= kept.get(b.id) ?? null;
+    return pool ? { ...b, pool } : b;
+  });
+}
+
+export async function fetchWishDetails() {
+  const get = async (url) => {
+    const res = await fetch(url, { headers: { "User-Agent": "twilight-games-banner-pack" } });
+    if (!res.ok) throw new Error(`${res.status} 원신 기원 상세`);
+    return res.json();
+  };
+  const list = (await get(`${DETAIL}/gacha/list.json`)).data?.list ?? [];
+  const out = [];
+  for (const g of list) {
+    const d = wishDetail(await get(`${DETAIL}/${g.gacha_id}/ko-kr.json`));
+    if (d) out.push(d);
+  }
+  return out;
+}

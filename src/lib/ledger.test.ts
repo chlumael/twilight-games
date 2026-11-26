@@ -388,6 +388,29 @@ describe("교환(확천)", () => {
     // 무료 뽑기가 없는 종류에는 기록하지 않는다
     expect(recordFreeTop(r, "limbus", "limbus-extraction", { name: "가", featured: null }, t(2))).toBe(r);
   });
+  it("엔드필드 다음 한정 배너로 넘어갈 때: 배너 전용 허가증은 사라지고, 60회를 채웠으면 정보서로 10장", async () => {
+    const { carryToNextBanner } = await import("./ledger");
+    const start = (pulls: number, permit: number) => {
+      let r = emptyRecords();
+      r.games.endfield.currentBanner["endfield-chartered"] = "A";
+      r.games.endfield.currency = { oroberyl: 100000, limitedPermit: 0, charteredPermit: 4 };
+      if (pulls) r = recordSession(r, "endfield", "endfield-chartered", pulls, new Map(), t(0));
+      r.games.endfield.currency.limitedPermit = permit;
+      return r;
+    };
+    // 60회 이상 뽑고 전용 허가증 3장을 남김 → 3장 소멸 + 정보서 10장
+    let out = carryToNextBanner(start(60, 3), "endfield", "endfield-chartered");
+    const before = start(60, 3).games.endfield.currency;
+    expect(out.records.games.endfield.currency).toEqual({ ...before, limitedPermit: 10 }); // 다른 재화는 그대로
+    expect(out.notes).toEqual(["배너 전용 헤드헌팅 허가증 3개 소멸", "배너 전용 헤드헌팅 허가증 +10"]);
+    // 59회면 정보서가 없다
+    out = carryToNextBanner(start(59, 3), "endfield", "endfield-chartered");
+    expect(out.records.games.endfield.currency.limitedPermit).toBe(0);
+    // 규칙이 없는 종류는 그대로
+    const r = start(60, 3);
+    expect(carryToNextBanner(r, "endfield", "endfield-refactor").records).toBe(r);
+    expect(carryToNextBanner(r, "genshin", "genshin-char").records).toBe(r);
+  });
   it("명일방주: 콜라보는 120회 픽업 확정, 51회부터 반천", async () => {
     const { hitLabel } = await import("./ledger");
     let r = emptyRecords();
@@ -566,5 +589,52 @@ describe("엔드필드: 오퍼레이터를 뽑으면 무기고 징표를 받는�
     expect(recordTopAt(r, "endfield", G, 52, { name: "가", featured: false }, t(0)).records.games.endfield.currency.arsenalTicket).toBe(5000);
     r = recordSession(r, "endfield", "endfield-arsenal", 10, new Map(), t(1));
     expect(r.games.endfield.currency.arsenalTicket).toBe(5000 - 1980);
+  });
+});
+
+describe("원신 공식 기원 규칙", () => {
+  const G = "genshin-char";
+  /** 5성을 순서대로 넣는다: true = 픽업, false = 픽뚫 */
+  const tops = (list: (boolean | null)[]) => {
+    let r = emptyRecords();
+    r.games.genshin.currentBanner[G] = "B";
+    list.forEach((f, i) => { r = recordSession(r, "genshin", G, 1, new Map([[0, { name: `c${i}`, featured: f }]]), t(i)); });
+    return groupStatus(r.games.genshin, "genshin", G);
+  };
+  it("별빛 포착: 픽뚫 → 확정 픽업이 3번 이어지면 그다음 5성은 픽업 확정", () => {
+    expect(tops([false, true, false, true, false, true])).toMatchObject({ guaranteed: true, radiant: true });
+    // 그 확정 픽업을 받으면 다시 50:50부터
+    expect(tops([false, true, false, true, false, true, true])).toMatchObject({ guaranteed: false, radiant: false });
+    expect(tops([false, true, false, true, false, true, true, false, true])).toMatchObject({ guaranteed: false, radiant: false });
+  });
+  it("별빛 포착: 2번까지는 그냥 50:50, 중간에 50:50을 이기면 처음부터 다시 센다", () => {
+    expect(tops([false, true, false, true])).toMatchObject({ guaranteed: false, radiant: false });
+    expect(tops([false, true, false, true, true, false, true])).toMatchObject({ guaranteed: false, radiant: false });
+    expect(tops([false])).toMatchObject({ guaranteed: true, radiant: false });
+  });
+  it("확천 표시: 별빛 포착으로 확정된 픽업도 확천", async () => {
+    const { hitLabel } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.genshin.currentBanner[G] = "B";
+    [false, true, false, true, false, true, true].forEach((f, i) => {
+      r = recordSession(r, "genshin", G, 80, new Map([[79, { name: `c${i}`, featured: f }]]), t(i));
+    });
+    expect(topHistory(r.games.genshin, G).map(hitLabel).slice(-2)).toEqual(["픽업/확천", "픽업/확천"]);
+  });
+  it("무기: 운명 포인트는 그 기원에서만 — 기원이 바뀌면 고른 무기 확정이 풀린다", () => {
+    const W = "genshin-weapon";
+    let r = emptyRecords();
+    r.games.genshin.currentBanner[W] = "W1";
+    r.games.genshin.chosen = { [W]: { banner: "W1", name: "가" } };
+    r = recordSession(r, "genshin", W, 1, new Map([[0, { name: "나", featured: true }]]), t(0)); // 고르지 않은 픽업 무기
+    expect(groupStatus(r.games.genshin, "genshin", W).guaranteed).toBe(true);
+    r.games.genshin.currentBanner[W] = "W2";
+    r.games.genshin.chosen = { [W]: { banner: "W2", name: "다" } };
+    expect(groupStatus(r.games.genshin, "genshin", W).guaranteed).toBe(false);
+    // 고르지 않았으면 "픽뚫 다음은 픽업 무기 중 하나" 확정만 이어진다
+    delete r.games.genshin.chosen;
+    expect(groupStatus(r.games.genshin, "genshin", W).guaranteed).toBe(false);
+    r = recordSession(r, "genshin", W, 1, new Map([[0, { name: "상시 무기", featured: false }]]), t(1));
+    expect(groupStatus(r.games.genshin, "genshin", W).guaranteed).toBe(true);
   });
 });

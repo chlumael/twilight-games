@@ -45,12 +45,20 @@ export interface PityGroup {
   /** 뽑을 때마다 함께 받는 재화: 최고 등급이면 top개, 아니면 other개 (엔드필드: 오퍼레이터를 얻을 때마다 무기고 징표) */
   gain?: { key: string; top: number; other: number };
   /** 배너 누적 at회에 받는 무료 뽑기(재화 안 씀, 천장 스택에 안 들어감) — 엔드필드 긴급 모집 등. 각각 1회 */
-  bonuses?: { at: number; pulls: number; label: string }[];
+  bonuses?: { at: number; pulls: number; label: string; nextBanner?: string }[];
+  // nextBanner = 무료 뽑기가 아니라, 같은 종류의 다음 배너가 열릴 때 이 재화 pulls개로 받는 보상(엔드필드 헤드헌팅 정보서)
   /**
    * 픽업 최고 등급이 이 종류의 "나올 수 있는 목록"에 남는 배너 수(그 배너 포함). 엔드필드 특별 허가 = 3:
    * 픽업 배너 + 다음 두 배너에서는 픽뚫로 나오고, 그 뒤에는 목록에서 빠진다(상시에도 안 들어감). 재구축 = 1.
    */
   rotation?: { stays: number };
+  /**
+   * 원신 「별빛 포착」: "픽뚫 → 다음에 확정으로 픽업"이 이 횟수만큼 이어지면, 그다음 최고 등급은 50:50이 아니라 픽업 확정.
+   * (공식 기원 상세: "3회 연속으로 두 번째에 확률 UP ★5 캐릭터를 획득한 경우 … 확정적으로 별빛 포착이 발동")
+   */
+  lossStreakGuarantee?: number;
+  /** 이 종류는 배너에 적힌 것만 나온다(원신 묶음 기원). 이름 후보에 다른 이름을 섞지 않는다 */
+  onlyListed?: boolean;
   /** 긴급 모집처럼 무료 뽑기에서 나온 최고 등급을 따로 적을 때 쓰는 이름. 천장·누적 횟수에 안 들어간다 */
   freeLabel?: string;
   /** 배너 카운터(픽업 확정·누적 보상)를 세는 범위. "series" = 같은 시리즈 배너끼리 이어서 셈(엔드필드 재구축) */
@@ -65,6 +73,8 @@ export interface CurrencyDef {
    * 가챠 화면에 수량이 보이지 않는 재화: 원신 창세의 결정, 명일방주 헤드헌팅권(창고에만 표시), 림버스 추출 티켓.
    */
   manualOnly?: boolean;
+  /** 이 종류(그룹 id)의 배너가 끝나면 사라지는 재화 (엔드필드 배너 전용 헤드헌팅 허가증) */
+  expiresWith?: string;
 }
 
 export interface GameDef {
@@ -109,6 +119,7 @@ export const GAMES: Record<GameId, GameDef> = {
         softFrom: 74,
         carryOver: true,
         featuredRule: "fifty-fifty",
+        lossStreakGuarantee: 3,
         bannerCounters: [],
         odds: { base: 0.006, softFrom: 74, step: 0.06 },
         spend: genshinEventSpend,
@@ -125,8 +136,10 @@ export const GAMES: Record<GameId, GameDef> = {
         spend: genshinEventSpend,
       },
       {
+        // 공식 한국어 이름은 「묶음 기원」(고르는 것은 「묶음 궤도」). 기원 횟수는 묶음 기원·복각 기원이 함께 센다(공식)
         id: "genshin-chronicled",
-        name: "집록",
+        name: "묶음",
+        onlyListed: true,
         hardPity: 90,
         softFrom: 74,
         carryOver: true,
@@ -199,7 +212,7 @@ export const GAMES: Record<GameId, GameDef> = {
       { key: "oroberyl", label: "오로베릴" },
       { key: "origeometry", label: "파생 오리지늄" },
       { key: "charteredPermit", label: "특별 허가 헤드헌팅 허가증" },
-      { key: "limitedPermit", label: "배너 전용 헤드헌팅 허가증" }, // 배너마다 이름이 바뀌어 이렇게 부른다(사용자 2026-11-26)
+      { key: "limitedPermit", label: "배너 전용 헤드헌팅 허가증", expiresWith: "endfield-chartered" }, // 배너마다 이름이 바뀌어 이렇게 부른다(사용자 2026-11-26)
       { key: "arsenalTicket", label: "무기고 징표" },
     ],
     // 규칙 출처: 엔드필드 한국어 공식 공지 「확률 상세 안내」·배너 공지(2026-11-26 확인). DESIGN.md §6 엔드필드 절.
@@ -218,7 +231,7 @@ export const GAMES: Record<GameId, GameDef> = {
         // 긴급 모집(무료 10회)은 천장·누적 횟수에 안 들어감. 60회 정보서는 다음 특별 허가 배너 전용 10회 허가증으로 바뀜
         bonuses: [
           { at: 30, pulls: 10, label: "긴급 모집" },
-          { at: 60, pulls: 10, label: "헤드헌팅 정보서(다음 한정 10회)" },
+          { at: 60, pulls: 10, label: "헤드헌팅 정보서(다음 한정 10회)", nextBanner: "limitedPermit" },
         ],
         odds: { base: 0.008, softFrom: 66, step: 0.05 },
         // 픽업 6성은 특별 허가 3회(그 배너 포함)가 끝나면 목록에서 빠진다(공식 「오퍼레이터 제외 규칙」)

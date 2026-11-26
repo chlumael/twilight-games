@@ -78,7 +78,7 @@ const tzOf = (text: string | undefined, fallback: number) =>
 export function genshinGroup(kind: string): string | null {
   if (/캐릭터\s*이벤트/.test(kind)) return "genshin-char";
   if (/무기/.test(kind)) return "genshin-weapon";
-  if (/집록/.test(kind)) return "genshin-chronicled";
+  if (/집록|묶음/.test(kind)) return "genshin-chronicled"; // 공식 한국어 이름은 「묶음 기원」
   return null;
 }
 

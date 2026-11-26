@@ -20,7 +20,7 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, recordFreeTop, removeExchange, recordPullsTo, resetGroup } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, recordFreeTop, carryToNextBanner, removeExchange, recordPullsTo, resetGroup } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
@@ -438,6 +438,14 @@
         const to = autoBanner(list, cur);
         if (to) {
           next ??= structuredClone(records);
+          // 더 뒤에 열린 배너로 넘어갈 때만: 배너 전용 재화 소멸, 지난 배너의 "다음 배너 보상" 지급 (엔드필드 정보서)
+          const from = list.find((b) => b.id === cur);
+          const into = list.find((b) => b.id === to);
+          if (from?.start && into?.start && into.start > from.start) {
+            const out = carryToNextBanner(next, id, g.id);
+            next = out.records;
+            if (out.notes.length) notify(`${GAMES[id].shortName} 새 배너: ${out.notes.join(", ")}`);
+          }
           next.games[id].currentBanner[g.id] = to;
         }
       }
@@ -645,7 +653,7 @@
       notify("앱에 기록하기 전 구간입니다. 설정의 시작 상태에서 맞춰 주세요");
     } else notify("숫자를 다시 확인해 주세요");
   }
-  /** 원신 무기·집록에서 고른 무기 (신각의 길) */
+  /** 원신 무기·묶음 기원에서 고른 무기 (신의 궤도·묶음 궤도) */
   function setChosen(name: string) {
     const next = structuredClone(records);
     const chosen = { ...(next.games[game].chosen ?? {}) };
@@ -664,11 +672,11 @@
     const pool = poolInfo ? poolInfo.entries.filter((e) => !e.featured).map((e) => e.name) : (currentPackBanner?.pool ?? []).map(itemName);
     let all: string[];
     if (pool.length) all = pool;
-    else if (game === "genshin") {
-      // 캐릭터 기원은 캐릭터, 무기 기원은 무기, 집록은 둘 다
+    else if (game === "genshin" && !group.onlyListed) {
+      // 캐릭터 기원은 캐릭터, 무기 기원은 무기, 묶음 기원은 배너에 적힌 것만
       const kind = groupId === "genshin-char" ? "character" : groupId === "genshin-weapon" ? "weapon" : null;
       all = Object.entries(genshinItems).filter(([, v]) => v.rarity === 5 && (!kind || v.kind === kind)).map(([k]) => k);
-    } else if (groupId === "endfield-arsenal" || groupId === "endfield-refactor-arsenal") all = []; // 무기 배너에 오퍼레이터 이름을 섞지 않는다
+    } else if (group.onlyListed || groupId === "endfield-arsenal" || groupId === "endfield-refactor-arsenal") all = []; // 배너에 적힌 것만 / 무기 배너에 오퍼레이터 이름을 섞지 않는다
     else all = [...(sixStars[game] ?? [])];
     return [...new Set([...featured, ...all])];
   });
@@ -1022,7 +1030,7 @@
           exchanges={(rec.exchanges ?? []).filter((e) => e.group === groupId && e.banner === status.banner)}
           onExchange={(name) => { update(recordExchange(records, game, groupId, name || null)); notify(`${name || def.topLabel} 교환 기록`); }}
           onRemoveExchange={(id) => update(removeExchange(records, game, id))}
-          poolOf={(b) => (rotationRules[b.group] ? bannerPool(pack?.games[game] ?? [], b, rotationRules) : null)}
+          poolOf={(b) => (rotationRules[b.group] || b.pool?.length ? bannerPool(pack?.games[game] ?? [], b, rotationRules) : null)}
           freeLabel={group.freeLabel ?? ""}
           onFreeTop={(name) => {
             update(recordFreeTop(records, game, groupId, { name: name || null, featured: name ? matchFeatured(currentPackBanner, name) : null }));
