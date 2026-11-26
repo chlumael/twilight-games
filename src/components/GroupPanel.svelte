@@ -1,13 +1,13 @@
 <script lang="ts">
   import { activeBanners, bannerLabel, daysLeft, itemName, type PackBanner } from "../lib/banners";
   import { hitLabel, type GroupStatus, type TopHit } from "../lib/ledger";
-  import type { Pull } from "../lib/types";
+  import type { Exchange, Pull } from "../lib/types";
   import BannerDetail from "./BannerDetail.svelte";
   import PityBar from "./PityBar.svelte";
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose }: {
+  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange }: {
     groupLabel?: string;
     status: GroupStatus;
     /** Known banners for this group from the data pack. */
@@ -25,13 +25,20 @@
     chooseOptions?: string[];
     chosen?: string;
     onChoose?: (name: string) => void;
+    /** 교환으로 얻은 기록(이 종류·배너). 교환 카운터가 있는 종류에서만 입력을 보여 준다 */
+    exchanges?: Exchange[];
+    onExchange?: (name: string) => void;
+    onRemoveExchange?: (id: string) => void;
   } = $props();
+  const canExchange = $derived(!!onExchange && status.counters.some((c) => /교환/.test(c.label)));
+  let byExchange = $state(false);
 
   let adding = $state(false);
   let addN = $state<number | null>(null);
   let addName = $state("");
   const addFeatured = $derived(addName.trim() && guessFeatured ? guessFeatured(addName.trim()) : null);
   function saveAdd() {
+    if (byExchange) { onExchange?.(addName.trim()); adding = false; byExchange = false; addName = ""; return; }
     if (!addN || addN < 1 || !onTopAt) return;
     onTopAt(addN, addName.trim());
     adding = false; addN = null; addName = "";
@@ -156,17 +163,33 @@
 {#if onTopAt}
   {#if adding}
     <form class="add" onsubmit={(e) => { e.preventDefault(); saveAdd(); }}>
-      <input class="n" type="number" min="1" max="999" placeholder={String(status.pity)} bind:value={addN} aria-label="몇 번째" />
-      <span>뽑</span>
+      {#if canExchange}<label class="exch"><input type="checkbox" bind:checked={byExchange} />교환</label>{/if}
+      {#if !byExchange}
+        <input class="n" type="number" min="1" max="999" placeholder={String(status.pity)} bind:value={addN} aria-label="몇 번째" />
+        <span>뽑</span>
+      {/if}
       <input class="nm" list="top-names" placeholder="{topLabel} 이름" bind:value={addName} aria-label="이름" />
       <datalist id="top-names">{#each topNames as n (n)}<option value={n}></option>{/each}</datalist>
       {#if addFeatured === true}<span class="badge win">픽업</span>{:else if addFeatured === false}<span class="badge">픽뚫</span>{/if}
-      <button type="submit" disabled={!addN}>저장</button>
+      <button type="submit" disabled={byExchange ? !addName.trim() : !addN}>저장</button>
       <button type="button" onclick={() => (adding = false)}>취소</button>
     </form>
   {:else}
     <button class="addbtn" onclick={() => (adding = true)}>＋ {topLabel} 기록</button>
   {/if}
+{/if}
+
+{#if exchanges.length}
+  <section class="hits">
+    {#each exchanges as e (e.id)}
+      <div class="hit">
+        <span class="count">교환</span>
+        <span class="name">{e.name ?? `${topLabel} (이름 미입력)`}</span>
+        <span class="badge win">픽업/확천(교환)</span>
+        {#if onRemoveExchange}<button class="x" onclick={() => onRemoveExchange(e.id)} aria-label="교환 기록 지우기">✕</button>{/if}
+      </div>
+    {/each}
+  </section>
 {/if}
 
 {#if lastHits.length}
@@ -182,6 +205,8 @@
 {/if}
 
 <style>
+  .exch { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+  .x { padding: 0 6px; font-size: 11px; }
   .choose { font-size: 12px; padding: 2px 4px; max-width: 100%; }
   .add { display: flex; align-items: center; gap: 5px; font-size: 12px; }
   .add .n { width: 4.2em; }

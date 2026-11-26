@@ -52,7 +52,7 @@ describe("pity", () => {
     r.games.arknights.currentBanner["arknights-limited"] = "B";
     const s = groupStatus(r.games.arknights, "arknights", "arknights-limited");
     expect(s.pity).toBe(0);
-    expect(s.counters[0]).toMatchObject({ label: "선택 영입", remaining: 300 });
+    expect(s.counters[0]).toMatchObject({ label: "교환(데이터 계약)", remaining: 300 });
   });
 
   it("Endfield 120 guarantee ends once featured is obtained; 80 pity carries over", () => {
@@ -372,11 +372,36 @@ describe("천장 표시 (반천/확천)", () => {
     r = recordSession(r, "endfield", "endfield-chartered", 10, new Map([[4, { name: "케르", featured: true }]]), t(2));
     expect(topHistory(r.games.endfield, "endfield-chartered").map((h) => [h.count, hitLabel(h)]))
       .toEqual([[80, "픽뚫/반천"], [40, "픽업/확천"], [5, "픽업"]]);
+    // 확률 상승 구간(66회~)에서 나온 것도 반천
+    const soft = recordSession(emptyRecords(), "endfield", "endfield-chartered", 70, new Map([[69, { name: "엠버", featured: false }]]), t(0));
+    expect(topHistory(soft.games.endfield, "endfield-chartered").map(hitLabel)).toEqual(["픽뚫/반천"]);
   });
   it("원신: 확정 상태에서 90회째 = 확천, 50:50 상태에서 90회째 = 반천", async () => {
     const { hitLabel } = await import("./ledger");
     let r = recordSession(emptyRecords(), "genshin", "genshin-char", 90, new Map([[89, { name: "치치", featured: false }]]), t(0));
     r = recordSession(r, "genshin", "genshin-char", 90, new Map([[89, { name: "자백", featured: true }]]), t(1));
     expect(topHistory(r.games.genshin, "genshin-char").map(hitLabel)).toEqual(["픽뚫/반천", "픽업/확천"]);
+  });
+});
+
+describe("교환(확천)", () => {
+  it("림버스: 추출 200회로 교환 가능, 교환하면 200만큼 줄고 뽑기 수는 그대로", async () => {
+    const { recordExchange } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.limbus.currentBanner["limbus-extraction"] = "B";
+    r = recordSession(r, "limbus", "limbus-extraction", 230, new Map(), t(0));
+    const st = () => groupStatus(r.games.limbus, "limbus", "limbus-extraction");
+    expect(st().counters[0]).toMatchObject({ remaining: 0, done: true });
+    r = recordExchange(r, "limbus", "limbus-extraction", "픽업 인격", t(1));
+    expect(st().counters[0]).toMatchObject({ remaining: 170, done: false });
+    expect(r.games.limbus.pulls).toHaveLength(230);
+  });
+  it("명일방주: 콜라보는 120회 픽업 확정, 51회부터 반천", async () => {
+    const { hitLabel } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.arknights.currentBanner["arknights-collab"] = "C";
+    r = recordSession(r, "arknights", "arknights-collab", 60, new Map([[59, { name: "가", featured: false }]]), t(0));
+    r = recordSession(r, "arknights", "arknights-collab", 60, new Map([[59, { name: "나", featured: true }]]), t(1));
+    expect(topHistory(r.games.arknights, "arknights-collab").map(hitLabel)).toEqual(["픽뚫/반천", "픽업/확천"]);
   });
 });

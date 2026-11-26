@@ -119,7 +119,9 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
   const counters = group.bannerCounters.map((c): CounterStatus => {
     if (c.untilFeatured && featuredGot) return { label: c.label, at: c.at, remaining: 0, done: true };
     if (c.repeat) return { label: c.label, at: c.at, remaining: c.at - (bannerPulls % c.at), done: false };
-    const remaining = Math.max(0, c.at - bannerPulls);
+    // 교환 카운터: 이미 교환한 만큼(at × 횟수) 빼고 남은 재화로 본다
+    const used = c.exchange ? c.at * (rec.exchanges ?? []).filter((e) => e.group === groupId && e.banner === banner).length : 0;
+    const remaining = Math.max(0, c.at - (bannerPulls - used));
     return { label: c.label, at: c.at, remaining, done: remaining === 0 };
   });
 
@@ -143,7 +145,7 @@ export interface TopHit {
   /** Pulls it took, counting the top pull itself (e.g. 74). */
   count: number;
   /**
-   * 천장으로 얻었는지 (사용자 2026-11-26). half = 반천(최고 등급 확정 천장에서 나옴),
+   * 천장으로 얻었는지 (사용자 2026-11-26). half = 반천(확률 상승 구간~최고 등급 확정 천장에서 나옴),
    * full = 확천(픽업 확정 천장: 엔드필드 120회·무기 80개, 원신은 확정 상태에서 천장). 천장이 아니면 null
    */
   ceiling: "half" | "full" | null;
@@ -173,7 +175,9 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       // 묶음 단위(엔드필드 무기 신청 10개)는 묶음 끝으로 올려서 본다
       const unit = group?.odds?.unit ?? 1;
       const up = (v: number) => Math.ceil(v / unit) * unit;
-      const atHard = !!group?.hardPity && up(since) >= group.hardPity;
+      // 확률 상승 구간에서 나온 것도 천장으로 친다(사용자 2026-11-26). 상승 구간이 없으면 천장 회차만
+      const from = group?.softFrom ?? group?.hardPity ?? null;
+      const atHard = from !== null && up(since) >= from;
       let ceiling: TopHit["ceiling"] = null;
       if (featuredAt !== null && up(n) === featuredAt && p.featured === true) ceiling = "full";
       else if (atHard) ceiling = group?.featuredRule !== "none" && guaranteed ? "full" : "half";
@@ -616,5 +620,19 @@ export function removeBatches(records: Records, game: GameId, keys: string[], la
   const ids = new Set(gone.map((p) => p.id));
   rec.pulls = rec.pulls.filter((p) => !ids.has(p.id));
   pushUndo(next, { game, label, addedPullIds: [], replacedPulls: gone, prevCurrency: { ...rec.currency } });
+  return next;
+}
+
+/** 교환으로 얻은 최고 등급을 기록한다(뽑기 수·천장에는 영향 없음, 교환 재화만 줄어든다) */
+export function recordExchange(records: Records, game: GameId, groupId: string, name: string | null, now: Date = new Date()): Records {
+  const next = structuredClone(records);
+  const rec = next.games[game];
+  rec.exchanges = [...(rec.exchanges ?? []), { id: newId(), time: now.toISOString(), group: groupId, banner: rec.currentBanner[groupId] ?? "", name }];
+  return next;
+}
+
+export function removeExchange(records: Records, game: GameId, id: string): Records {
+  const next = structuredClone(records);
+  next.games[game].exchanges = (next.games[game].exchanges ?? []).filter((e) => e.id !== id);
   return next;
 }

@@ -6992,8 +6992,8 @@
   "arknights": [
    {
     "id": "arknights:official:LINKAGE_KR_42_0_5",
-    "group": "arknights-limited",
-    "name": "한정 헤드헌팅",
+    "group": "arknights-collab",
+    "name": "콜라보 헤드헌팅",
     "start": "2026-11-16T07:00:00.000Z",
     "end": "2026-11-29T18:59:00.000Z",
     "version": null,

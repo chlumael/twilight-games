@@ -16,6 +16,8 @@ export interface BannerCounter {
   untilFeatured?: boolean;
   /** Repeats every `at` pulls (e.g. Endfield 240 token). */
   repeat?: boolean;
+  /** 뽑은 횟수만큼 쌓이는 교환 재화로 최고 등급을 교환하는 카운터(명일방주 헤드헌팅 데이터 계약 300, 림버스 이상 200). 교환하면 at만큼 줄어든다 */
+  exchange?: boolean;
 }
 
 export interface PityGroup {
@@ -146,7 +148,20 @@ export const GAMES: Record<GameId, GameDef> = {
         softFrom: 51,
         carryOver: false,
         featuredRule: "none",
-        bannerCounters: [{ at: 300, label: "선택 영입" }],
+        // 한정: 뽑은 횟수만큼 헤드헌팅 데이터 계약 → 300개로 6성 교환(오래된 한정은 200개), 다음 한정으로 이월 안 됨(나무위키)
+        bannerCounters: [{ at: 300, label: "교환(데이터 계약)", exchange: true }],
+        odds: { base: 0.02, softFrom: 51, step: 0.02 },
+        spend: arknightsSpend,
+      },
+      {
+        // 콜라보: 120회 안에 픽업 6성 확정(나무위키). 배너 풀 ID가 LINKAGE로 시작하는 것(추정)
+        id: "arknights-collab",
+        name: "콜라보",
+        hardPity: 99,
+        softFrom: 51,
+        carryOver: false,
+        featuredRule: "none",
+        bannerCounters: [{ at: 120, label: "픽업 확정", untilFeatured: true }],
         odds: { base: 0.02, softFrom: 51, step: 0.02 },
         spend: arknightsSpend,
       },
@@ -275,7 +290,8 @@ export const GAMES: Record<GameId, GameDef> = {
         softFrom: null,
         carryOver: false,
         featuredRule: "none",
-        bannerCounters: [{ at: 200, label: "교환" }],
+        // 추출 횟수만큼 "이상"을 얻어 200개로 교환(사용자 확인 2026-11-26)
+        bannerCounters: [{ at: 200, label: "교환(이상)", exchange: true }],
         // Tickets are always spent before Lunacy.
         odds: { base: 0.029, softFrom: null, step: 0 },
         spend: [

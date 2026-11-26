@@ -67,8 +67,9 @@ export function parseNames(lines) {
  * 공지 한 건 + 글자 인식 결과 → 배너. override는 사람이 그림을 보고 적어 둔 값(같은 풀 ID).
  */
 export function buildBanner(notice, lines, override = {}) {
-  const group = noticeGroup(notice.title);
   const pool = poolId(notice.jumpLink);
+  // 풀 ID가 LINKAGE로 시작하면 콜라보(공지 제목은 "한정 헤드헌팅"으로 나온다) — 추정
+  const group = pool?.startsWith("LINKAGE") && noticeGroup(notice.title) ? "arknights-collab" : noticeGroup(notice.title);
   if (!group || !pool) return null;
   const kind = String(notice.title).replace(/\\n|\s+/g, " ").trim();
   const period = parsePeriod(lines, notice.displayTime);
@@ -80,7 +81,7 @@ export function buildBanner(notice, lines, override = {}) {
   return {
     id: `arknights:official:${pool}`,
     group,
-    name: kind,
+    name: group === "arknights-collab" ? "콜라보 헤드헌팅" : kind,
     // 기간을 못 읽으면 공지 날짜(한국 시간 0시)를 시작으로 두고 근사값으로 표시한다
     start: start ?? new Date(`${notice.displayTime}T00:00:00+09:00`).toISOString(),
     ...(start ? {} : { startApprox: true }),

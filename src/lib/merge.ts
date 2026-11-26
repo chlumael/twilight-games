@@ -38,7 +38,7 @@ export function stampChanged(prev: Records, next: Records, now: Date = new Date(
     if (gameFingerprint(prev.games[id]) !== gameFingerprint(next.games[id])) {
       out ??= { ...next, games: { ...next.games } };
       const g = next.games[id];
-      const have = new Set(g.pulls.map((p) => p.id));
+      const have = new Set([...g.pulls.map((p) => p.id), ...(g.exchanges ?? []).map((e) => e.id)]);
       // 값이 "!"로 시작하면 "다시 살림" 표시(되돌리기로 복구) — 다른 기기의 예전 지움 표시보다 나중이면 살아 있다
       const removed: Record<string, string> = {};
       for (const [k, v] of Object.entries(g.removed ?? {})) {
@@ -46,6 +46,7 @@ export function stampChanged(prev: Records, next: Records, now: Date = new Date(
         else removed[k] = v;
       }
       for (const p of prev.games[id].pulls) if (!have.has(p.id)) removed[p.id] = now.toISOString();
+      for (const e of prev.games[id].exchanges ?? []) if (!have.has(e.id)) removed[e.id] = now.toISOString();
       out.games[id] = { ...g, removed: trimRemoved(removed), updatedAt: now.toISOString() };
       if (!Object.keys(removed).length) delete out.games[id].removed;
     }
@@ -123,6 +124,10 @@ export function mergeGame(local: GameRecord, remote: GameRecord | undefined, _mo
     currentBanner: { ...lose.currentBanner, ...win.currentBanner },
     removed: trimRemoved(marks),
   };
+  // 교환 기록: 두 쪽을 id로 합친다(지운 것은 지움 표시를 따른다)
+  const ex = new Map<string, NonNullable<GameRecord["exchanges"]>[number]>();
+  for (const e of [...(lose.exchanges ?? []), ...(win.exchanges ?? [])]) if (!removed[e.id]) ex.set(e.id, e);
+  if (ex.size) out.exchanges = [...ex.values()].sort((a, b) => (a.time < b.time ? -1 : 1));
   if (!Object.keys(marks).length) delete out.removed;
   // 이긴 쪽과 내용이 달라졌으면(상대 기록이 더해짐) 지금 시각으로 찍어 다시 올리게 한다
   if (gameFingerprint(out) !== gameFingerprint(win)) {

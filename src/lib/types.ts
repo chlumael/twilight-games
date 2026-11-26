@@ -47,6 +47,8 @@ export interface GameRecord {
   currentBanner: Record<string, string>;
   /** Last local change (ISO). Used to pick the newer copy when syncing devices. */
   updatedAt?: string | null;
+  /** 교환으로 얻은 최고 등급(명일방주 데이터 계약, 림버스 이상). 뽑기가 아니라서 천장·횟수에는 안 들어간다 */
+  exchanges?: Exchange[];
   /** 지운 뽑기 id → 지운 시각. 기기끼리 합칠 때 지운 기록이 되살아나지 않게 한다 (merge.ts) */
   removed?: Record<string, string>;
   /** 원신 무기·집록: 배너별로 고른 무기(신각의 길). 확정 포인트 계산에 쓴다 */
@@ -68,4 +70,12 @@ export interface Records {
   schemaVersion: 1;
   games: Record<GameId, GameRecord>;
   undo: UndoEntry[];
+}
+
+export interface Exchange {
+  id: string;
+  time: string;
+  group: string;
+  banner: string;
+  name: string | null;
 }

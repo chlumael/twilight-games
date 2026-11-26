@@ -7,7 +7,7 @@ const pack = JSON.parse(readFileSync(file, "utf8"));
 const problems = [];
 const groups = {
   genshin: ["genshin-char", "genshin-weapon", "genshin-chronicled"],
-  arknights: ["arknights-limited", "arknights-standard"],
+  arknights: ["arknights-limited", "arknights-collab", "arknights-standard"],
   endfield: ["endfield-chartered", "endfield-refactor", "endfield-arsenal", "endfield-refactor-arsenal"],
   limbus: ["limbus-extraction"],
 };
