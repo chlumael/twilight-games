@@ -599,6 +599,8 @@ export function recordTopAt(
     const add = n - st.bannerPulls;
     if (group.hardPity !== null && st.pity + add > group.hardPity) return { records, mode: "too-far" };
     const next = recordSession(records, game, groupId, add, new Map([[add - 1, info]]), now);
+    // 지난 뽑기를 뒤늦게 적는 것이므로 지금 보유 재화는 깎지 않는다
+    next.games[game].currency = { ...rec.currency };
     const last = next.undo[next.undo.length - 1];
     if (last) last.label = `${GAMES[game].shortName} 배너 ${n}번째 ${info.name ?? GAMES[game].topLabel} 직접 입력`;
     return { records: next, mode: "added" };
@@ -709,6 +711,7 @@ export function recordPullsTo(
   const add = n - st.bannerPulls;
   if (group.hardPity !== null && st.pity + add >= group.hardPity) return { records, mode: "too-far" };
   const next = recordSession(records, game, groupId, add, new Map(), now);
+  next.games[game].currency = { ...records.games[game].currency }; // 지난 뽑기 → 재화는 그대로
   const last = next.undo[next.undo.length - 1];
   if (last) last.label = `${GAMES[game].shortName} 배너 ${n}번째까지 횟수 맞추기`;
   return { records: next, mode: "added" };

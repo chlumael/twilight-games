@@ -434,6 +434,7 @@ describe("직접 입력: 이 배너에서 n번째에 최고 등급 (배너 누�
     expect(r.games.endfield.pulls).toHaveLength(120);
     expect(topHistory(r.games.endfield, G).map((h) => [h.count, hitLabel(h)])).toEqual([[16, "픽뚫"], [42, "픽뚫"], [34, "픽뚫"], [28, "픽업/확천"]]);
     expect(st(r)).toMatchObject({ pity: 0, bannerPulls: 120 });
+    expect(r.games.endfield.currency).toEqual({}); // 직접 입력은 보유 재화를 깎지 않는다
     expect(topHistory(r.games.endfield, G).map((h) => h.at)).toEqual([16, 58, 92, 120]);
   });
   it("이미 기록된 뽑기 자리면 그 자리를 표시한다", async () => {
@@ -510,5 +511,17 @@ describe("바꿔서 쓰는 재화도 가능 횟수에 포함", () => {
   it("명일방주: 합성옥 600 + 오리지늄 10(×180) → 4회", () => {
     const spend = GAMES.arknights.groups[0].spend;
     expect(availablePulls({ orundum: 600, originite: 10 }, spend)).toBe(4);
+  });
+});
+
+describe("직접 입력은 보유 재화를 건드리지 않는다", () => {
+  it("지난 뽑기를 적어도 오로베릴이 그대로", async () => {
+    const { recordTopAt, recordPullsTo } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.endfield.currency = { oroberyl: 7765, origeometry: 140 };
+    r = recordTopAt(r, "endfield", "endfield-chartered", 52, { name: "가", featured: false }, t(0)).records;
+    r = recordPullsTo(r, "endfield", "endfield-chartered", 60, t(1)).records;
+    expect(r.games.endfield.currency).toEqual({ oroberyl: 7765, origeometry: 140 });
+    expect(r.games.endfield.pulls).toHaveLength(60);
   });
 });

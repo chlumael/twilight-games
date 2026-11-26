@@ -153,9 +153,9 @@
   .rows > div { display: flex; justify-content: space-between; gap: 8px; }
   .rows b { color: var(--text); }
   .hits { display: flex; flex-direction: column; gap: 3px; }
-  .hit { display: grid; grid-template-columns: 30px 1fr auto auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 12%, transparent); }
+  .hit { display: grid; grid-template-columns: auto auto 1fr auto auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 12%, transparent); }
   .hit.lost { background: color-mix(in srgb, var(--muted) 14%, transparent); }
-  .count { font-weight: 700; color: var(--top); text-align: right; }
+  .count { font-weight: 700; color: var(--top); text-align: right; white-space: nowrap; }
   .name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .badge { font-size: 10px; padding: 0 5px; border-radius: 3px; background: color-mix(in srgb, var(--muted) 30%, transparent); }
   .badge.win { background: var(--top); color: #000; }

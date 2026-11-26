@@ -258,15 +258,16 @@
 
   .hits { display: flex; flex-direction: column; gap: 4px; }
   .hit {
-    display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 8px;
     padding: 5px 8px; border-radius: var(--radius); background: linear-gradient(90deg, var(--panel), transparent);
     border-left: 3px solid var(--top);
   }
   .hit.lost { border-left-style: dashed; }
   .count { font-family: var(--num-font); font-size: 19px; font-weight: 700; color: var(--top); font-variant-numeric: tabular-nums; }
+  .count { white-space: nowrap; }
   .count small { font-size: 10px; font-weight: 500; margin-left: 1px; color: var(--muted); }
   .took { font-size: 11px; color: var(--muted); white-space: nowrap; }
-  .name { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .badge { font-size: 10px; padding: 2px 6px; border-radius: var(--btn-radius); background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
+  .name { flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .badge { flex: none; white-space: nowrap; font-size: 10px; padding: 2px 6px; border-radius: var(--btn-radius); background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
   .badge.win { background: var(--top); color: #1a1408; font-weight: 700; }
 </style>
