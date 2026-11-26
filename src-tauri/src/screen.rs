@@ -3,7 +3,7 @@
 //! 판단 규칙(src/lib/recognize.ts 등)을 그대로 쓴다. 그림은 저장하지도, 밖으로 보내지도 않는다.
 use serde::Serialize;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, State};
 
@@ -30,6 +30,28 @@ pub struct Frame {
     blank: bool,
 }
 
+/// 잘라 읽기 결과 (src/lib/engine.ts의 RegionFrame과 같은 모양)
+#[derive(Serialize, Clone)]
+pub struct RegionFrame {
+    time: u64,
+    width: i32,
+    height: i32,
+    screen: Option<String>,
+    fields: std::collections::BTreeMap<String, String>,
+    tops: Vec<bool>,
+    prints: Vec<String>,
+}
+
+/// 화면 틀 (data/screens/*.json). 화면(웹)이 시작할 때 넘겨준다.
+#[derive(Default, Clone)]
+pub struct ScreenProfiles(pub Arc<Mutex<Vec<crate::regions::Profile>>>);
+
+#[tauri::command]
+pub fn set_screen_profiles(state: State<'_, ScreenProfiles>, profiles: Vec<crate::regions::Profile>) -> Result<(), String> {
+    *state.0.lock().map_err(|e| e.to_string())? = profiles;
+    Ok(())
+}
+
 /// 가챠 화면이 보이면 그 뒤 20초 동안 1초마다, 아니면 2.5초마다 읽는다 (휴대폰판과 같음).
 const SLOW: Duration = Duration::from_millis(2500);
 const FAST: Duration = Duration::from_millis(1000);
@@ -38,7 +60,7 @@ const FAST_WINDOW: Duration = Duration::from_secs(20);
 const GACHA_WORDS: [&str; 10] = ["헤드헌팅", "헌팅", "현팅", "해드", "기원", "추출", "진행", "LUNACY", "UID", "획득결과"];
 
 #[tauri::command]
-pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, start: bool) -> Result<(), String> {
+pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, profiles: State<'_, ScreenProfiles>, start: bool) -> Result<(), String> {
     if !start {
         state.0.store(false, Ordering::SeqCst);
         let _ = app.emit("screen-state", serde_json::json!({ "state": "stopped", "message": "" }));
@@ -48,6 +70,7 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, start: bool) ->
         return Ok(()); // 이미 켜져 있음
     }
     let flag = state.0.clone();
+    let profiles = profiles.0.clone();
     std::thread::spawn(move || {
         if let Err(e) = imp::prepare(&app) {
             flag.store(false, Ordering::SeqCst);
@@ -57,6 +80,22 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, start: bool) ->
         let _ = app.emit("screen-state", serde_json::json!({ "state": "started", "message": "" }));
         let mut last_gacha = std::time::Instant::now() - FAST_WINDOW;
         while flag.load(Ordering::SeqCst) {
+            // 새 방식(정해진 위치만 잘라 읽기): 판단 가능한 화면이 있을 때만
+            let snapshot = profiles.lock().map(|p| p.clone()).unwrap_or_default();
+            if crate::regions::any_ready(&snapshot) {
+                match imp::read_regions(&snapshot) {
+                    Ok(Some(frame)) => {
+                        if frame.screen.is_some() {
+                            last_gacha = std::time::Instant::now();
+                        }
+                        let _ = app.emit("screen-regions", frame);
+                    }
+                    Ok(None) => {}
+                    Err(e) => {
+                        let _ = app.emit("screen-state", serde_json::json!({ "state": "warn", "message": e }));
+                    }
+                }
+            }
             match imp::read_once() {
                 Ok(Some(frame)) => {
                     if frame.lines.iter().any(|l| { let t = l.t.replace(' ', ""); GACHA_WORDS.iter().any(|w| t.contains(w)) }) {
@@ -92,11 +131,14 @@ mod imp {
     pub fn read_once() -> Result<Option<Frame>, String> {
         Ok(None)
     }
+    pub fn read_regions(_profiles: &[crate::regions::Profile]) -> Result<Option<super::RegionFrame>, String> {
+        Ok(None)
+    }
 }
 
 #[cfg(windows)]
 mod imp {
-    use super::{Frame, Line};
+    use super::{Frame, Line, RegionFrame};
     use tauri::{AppHandle, Manager};
     use windows::core::HSTRING;
     use windows::Globalization::Language;
@@ -145,7 +187,8 @@ mod imp {
 
     /// 앞에 떠 있는 창의 안쪽 영역을 찍어 BGRA 바이트로 돌려준다. 우리 창이 앞이면 None.
     /// 돌려주는 값: (그림, 그림 가로, 그림 세로, 실제 창 가로, 실제 창 세로)
-    fn capture() -> Result<Option<(Vec<u8>, i32, i32, i32, i32)>, String> {
+    /// upscale = 창이 작으면 2배로 키워 찍기(화면 전체 글자 읽기용). 잘라 읽기는 원래 크기로 찍고 자른 부분만 키운다.
+    fn capture(upscale: bool) -> Result<Option<(Vec<u8>, i32, i32, i32, i32)>, String> {
         // SAFETY: 표준 GDI 호출. 만든 DC·비트맵은 이 함수 안에서 모두 해제한다.
         unsafe {
             let mut hwnd = GetForegroundWindow();
@@ -176,7 +219,7 @@ mod imp {
             let screen = GetDC(None);
             let mem = CreateCompatibleDC(Some(screen));
             // 작은 글자는 글자 인식이 자주 틀리므로("헤드헌팅" → "해드현팅") 창이 작으면 2배로 키워서 찍는다.
-            let scale = if h < 1500 { 2 } else { 1 };
+            let scale = if upscale && h < 1500 { 2 } else { 1 };
             let (cw, ch) = (w * scale, h * scale);
             let bmp = CreateCompatibleBitmap(screen, cw, ch);
             let old = SelectObject(mem, bmp.into());
@@ -212,10 +255,10 @@ mod imp {
         }
     }
 
-    pub fn read_once() -> Result<Option<Frame>, String> {
-        let Some((bytes, w, h, win_w, win_h)) = capture()? else { return Ok(None) };
+    /// BGRA 그림을 글자 인식해 줄 목록으로 (위치는 그림 대비 비율)
+    fn ocr(bytes: &[u8], w: i32, h: i32) -> Result<Vec<Line>, String> {
         let writer = DataWriter::new().map_err(err("버퍼"))?;
-        writer.WriteBytes(&bytes).map_err(err("버퍼"))?;
+        writer.WriteBytes(bytes).map_err(err("버퍼"))?;
         let buffer = writer.DetachBuffer().map_err(err("버퍼"))?;
         let bitmap = SoftwareBitmap::CreateCopyFromBuffer(&buffer, BitmapPixelFormat::Bgra8, w, h).map_err(err("그림 변환"))?;
         let result = engine()?
@@ -256,10 +299,43 @@ mod imp {
             }
             lines.push(Line { t: text, x: l / w as f64, y: t / h as f64, w: (r - l) / w as f64, h: (b - t) / h as f64 });
         }
-        let time = std::time::SystemTime::now()
+        Ok(lines)
+    }
+
+    fn now_ms() -> u64 {
+        std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_millis() as u64)
-            .unwrap_or(0);
+            .unwrap_or(0)
+    }
+
+    /// 정해진 위치만 잘라 읽기 (DESIGN.md §4.8). 판단된 화면의 칸만 글자 인식한다.
+    pub fn read_regions(profiles: &[crate::regions::Profile]) -> Result<Option<RegionFrame>, String> {
+        use crate::regions::{crop, match_screen, probe_matches, probe_print, rect_px, scale_for, Image};
+        let Some((bytes, w, h, win_w, win_h)) = capture(false)? else { return Ok(None) };
+        let img = Image { w: w as usize, h: h as usize, px: &bytes };
+        let mut frame = RegionFrame { time: now_ms(), width: win_w, height: win_h, screen: None, fields: Default::default(), tops: vec![], prints: vec![] };
+        let Some((_, screen, content)) = match_screen(&img, profiles) else { return Ok(Some(frame)) };
+        frame.screen = Some(screen.id.clone());
+        for f in &screen.fields {
+            let Some(area) = f.rect.and_then(|r| rect_px(img.w, img.h, content, r)) else { continue };
+            let (px, cw, ch) = crop(&img, area, scale_for(area));
+            let mut lines = ocr(&px, cw as i32, ch as i32)?;
+            lines.sort_by(|a, b| a.y.partial_cmp(&b.y).unwrap_or(std::cmp::Ordering::Equal));
+            let text = lines.into_iter().map(|l| l.t).collect::<Vec<_>>().join(" ");
+            frame.fields.insert(f.id.clone(), text);
+        }
+        for t in &screen.tops {
+            frame.tops.push(matches!(probe_matches(&img, content, t), Some((true, _))));
+            frame.prints.push(probe_print(&img, content, t));
+        }
+        Ok(Some(frame))
+    }
+
+    pub fn read_once() -> Result<Option<Frame>, String> {
+        let Some((bytes, w, h, win_w, win_h)) = capture(true)? else { return Ok(None) };
+        let lines = ocr(&bytes, w, h)?;
+        let time = now_ms();
         // 띄엄띄엄 본 점들이 거의 같은 색이면 화면이 제대로 안 찍힌 것(전체 화면 전용 모드 등)
         let step = (bytes.len() / 4 / 400).max(1) * 4;
         let first = [bytes[0], bytes[1], bytes[2]];

@@ -1,0 +1,183 @@
+{
+ "game": "limbus",
+ "aspect": 1.7777777777777777,
+ "fixes": [],
+ "screens": [
+  {
+   "id": "limbus-main",
+   "kind": "main",
+   "group": "limbus-extraction",
+   "shot": "L1",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "추출 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [
+    {
+     "id": "lunacy",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "lunacy"
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "광기"
+    }
+   ]
+  },
+  {
+   "id": "limbus-result-1",
+   "kind": "result",
+   "pulls": 1,
+   "group": null,
+   "shot": "L2",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1회 추출 결과 화면에만 있는 작은 부분"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "000 인격일 때의 등급 표시"
+    }
+   ],
+   "fields": []
+  },
+  {
+   "id": "limbus-result-10",
+   "kind": "result",
+   "pulls": 10,
+   "group": null,
+   "shot": "L3, L4",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10회 추출 결과 화면에만 있는 작은 부분"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "2번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "3번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "4번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "5번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "6번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "7번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "8번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "9번째 카드가 000일 때의 등급 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10번째 카드가 000일 때의 등급 표시"
+    }
+   ],
+   "fields": []
+  },
+  {
+   "id": "limbus-exchange",
+   "kind": "main",
+   "group": "limbus-extraction",
+   "shot": "L5",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "교환 포인트·추출 횟수가 보이는 화면의 특징"
+    }
+   ],
+   "fields": [
+    {
+     "id": "exchangePoints",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "bannerPulls"
+     },
+     "min": 0,
+     "max": 400,
+     "confirm": 3,
+     "note": "교환 포인트 또는 추출 횟수(200회 교환)"
+    }
+   ]
+  },
+  {
+   "id": "limbus-history",
+   "kind": "history",
+   "group": null,
+   "shot": "L6",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "추출 이력 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [],
+   "note": "그 전까지는 예전 방식(화면 전체 글자)으로 읽는다"
+  }
+ ],
+ "$comment": "화면 인식 틀(DESIGN.md §4.8). rect = [x, y, 너비, 높이] 게임 화면 대비 비율. null = 스크린샷 대기(docs/recognition-gaps.md). 문구 틀(template)은 실제 스크린샷에서만 정한다. {n} = 숫자 한 덩어리, 공백은 무시."
+}

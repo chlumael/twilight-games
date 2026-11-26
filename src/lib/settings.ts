@@ -9,6 +9,11 @@ export interface Settings {
   /** Group shown on the collapsed line, per game. */
   activeGroup: Record<GameId, string>;
   processNames: Record<GameId, string[]>;
+  /**
+   * 명일방주 일반 헤드헌팅 배너가 바뀔 때 6성 스택을 이어갈지 (이월 여부가 확인되지 않음 — DESIGN.md §6).
+   * ask = 바뀔 때마다 묻기, carry = 항상 이어가기, reset = 항상 새로
+   */
+  arknightsStandardCarry?: "ask" | "carry" | "reset";
 }
 
 export function defaultSettings(): Settings {

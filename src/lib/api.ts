@@ -145,3 +145,14 @@ export async function openPcDownload(): Promise<void> {
 export async function installPcUpdate(): Promise<void> {
   await invoke("install_update");
 }
+
+/** PC판 새 화면 인식: 화면 틀(data/screens/*.json)을 넘겨준다. 판단 가능한 화면이 생기면 "screen-regions" 이벤트가 온다 */
+export async function setScreenProfiles(profiles: unknown[]): Promise<void> {
+  if (inTauri) await invoke("set_screen_profiles", { profiles });
+}
+
+/** PC판 원신 기원 기록 불러오기 (src-tauri/src/genshin.rs). stopIds = 기원 종류별 지난번 가장 최근 번호 */
+export async function genshinWishes(stopIds: Record<string, string>): Promise<import("./genshin-wish").WishFetch> {
+  if (!inTauri) throw new Error("원신 기원 기록 불러오기는 PC판에서만 됩니다");
+  return invoke("genshin_wishes", { stopIds });
+}

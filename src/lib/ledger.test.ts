@@ -246,3 +246,37 @@ describe("화면 천장 숫자로 최고 등급 나온 자리 찾기", () => {
     expect(inferTopFromScreen(r, "endfield", G, 78, 100, t(50))).toBe(r); // 50분 지남
   });
 });
+
+import { recordResult, resetPity, syncBannerPulls } from "./ledger";
+
+describe("결과 화면 기록·화면 값 맞추기", () => {
+  it("결과 화면 10회: 6성 자리를 표시하고 출처는 화면", () => {
+    const r = recordResult(emptyRecords(), "endfield", "endfield-chartered", 10, [6], t(0));
+    const pulls = r.games.endfield.pulls;
+    expect(pulls.filter((p) => p.top).map((p) => p.indexInSession)).toEqual([6]);
+    expect(pulls.every((p) => p.source === "screen")).toBe(true);
+    expect(groupStatus(r.games.endfield, "endfield", "endfield-chartered").pity).toBe(3);
+  });
+  it("배너 누적 횟수(림버스 200회 교환)를 화면 값에 맞춘다", () => {
+    let r = emptyRecords();
+    r.games.limbus.currentBanner["limbus-extraction"] = "배너A";
+    r = recordSession(r, "limbus", "limbus-extraction", 10, new Map(), t(0));
+    r = syncBannerPulls(r, "limbus", "limbus-extraction", 57);
+    expect(groupStatus(r.games.limbus, "limbus", "limbus-extraction").bannerPulls).toBe(57);
+    expect(syncBannerPulls(r, "limbus", "limbus-extraction", 57)).toBe(r);
+  });
+  it("천장 스택 0부터 다시 (명일방주 일반 배너를 이어가지 않을 때)", () => {
+    let r = recordSession(emptyRecords(), "arknights", "arknights-standard", 30, new Map(), t(0));
+    r = resetPity(r, "arknights", "arknights-standard");
+    expect(groupStatus(r.games.arknights, "arknights", "arknights-standard").pity).toBe(0);
+    r = recordSession(r, "arknights", "arknights-standard", 10, new Map(), t(1));
+    expect(groupStatus(r.games.arknights, "arknights", "arknights-standard").pity).toBe(10);
+  });
+  it("이월 안 되는 무기고도 화면 천장 값에 맞춰지고, 다시 맞출 때 그대로", () => {
+    let r = emptyRecords();
+    r.games.endfield.currentBanner["endfield-arsenal"] = "무기고A";
+    r = syncPityFromScreen(r, "endfield", "endfield-arsenal", 30, null);
+    expect(groupStatus(r.games.endfield, "endfield", "endfield-arsenal").pity).toBe(10);
+    expect(syncPityFromScreen(r, "endfield", "endfield-arsenal", 30, null)).toBe(r);
+  });
+});

@@ -110,3 +110,10 @@ description: 황혼 게임즈의 화면 인식(게임 화면을 읽어 재화·�
 - 엔드필드 10회 결과 화면(세로 그림 10칸)은 이름 글자가 없다. 글자로는 "추가 획득"과 아래 숫자(20·200)만 읽힌다. 누가 나왔는지는 헤드헌팅 기록 화면에서만 알 수 있다.
 - 0.7.9: detect.ts는 재화를 **종류별로** 두 번 연속 같으면 믿는다(예전에는 읽힌 재화 묶음이 통째로 같아야 해서, PC에서 숫자 하나가 빠졌다 읽혔다 하면 영영 반영되지 않았다). 엔드필드 화면의 toTop·toFeatured는 `steadyCounts`로 두 번 연속 확인 후 `syncPityFromScreen`(ledger.ts)으로 기준값에 반영한다(한정 배너: 픽업 확정 문구가 함께 보일 때만).
 - 0.8.1: 엔드필드 10회 결과 화면에는 이름·등급 글자가 없어서 6성을 직접 못 본다. 대신 메인 화면 "N회 내 6성 확정"이 다시 커진 것으로 6성이 나온 자리를 계산한다(`inferTopFromScreen`, ledger.ts). 재화 변화가 확인된 뒤에만 돌린다(App.svelte의 currencySettled) — 먼저 돌리면 방금 뽑은 묶음이 기록되기 전이라 직전 묶음에 잘못 붙는다.
+
+## 새 인식 방식 (2026-11-26 사용자 규칙, PC 먼저) — 이제 이것이 기준
+- 규칙 전문: DESIGN.md §4.8(규칙 7은 사용자가 뺌), 원신 기원 기록: §4.9. 빈칸 목록: `docs/recognition-gaps.md`.
+- 흐름: Rust `regions.rs`(화면 판단·잘라 읽기) → 이벤트 `screen-regions`(RegionFrame) → `engine.ts`(`screen-profile.ts` 틀 해석 → `validate.ts` 검증 → `result-count.ts` 결과 세기) → App `applyEngine`.
+- 틀 데이터 `data/screens/<게임>.json`: rect/hash/rgb/template이 null이면 빈칸. **문구 틀은 스크린샷의 실제 글자로만** 만든다. 특징값은 `python3 -I scripts/screens/feature.py <png> x y w h`로(Rust와 같은 계산, 자체 검사 `--self-test`).
+- 게임별로 틀이 채워진 화면부터 켜진다. 결과 화면 세기가 켜진 게임은 재화 차이 감지(detect.ts)가 기록하지 않는다(`resultCountingReady`).
+- 스크린샷을 받으면: ① 화면마다 그 화면에만 있는 작은 부분 고르기(움직이는 그림·숫자 피하기) ② 칸 위치 비율 재기 ③ 특징값 계산 ④ 문구 틀 적기 ⑤ `engine.test.ts`처럼 실제 값으로 테스트 추가 ⑥ gaps 문서 갱신.

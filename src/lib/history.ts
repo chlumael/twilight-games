@@ -185,6 +185,8 @@ export function importHistory(
     groupOf?: (banner: string) => string | null;
     /** 이 등급보다 낮으면 이름·등급을 남기지 않는다 (원신 3성 — 사용자 요청) */
     minNamedRarity?: number;
+    /** 픽업 판정을 따로 할 때 (원신 기원 기록: 동시에 열린 기원들을 함께 본다) */
+    featuredOf?: (row: HistoryRow, group: string) => boolean | null;
     newId: () => string;
   },
 ): ImportResult {
@@ -238,7 +240,7 @@ export function importHistory(
       indexInSession: index++,
       top,
       name: unnamed ? null : r.name,
-      featured: top && b ? b.featured.some((f) => f.ko === r.name) : null,
+      featured: !top ? null : ctx.featuredOf ? ctx.featuredOf(r, group) : b ? b.featured.some((f) => f.ko === r.name) : null,
       rarity: unnamed ? null : (r.rarity ?? (top ? ctx.topRarity : null)),
       source: "official",
       confidence: 1,

@@ -1,0 +1,209 @@
+{
+ "game": "arknights",
+ "aspect": 1.7777777777777777,
+ "fixes": [],
+ "screens": [
+  {
+   "id": "arknights-limited-main",
+   "kind": "main",
+   "group": "arknights-limited",
+   "shot": "A1",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "한정 헤드헌팅 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [
+    {
+     "id": "orundum",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "orundum"
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "합성옥(오른쪽 위 맨 오른쪽)"
+    },
+    {
+     "id": "exchange",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "originite",
+      "divisor": 180
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "오리지늄 교환 칸(합성옥 환산값, 180의 배수 — 실기 확인)"
+    },
+    {
+     "id": "bannerPulls",
+     "rect": null,
+     "kind": "text",
+     "use": {
+      "type": "bannerPulls"
+     },
+     "min": 0,
+     "max": 300,
+     "confirm": 3,
+     "note": "300회 누적 표시(보이면 그걸로 맞춤)",
+     "template": null
+    }
+   ]
+  },
+  {
+   "id": "arknights-standard-main",
+   "kind": "main",
+   "group": "arknights-standard",
+   "shot": "A2",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "일반 헤드헌팅 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [
+    {
+     "id": "orundum",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "orundum"
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "합성옥"
+    },
+    {
+     "id": "exchange",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "originite",
+      "divisor": 180
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "오리지늄 교환 칸"
+    }
+   ]
+  },
+  {
+   "id": "arknights-result-1",
+   "kind": "result",
+   "pulls": 1,
+   "group": null,
+   "shot": "A3",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1회 결과 화면에만 있는 작은 부분"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "6성일 때의 표시(별 6개 또는 등급 색)"
+    }
+   ],
+   "fields": []
+  },
+  {
+   "id": "arknights-result-10",
+   "kind": "result",
+   "pulls": 10,
+   "group": null,
+   "shot": "A4, A5",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10회 결과 화면에만 있는 작은 부분"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "2번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "3번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "4번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "5번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "6번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "7번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "8번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "9번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10번째 칸이 6성일 때의 표시"
+    }
+   ],
+   "fields": []
+  }
+ ],
+ "$comment": "화면 인식 틀(DESIGN.md §4.8). rect = [x, y, 너비, 높이] 게임 화면 대비 비율. null = 스크린샷 대기(docs/recognition-gaps.md). 문구 틀(template)은 실제 스크린샷에서만 정한다. {n} = 숫자 한 덩어리, 공백은 무시."
+}

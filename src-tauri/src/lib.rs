@@ -1,5 +1,7 @@
 mod detect;
+mod genshin;
 mod login;
+mod regions;
 mod screen;
 mod storage;
 
@@ -37,6 +39,13 @@ fn hotkeys() -> Vec<(Shortcut, &'static str)> {
         (Shortcut::new(m, Code::KeyH), "toggle-collapse"),
         (Shortcut::new(m, Code::KeyQ), "open-review"),
         (Shortcut::new(m, Code::KeyZ), "undo"),
+        // 직접 입력 (DESIGN.md §8 단축키)
+        (Shortcut::new(m, Code::Digit1), "pull-1"),
+        (Shortcut::new(m, Code::Digit0), "pull-10"),
+        (Shortcut::new(m, Code::Digit6), "top"),
+        // 확인 창: 예 / 아니요
+        (Shortcut::new(m, Code::KeyY), "prompt-yes"),
+        (Shortcut::new(m, Code::KeyN), "prompt-no"),
     ]
 }
 
@@ -69,6 +78,7 @@ pub fn run() {
         .manage(ClickThrough::default())
         .manage(process_map)
         .manage(screen::ScreenRead::default())
+        .manage(screen::ScreenProfiles::default())
         .setup(move |app| {
             for (shortcut, action) in hotkeys() {
                 // Another app may own the combination; keep running without it.
@@ -90,6 +100,8 @@ pub fn run() {
             detect::list_processes,
             screen::screen_read,
             screen::screen_reading,
+            screen::set_screen_profiles,
+            genshin::genshin_wishes,
             login::google_login,
             login::open_download,
             login::install_update,

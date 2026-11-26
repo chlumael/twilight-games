@@ -3,12 +3,14 @@
   import { emptyBaseline } from "../lib/ledger";
   import { android, androidMode, inTauri, installPcUpdate, listProcesses, openPcDownload, pcVersion } from "../lib/api";
   import { isNewer, latestRelease } from "../lib/version";
+  import { profileOf, screenReady } from "../lib/screen-profile";
   import type { Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
 
   let {
     settings, game, web = false, record, onSettings, onBaseline, onExport, onImport, onClose,
     syncConfigured = false, account = null, syncState = "idle", lastSync = null, onSignIn, onSignOut, onSync,
+    onGenshinWishes, genshinWishBusy = false, genshinWishMsg = "",
   }: {
     settings: Settings;
     game: GameId;
@@ -27,7 +29,15 @@
     onSignIn?: () => void;
     onSignOut?: () => void;
     onSync?: () => void;
+    /** PC판 원신 기원 기록 불러오기 */
+    onGenshinWishes?: () => void;
+    genshinWishBusy?: boolean;
+    genshinWishMsg?: string;
   } = $props();
+
+  // 새 화면 인식 틀이 얼마나 채워졌는지 (DESIGN.md §4.8, 빈칸은 docs/recognition-gaps.md)
+  const gameScreens = $derived(profileOf(game)?.screens ?? []);
+  const readyScreens = $derived(gameScreens.filter(screenReady).length);
 
   let processes = $state<string[]>([]);
 
@@ -89,7 +99,8 @@
         oninput={(e) => onSettings({ ...settings, opacity: Number((e.currentTarget as HTMLInputElement).value) })}
       />
     </label>
-    <p class="muted hint">단축키: Ctrl+Alt+T 클릭 통과 · H 접기/펼치기 · Q 확인 대기 · Z 되돌리기</p>
+    <p class="muted hint">단축키(Ctrl+Alt+): T 클릭 통과 · H 접기/펼치기 · Q 확인 대기 · Z 되돌리기 · 1 지금 탭에 1회 · 0 지금 탭에 10회 · 6 최고 등급 떴다 · Y/N 확인 창 예/아니요</p>
+    <p class="muted hint">새 화면 인식 틀({GAMES[game].shortName}): 화면 {gameScreens.length}개 중 {readyScreens}개 준비. 준비 안 된 화면은 스크린샷을 받아 채울 예정이고, 그 전까지는 예전 방식으로 읽습니다.</p>
   </section>
   {/if}
 
@@ -121,6 +132,32 @@
       </div>
     {/each}
   </section>
+
+  {#if game === "arknights"}
+  <section>
+    <h4>명일방주 일반 헤드헌팅</h4>
+    <label class="row">배너가 바뀔 때 6성 스택
+      <select value={settings.arknightsStandardCarry ?? "ask"}
+        onchange={(e) => onSettings({ ...settings, arknightsStandardCarry: (e.currentTarget as HTMLSelectElement).value as "ask" | "carry" | "reset" })}>
+        <option value="ask">바뀔 때마다 묻기</option>
+        <option value="carry">항상 이어가기</option>
+        <option value="reset">항상 새로 세기</option>
+      </select>
+    </label>
+    <p class="muted hint">일반 배너끼리 스택이 이어지는지는 아직 확인되지 않았습니다. 확인되면 여기서 고정하세요.</p>
+  </section>
+  {/if}
+
+  {#if game === "genshin" && onGenshinWishes}
+  <section>
+    <h4>원신 기원 기록 불러오기</h4>
+    <div class="row">
+      <button onclick={onGenshinWishes} disabled={genshinWishBusy}>{genshinWishBusy ? "불러오는 중…" : "기원 기록 불러오기"}</button>
+    </div>
+    {#if genshinWishMsg}<p class="hint">{genshinWishMsg}</p>{/if}
+    <p class="muted hint">게임에서 기원 → 기록 화면을 한 번 연 뒤 누르세요. 원신 로그에서 기원 기록 주소를 찾아 원신 공식 기록 서버에서 캐릭터·무기·집록 기원 기록을 받습니다. 그 주소의 인증 값은 저장하지 않고 원신 서버 외에는 보내지 않습니다. 두 번째부터는 새 기록만 받습니다.</p>
+  </section>
+  {/if}
 
   {#if !web}
   <section>

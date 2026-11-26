@@ -1,6 +1,6 @@
 [package]
 name = "twilight-games"
-version = "0.8.2"
+version = "0.9.0"
 description = "황혼 게임즈 - 가챠 오버레이 트래커"
 edition = "2021"
 
@@ -27,6 +27,8 @@ windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_UI_Wind
 windows = { version = "0.61", features = [
   "Foundation", "Foundation_Collections", "Globalization", "Graphics_Imaging", "Media_Ocr", "Storage_Streams",
   "Win32_Foundation", "Win32_Graphics_Gdi", "Win32_System_Threading", "Win32_UI_WindowsAndMessaging",
+  # 원신 기원 기록 불러오기(윈도우 내장 인터넷 연결)
+  "Web", "Web_Http",
 ] }
 
 [profile.release]

@@ -353,6 +353,17 @@ export function recordDetected(
 }
 
 /**
+ * 지금 배너 기준의 기준값. 기준값이 다른 배너 것이면, 지금 계산 결과가 그대로 유지되도록 지금 배너 것으로 바꿔 준다
+ * (이월되는 그룹은 천장 스택을 남기고, 이월 안 되는 그룹은 0부터. 배너 누적 횟수는 0부터).
+ */
+function baseForBanner(rec: GameRecord, game: GameId, groupId: string, banner: string): Baseline {
+  const b0 = { ...emptyBaseline(), ...(rec.baseline[groupId] ?? {}) };
+  if (b0.banner === banner) return b0;
+  const group = findGroup(game, groupId);
+  return { ...emptyBaseline(), banner, pity: group.carryOver ? b0.pity : 0, guaranteed: b0.guaranteed };
+}
+
+/**
  * 게임 화면에 적힌 "N회 내 최고 등급 확정"·"N회 내 픽업 확정"에 앱의 수치를 맞춘다.
  * 뽑기 기록은 건드리지 않고, 앱이 못 본 과거를 나타내는 기준값(baseline)만 고친다.
  * 바꿀 것이 없으면 받은 records를 그대로 돌려준다.
@@ -367,7 +378,7 @@ export function syncPityFromScreen(
   const group = findGroup(game, groupId);
   const rec = records.games[game];
   const status = groupStatus(rec, game, groupId);
-  const base = { ...emptyBaseline(), ...(rec.baseline[groupId] ?? {}) };
+  const base = baseForBanner(rec, game, groupId, status.banner);
   let changed = false;
   if (toTop !== null && group.hardPity !== null && toTop >= 1 && toTop <= group.hardPity) {
     const delta = group.hardPity - toTop - status.pity;
@@ -380,8 +391,7 @@ export function syncPityFromScreen(
   if (toFeatured !== null && counter && toFeatured >= 1 && toFeatured <= counter.at) {
     const target = counter.at - toFeatured;
     if (status.bannerPulls !== target || base.bannerFeaturedGot) {
-      const recorded = status.bannerPulls - (base.banner === status.banner ? base.bannerPulls : 0);
-      base.banner = status.banner;
+      const recorded = status.bannerPulls - base.bannerPulls;
       base.bannerPulls = target - recorded;
       base.bannerFeaturedGot = false;
       changed = true;
@@ -422,4 +432,50 @@ export function inferTopFromScreen(
   if (session.some((p) => p.top) || newPity >= session.length) return records;
   const position = session.length - newPity - 1;
   return markTopInLastSession(records, game, groupId, position, { name: null, featured: toFeatured !== null ? false : null });
+}
+
+/**
+ * 결과 화면으로 센 뽑기를 기록한다. tops = 최고 등급이 나온 자리(0부터). 이름·픽업 여부는 모른다(기록 화면·기원 기록에서 채움).
+ */
+export function recordResult(
+  records: Records,
+  game: GameId,
+  groupId: string,
+  count: number,
+  tops: number[],
+  now: Date = new Date(),
+): Records {
+  const map = new Map<number, TopInfo>(tops.filter((i) => i >= 0 && i < count).map((i) => [i, { name: null, featured: null }]));
+  const next = recordSession(records, game, groupId, count, map, now);
+  const added = new Set(next.undo[next.undo.length - 1]?.addedPullIds ?? []);
+  for (const p of next.games[game].pulls) if (added.has(p.id)) p.source = "screen";
+  const last = next.undo[next.undo.length - 1];
+  if (last) last.label = `${GAMES[game].shortName} ${findGroup(game, groupId).name} ${count}회 (결과 화면)`;
+  return next;
+}
+
+/** 화면에 보이는 배너 누적 횟수(명일방주 300회, 림버스 200회 교환)에 앱의 값을 맞춘다. 같으면 그대로 돌려준다 */
+export function syncBannerPulls(records: Records, game: GameId, groupId: string, value: number): Records {
+  const rec = records.games[game];
+  const status = groupStatus(rec, game, groupId);
+  if (status.bannerPulls === value || value < 0) return records;
+  const base = baseForBanner(rec, game, groupId, status.banner);
+  base.bannerPulls = value - (status.bannerPulls - base.bannerPulls);
+  const next = structuredClone(records);
+  next.games[game].baseline[groupId] = base;
+  next.games[game].updatedAt = new Date().toISOString();
+  return next;
+}
+
+/** 천장 스택을 0부터 다시 센다 (명일방주 일반 배너가 바뀌었는데 이어가지 않기로 한 경우). 이미 0이면 그대로 */
+export function resetPity(records: Records, game: GameId, groupId: string): Records {
+  const rec = records.games[game];
+  const status = groupStatus(rec, game, groupId);
+  if (status.pity === 0) return records;
+  const base = baseForBanner(rec, game, groupId, status.banner);
+  base.pity -= status.pity;
+  const next = structuredClone(records);
+  next.games[game].baseline[groupId] = base;
+  next.games[game].updatedAt = new Date().toISOString();
+  return next;
 }

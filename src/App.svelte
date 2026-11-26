@@ -10,11 +10,16 @@
   import SettingsPanel from "./components/SettingsPanel.svelte";
   import StatsPanel from "./components/StatsPanel.svelte";
   import TopForm from "./components/TopForm.svelte";
+  import PromptBar from "./components/PromptBar.svelte";
+  import { emptyEngineState, engineStep, type EngineAction, type EngineStatus, type RegionFrame } from "./lib/engine";
+  import { PROFILES, resultCountingReady } from "./lib/screen-profile";
+  import { dropPrompt, pushPrompt, type Prompt } from "./lib/prompts";
+  import { newestIds, wishFeatured, wishRows } from "./lib/genshin-wish";
   import * as api from "./lib/api";
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, resetPity, syncBannerPulls } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
@@ -98,13 +103,130 @@
       try { localStorage.setItem(DETECT_STATE_KEY, JSON.stringify({ stable: out.state.stable, stableAt: out.state.stableAt })); } catch { /* 무시 */ }
     }
     detectState = out.state;
-    if (out.detection) {
+    // 결과 화면으로 횟수를 세는 게임은 재화 차이로 뽑기를 기록하지 않는다(두 번 세지 않게, DESIGN.md §4.8)
+    if (out.detection && !resultCountingReady(out.detection.game)) {
       // 감지되면 바로 기록한다(사용자 요청 2026-11-25). 확실하지 않은 것은 "확인"에 표시해 취소할 수 있게 한다.
       const d = out.detection;
       const gid = settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id;
       saveDetection(d, gid, d.count, true);
     }
   }
+  // ---- 새 화면 인식 (PC, DESIGN.md §4.8): 정해진 위치만 잘라 읽은 결과 → 틀로 해석 → 검증 → 반영 ----
+  let engineState = emptyEngineState();
+  let engineStatus = $state<EngineStatus>({ kind: "idle", message: "", screen: null, at: 0 });
+  /** 실패 표시는 잠깐만 (이후 성공하면 바로 지워짐) */
+  const engineFailing = $derived(engineStatus.kind === "fail");
+  function onRegions(frame: RegionFrame) {
+    const out = engineStep(engineState, frame, PROFILES);
+    engineState = out.state;
+    engineStatus = out.state.status;
+    for (const a of out.actions) applyEngine(a);
+  }
+  function applyEngine(a: EngineAction) {
+    if (a.type === "currency") {
+      const cur = records.games[a.game].currency;
+      const diff = Object.fromEntries(Object.entries(a.values).filter(([k, v]) => cur[k] !== v));
+      if (Object.keys(diff).length) update(setCurrency(records, a.game, diff));
+    } else if (a.type === "pity") {
+      // 규칙 7은 사용자가 뺐다(2026-11-26): 검증을 통과한 천장 값은 바로 반영한다
+      const marked = inferTopFromScreen(records, a.game, a.group, a.toTop, a.toFeatured);
+      if (marked !== records) notify(`${GAMES[a.game].topLabel} 획득을 화면 천장 숫자로 기록했습니다`);
+      const synced = syncPityFromScreen(marked, a.game, a.group, a.toTop, a.toFeatured);
+      if (synced !== records) update(synced);
+    } else if (a.type === "bannerPulls") {
+      const synced = syncBannerPulls(records, a.game, a.group, a.value);
+      if (synced !== records) update(synced);
+    } else if (a.type === "result") {
+      const gid = a.group ?? settings.activeGroup[a.game] ?? GAMES[a.game].groups[0].id;
+      const next = recordResult(records, a.game, gid, a.count, a.tops, new Date());
+      update(next);
+      const label = `${GAMES[a.game].shortName} ${findGroup(a.game, gid).name} ${a.count}회`;
+      saveAutoLog([...autoLog, {
+        id: `res-${Date.now()}`, game: a.game, label, pullIds: next.undo[next.undo.length - 1]?.addedPullIds ?? [], uncertain: false, time: Date.now(),
+      }]);
+      notify(`${label} 자동 기록 (결과 화면${a.tops.length ? `, ${GAMES[a.game].topLabel} ${a.tops.length}개` : ""})`);
+      if (a.game === "genshin" && a.tops.length) askGenshinReload();
+    } else if (a.type === "signal") {
+      if (a.game === "genshin") askGenshinReload();
+    }
+  }
+
+  // ---- 확인 창 (Ctrl+Alt+Y 예 / Ctrl+Alt+N 아니요) ----
+  let prompts = $state.raw<Prompt[]>([]);
+  function ask(p: Omit<Prompt, "id">) {
+    prompts = pushPrompt(prompts, { ...p, id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` });
+    collapsed = false;
+  }
+  function answerPrompt(yes: boolean) {
+    const p = prompts[0];
+    if (!p) return;
+    prompts = dropPrompt(prompts, p.id);
+    if (p.action.type === "genshin-reload") {
+      if (yes) loadGenshinWishes();
+    } else if (p.action.type === "arknights-carry") {
+      if (!yes) {
+        update(resetPity(records, "arknights", p.action.group));
+        notify("새 배너부터 6성 스택을 0으로 셉니다");
+      } else notify("6성 스택을 이어갑니다");
+    }
+  }
+  function askGenshinReload() {
+    if (!api.inTauri) return;
+    ask({ text: "5성이 나왔습니다. 원신 기원 기록을 새로 불러올까요?", yes: "불러오기", no: "나중에", action: { type: "genshin-reload" } });
+  }
+  /** 명일방주 일반 헤드헌팅 배너가 바뀌었을 때 (이월 여부 미확정 — 설정에 따라 묻거나 고정) */
+  function onBannerChanged(g: GameId, gid: string, from: string, to: string, recs: Records) {
+    if (g !== "arknights" || gid !== "arknights-standard" || !from || from === to) return;
+    if (groupStatus(recs.games.arknights, "arknights", gid).pity === 0) return;
+    const mode = settings.arknightsStandardCarry ?? "ask";
+    if (mode === "carry") return;
+    if (mode === "reset") { update(resetPity(recs, "arknights", gid)); return; }
+    ask({ text: "명일방주 일반 헤드헌팅 배너가 바뀌었습니다. 6성 스택을 이어갈까요?", yes: "이어가기", no: "0부터", action: { type: "arknights-carry", group: gid, from, to } });
+  }
+
+  // ---- 원신 기원 기록 불러오기 (PC, DESIGN.md §4.9) ----
+  const WISH_LAST_KEY = "tg-genshin-wish-last";
+  let wishBusy = $state(false);
+  let wishMsg = $state("");
+  async function loadGenshinWishes() {
+    if (wishBusy) return;
+    wishBusy = true;
+    wishMsg = "원신 기원 기록을 받는 중입니다… (처음에는 1분쯤 걸릴 수 있습니다)";
+    try {
+      let last: Record<string, string> = {};
+      try { last = JSON.parse(localStorage.getItem(WISH_LAST_KEY) ?? "{}"); } catch { /* 처음 */ }
+      const fetched = await api.genshinWishes(last);
+      const rows = wishRows(fetched);
+      const banners = pack?.games.genshin ?? [];
+      if (rows.length) {
+        const out = importHistory(records, "genshin", rows, {
+          banners, topRarity: 5, isTop: () => false, minNamedRarity: 4, featuredOf: wishFeatured(banners),
+          newId: () => `gw-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        });
+        update(out.records);
+        wishMsg = `기원 기록 ${out.added}개를 반영했습니다.`;
+      } else {
+        wishMsg = "새 기원 기록이 없습니다.";
+      }
+      try { localStorage.setItem(WISH_LAST_KEY, JSON.stringify(newestIds(last, fetched.latest))); } catch { /* 무시 */ }
+      notify(wishMsg);
+    } catch (e) {
+      wishMsg = String(e instanceof Error ? e.message : e);
+      notify(wishMsg);
+    } finally {
+      wishBusy = false;
+    }
+  }
+
+  /** 단축키 "최고 등급 떴다": 30분 안에 기록한 직전 묶음의 마지막 칸에 표시, 없으면 1회로 기록 */
+  function hotkeyTop() {
+    const last = rec.pulls.filter((p) => p.group === groupId).sort((a, b) => (a.time < b.time ? -1 : 1)).at(-1);
+    const recent = last && Date.now() - Date.parse(last.time) < 30 * 60 * 1000;
+    const size = recent ? lastSessionSize(rec, groupId) : 0;
+    const session = recent ? rec.pulls.filter((p) => p.sessionId === last!.sessionId) : [];
+    saveTop(size > 0 && !session.some((p) => p.top) ? size - 1 : null, { name: null, featured: null });
+  }
+
   // ---- 공식 기록 화면 (엔드필드 헤드헌팅 기록, 원신 기원 기록, 명일방주 요스타 가챠 기록) ----
   const HISTORY_KEY = "tg-history";
   const HISTORY_GAMES: GameId[] = ["genshin", "endfield", "arknights"];
@@ -262,6 +384,7 @@
   $effect(() => {
     if (!loaded || !pack) return;
     let next: Records | null = null;
+    const changes: [GameId, string, string, string][] = [];
     for (const id of GAME_IDS) {
       for (const g of GAMES[id].groups) {
         const cur = (next ?? records).games[id].currentBanner[g.id] ?? "";
@@ -269,10 +392,12 @@
         if (to) {
           next ??= structuredClone(records);
           next.games[id].currentBanner[g.id] = to;
+          changes.push([id, g.id, cur, to]);
         }
       }
     }
     if (next) records = next;
+    for (const [g, gid, from, to] of changes) onBannerChanged(g, gid, from, to, records);
   });
 
   function notify(msg: string) {
@@ -457,9 +582,11 @@
   }
 
   function setBanner(name: string) {
+    const from = records.games[game].currentBanner[groupId] ?? "";
     const next = structuredClone(records);
     next.games[game].currentBanner[groupId] = name;
     update(next);
+    onBannerChanged(game, groupId, from, name, records);
   }
 
   function setBaseline(gid: string, b: Baseline) {
@@ -625,6 +752,8 @@
     if (api.inTauri) {
       unlisten.push(api.onEvent<ScreenFrame>("screen-text", (f) => sw.__twilightScreen?.(JSON.stringify(f))));
       unlisten.push(api.onEvent<{ state: string; message: string }>("screen-state", (st) => sw.__twilightScreenState?.(JSON.stringify(st))));
+      unlisten.push(api.onEvent<RegionFrame>("screen-regions", onRegions));
+      api.setScreenProfiles(PROFILES);
       api.screenRead(true);
       // 켤 때 새 버전을 확인하고, 있으면 창을 펼쳐 알린다
       void api.pcVersion().then(async (cur) => {
@@ -636,6 +765,11 @@
       if (action === "toggle-collapse") collapsed = !collapsed;
       else if (action === "open-review") { collapsed = false; view = "review"; }
       else if (action === "undo") doUndo();
+      else if (action === "pull-1") pull(1);
+      else if (action === "pull-10") pull(10);
+      else if (action === "top") hotkeyTop();
+      else if (action === "prompt-yes") answerPrompt(true);
+      else if (action === "prompt-no") answerPrompt(false);
     }));
     return () => {
       unwatch();
@@ -655,6 +789,8 @@
       {#if status.guaranteed}<span class="good" data-tauri-drag-region>확정</span>{/if}
       <span class="have" data-tauri-drag-region>{canPull}<small>뽑</small></span>
       {#if pending}<span class="warn" data-tauri-drag-region>확인 {pending}</span>{/if}
+      {#if engineFailing}<span class="warn small" data-tauri-drag-region title={engineStatus.message}>인식 못 함</span>{/if}
+      {#if prompts.length}<span class="warn" data-tauri-drag-region>질문 {prompts.length}</span>{/if}
       {#if newVersion}<span class="warn" data-tauri-drag-region>새 버전</span>{/if}
       {#if clickThrough}<span class="muted" data-tauri-drag-region title="클릭 통과 중 (Ctrl+Alt+T)">⇣</span>{/if}
       <button class="icon expand" onclick={() => (collapsed = false)} aria-label="펼치기">▾</button>
@@ -672,6 +808,8 @@
         {/if}
       </div>
     {/if}
+    {#if prompts.length}<PromptBar prompt={prompts[0]} pc={api.inTauri} onAnswer={answerPrompt} />{/if}
+    {#if engineFailing}<div class="engine-fail" title={engineStatus.message}>{engineStatus.message}</div>{/if}
     <header data-tauri-drag-region>
       <div class="brand" data-tauri-drag-region>
         <span class="brand-title" data-tauri-drag-region>{skin.title}</span>
@@ -718,6 +856,7 @@
           onExport={exportData} onImport={importData} onClose={() => (view = "main")}
           syncConfigured={sync.syncConfigured} {account} {syncState} {lastSync}
           onSignIn={signInAccount} onSignOut={signOutAccount} onSync={syncNow}
+          onGenshinWishes={api.inTauri ? loadGenshinWishes : undefined} genshinWishBusy={wishBusy} genshinWishMsg={wishMsg}
         />
       {:else if view === "stats"}
         <StatsPanel {game} record={rec} bannerName={packBannerName} onClose={() => (view = "main")} />
@@ -861,6 +1000,7 @@
   .lblist .top { font-weight: 700; color: var(--top); }
   .lbact { display: flex; gap: 6px; }
   .lbact .save { flex: 1; }
+  .engine-fail { padding: 3px 10px; font-size: 11px; color: var(--warn, #f5b041); background: rgba(0, 0, 0, 0.35); }
   .update { display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 12px; background: rgba(0, 0, 0, 0.45); border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.15)); }
   .update span { flex: 1; font-weight: 700; }
   .update .later { opacity: 0.7; }

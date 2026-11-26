@@ -1,0 +1,461 @@
+{
+ "game": "endfield",
+ "aspect": 1.7777777777777777,
+ "fixes": [
+  [
+   "해드현팅",
+   "헤드헌팅"
+  ],
+  [
+   "헤드현팅",
+   "헤드헌팅"
+  ]
+ ],
+ "fixesNote": "PC 실기(2026-11-25)에서 윈도우 글자 인식이 '헤드헌팅'을 이렇게 읽은 것이 확인됨",
+ "screens": [
+  {
+   "id": "endfield-chartered-main",
+   "kind": "main",
+   "group": "endfield-chartered",
+   "shot": "E1, E2",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "한정 헤드헌팅 화면에만 있는 작은 부분(예: 배너 탭·버튼 모양)"
+    }
+   ],
+   "fields": [
+    {
+     "id": "oroberyl",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "oroberyl"
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "오른쪽 위 맨 오른쪽 숫자(+ 단추 제외)"
+    },
+    {
+     "id": "exchange",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "origeometry",
+      "divisor": 75
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "파생 오리지늄 교환 칸(오로베릴 환산값, 75의 배수 — 사용자 확인)"
+    },
+    {
+     "id": "charteredPermit",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "charteredPermit"
+     },
+     "min": 0,
+     "max": 99999,
+     "confirm": 2,
+     "note": "특별 허가 헤드헌팅 허가증 칸"
+    },
+    {
+     "id": "limitedPermit",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "limitedPermit"
+     },
+     "min": 0,
+     "max": 99999,
+     "confirm": 2,
+     "note": "기간 한정 허가증 칸"
+    },
+    {
+     "id": "toTop",
+     "rect": null,
+     "kind": "text",
+     "use": {
+      "type": "toTop"
+     },
+     "min": 1,
+     "max": 80,
+     "confirm": 3,
+     "note": "'N회의 헤드헌팅 내 6성 오퍼레이터 확정' 줄 (스택 = 80 − N, 사용자 확인)",
+     "template": null
+    },
+    {
+     "id": "toFeatured",
+     "rect": null,
+     "kind": "text",
+     "use": {
+      "type": "toFeatured"
+     },
+     "min": 1,
+     "max": 120,
+     "confirm": 3,
+     "note": "'N회의 헤드헌팅 내 확정 획득' 줄 (120회 픽업 확정, 최초 1회)",
+     "template": null
+    }
+   ]
+  },
+  {
+   "id": "endfield-refactor-main",
+   "kind": "main",
+   "group": "endfield-refactor",
+   "shot": "E3",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "재구축 헤드헌팅 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [
+    {
+     "id": "oroberyl",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "oroberyl"
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "오로베릴"
+    },
+    {
+     "id": "exchange",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "origeometry",
+      "divisor": 75
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "파생 오리지늄 교환 칸"
+    },
+    {
+     "id": "toTop",
+     "rect": null,
+     "kind": "text",
+     "use": {
+      "type": "toTop"
+     },
+     "min": 1,
+     "max": 80,
+     "confirm": 3,
+     "note": "6성 확정까지 남은 횟수 줄(있다면)",
+     "template": null
+    },
+    {
+     "id": "toFeatured",
+     "rect": null,
+     "kind": "text",
+     "use": {
+      "type": "toFeatured"
+     },
+     "min": 1,
+     "max": 120,
+     "confirm": 3,
+     "note": "픽업 확정까지 남은 횟수 줄(있다면)",
+     "template": null
+    },
+    {
+     "id": "bannerName",
+     "rect": null,
+     "kind": "text",
+     "use": {
+      "type": "bannerName"
+     },
+     "min": 0,
+     "max": 0,
+     "confirm": 2,
+     "note": "배너 이름(시리즈 이름이 붙음 — 시리즈별 이월에 사용)",
+     "template": null
+    }
+   ]
+  },
+  {
+   "id": "endfield-arsenal-main",
+   "kind": "main",
+   "group": "endfield-arsenal",
+   "shot": "E4",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "무기고 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [
+    {
+     "id": "arsenalTicket",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "arsenalTicket"
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "무기고 증표"
+    },
+    {
+     "id": "toTop",
+     "rect": null,
+     "kind": "text",
+     "use": {
+      "type": "toTop"
+     },
+     "min": 1,
+     "max": 40,
+     "confirm": 3,
+     "note": "6성 무기 확정까지 남은 횟수 줄(있다면, 40 기준)",
+     "template": null
+    },
+    {
+     "id": "toFeatured",
+     "rect": null,
+     "kind": "text",
+     "use": {
+      "type": "toFeatured"
+     },
+     "min": 1,
+     "max": 80,
+     "confirm": 3,
+     "note": "픽업 무기 확정까지 남은 횟수 줄(있다면, 80 기준)",
+     "template": null
+    }
+   ]
+  },
+  {
+   "id": "endfield-result-1",
+   "kind": "result",
+   "pulls": 1,
+   "group": null,
+   "shot": "E5",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1회 결과 화면에만 있는 작은 부분"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "6성일 때만 보이는 표시(색·문양)"
+    }
+   ],
+   "fields": []
+  },
+  {
+   "id": "endfield-result-10",
+   "kind": "result",
+   "pulls": 10,
+   "group": null,
+   "shot": "E6, E7",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10회 결과 화면에만 있는 작은 부분(예: 아래 '추가 획득' 줄)"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "2번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "3번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "4번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "5번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "6번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "7번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "8번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "9번째 칸이 6성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10번째 칸이 6성일 때의 표시"
+    }
+   ],
+   "fields": []
+  },
+  {
+   "id": "endfield-arsenal-result-10",
+   "kind": "result",
+   "pulls": 10,
+   "group": "endfield-arsenal",
+   "shot": "E8",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "무기고 10회 결과 화면에만 있는 작은 부분"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "2번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "3번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "4번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "5번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "6번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "7번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "8번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "9번째 칸이 6성 무기일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10번째 칸이 6성 무기일 때의 표시"
+    }
+   ],
+   "fields": []
+  },
+  {
+   "id": "endfield-emergency-result",
+   "kind": "ignore",
+   "group": null,
+   "shot": "E10",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "긴급 모집(무료 10회) 결과 화면 구분 표시 — 천장에 안 들어가므로 세지 않음"
+    }
+   ],
+   "fields": []
+  },
+  {
+   "id": "endfield-history",
+   "kind": "history",
+   "group": null,
+   "shot": "E9",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "헤드헌팅 기록 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [],
+   "note": "기록 줄 위치·열 위치는 스크린샷 대기. 그 전까지는 예전 방식(화면 전체 글자)으로 읽는다"
+  }
+ ],
+ "$comment": "화면 인식 틀(DESIGN.md §4.8). rect = [x, y, 너비, 높이] 게임 화면 대비 비율. null = 스크린샷 대기(docs/recognition-gaps.md). 문구 틀(template)은 실제 스크린샷에서만 정한다. {n} = 숫자 한 덩어리, 공백은 무시."
+}

@@ -1,0 +1,211 @@
+{
+ "game": "genshin",
+ "aspect": 1.7777777777777777,
+ "fixes": [],
+ "screens": [
+  {
+   "id": "genshin-char-main",
+   "kind": "main",
+   "group": "genshin-char",
+   "shot": "G1",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "캐릭터 이벤트 기원 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [
+    {
+     "id": "primogem",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "primogem"
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "원석(오른쪽 위, + 단추 제외)"
+    },
+    {
+     "id": "intertwined",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "intertwined"
+     },
+     "min": 0,
+     "max": 99999,
+     "confirm": 2,
+     "note": "뒤엉킨 인연"
+    }
+   ]
+  },
+  {
+   "id": "genshin-weapon-main",
+   "kind": "main",
+   "group": "genshin-weapon",
+   "shot": "G2",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "무기 이벤트 기원 화면에만 있는 작은 부분"
+    }
+   ],
+   "fields": [
+    {
+     "id": "primogem",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "primogem"
+     },
+     "min": 0,
+     "max": 9999999,
+     "confirm": 2,
+     "note": "원석"
+    },
+    {
+     "id": "intertwined",
+     "rect": null,
+     "kind": "digits",
+     "use": {
+      "type": "currency",
+      "key": "intertwined"
+     },
+     "min": 0,
+     "max": 99999,
+     "confirm": 2,
+     "note": "뒤엉킨 인연"
+    }
+   ]
+  },
+  {
+   "id": "genshin-result-10",
+   "kind": "result",
+   "pulls": 10,
+   "group": null,
+   "shot": "G3, G4",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10회 결과 요약 화면에만 있는 작은 부분"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "2번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "3번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "4번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "5번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "6번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "7번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "8번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "9번째 칸이 5성일 때의 표시"
+    },
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "10번째 칸이 5성일 때의 표시"
+    }
+   ],
+   "fields": [],
+   "note": "원신은 기원 기록 불러오기가 메인. 5성이 보이면 '기록 새로 불러올까?'를 띄운다"
+  },
+  {
+   "id": "genshin-result-1",
+   "kind": "result",
+   "pulls": 1,
+   "group": null,
+   "shot": "G5",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "1회 결과 화면에만 있는 작은 부분"
+    }
+   ],
+   "tops": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "5성일 때의 표시"
+    }
+   ],
+   "fields": []
+  },
+  {
+   "id": "genshin-five-star-flash",
+   "kind": "signal",
+   "group": null,
+   "shot": "G6",
+   "detect": [
+    {
+     "rect": null,
+     "hash": null,
+     "rgb": null,
+     "note": "5성 연출(금색) 화면의 특징"
+    }
+   ],
+   "fields": [],
+   "note": "연출을 건너뛰어도 5성을 잡기 위한 보조 신호. 횟수는 세지 않는다"
+  }
+ ],
+ "$comment": "화면 인식 틀(DESIGN.md §4.8). rect = [x, y, 너비, 높이] 게임 화면 대비 비율. null = 스크린샷 대기(docs/recognition-gaps.md). 문구 틀(template)은 실제 스크린샷에서만 정한다. {n} = 숫자 한 덩어리, 공백은 무시."
+}
