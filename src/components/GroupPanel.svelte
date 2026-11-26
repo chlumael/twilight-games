@@ -33,6 +33,8 @@
   const canExchange = $derived(!!onExchange && status.counters.some((c) => /교환/.test(c.label)));
   let byExchange = $state(false);
 
+  /** 한 번에 뽑는 단위(엔드필드 무기 신청 = 10) */
+  const step = $derived(status.unit);
   let adding = $state(false);
   let addN = $state<number | null>(null);
   let addName = $state("");
@@ -165,7 +167,7 @@
     <form class="add" onsubmit={(e) => { e.preventDefault(); saveAdd(); }}>
       {#if canExchange}<label class="exch"><input type="checkbox" bind:checked={byExchange} />교환</label>{/if}
       {#if !byExchange}
-        <input class="n" type="number" min="1" max={status.hardPity ?? 999} placeholder={String(status.pity)} bind:value={addN} aria-label="몇 번째" />
+        <input class="n" type="number" min="1" max={status.hardPity ?? 999} step={step} placeholder={String(status.pity)} bind:value={addN} aria-label="몇 번째" />
         <span>뽑</span>
       {/if}
       <input class="nm" list="top-names" placeholder="{topLabel} 이름" bind:value={addName} aria-label="이름" />

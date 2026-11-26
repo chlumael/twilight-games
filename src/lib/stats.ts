@@ -65,7 +65,8 @@ export function groupStats(rec: GameRecord, game: GameId, groupId: string): Grou
   return {
     groupId,
     name: group.name,
-    pulls: pulls.length,
+    // 묶음 단위(엔드필드 무기 신청)는 10의 배수로 올려서 보여 준다
+    pulls: Math.ceil(pulls.length / (group.odds?.unit ?? 1)) * (group.odds?.unit ?? 1),
     tops: hits.length,
     average,
     best: counts.length ? Math.min(...counts) : null,

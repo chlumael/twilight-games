@@ -54,6 +54,8 @@ export interface GroupStatus {
   bannerPulls: number;
   counters: CounterStatus[];
   lastTop: Pull | null;
+  /** 한 번에 뽑는 단위(엔드필드 무기 신청 = 10, 그 밖은 1) */
+  unit: number;
 }
 
 /** 배너 id → 시리즈 (엔드필드 재구축). 기본은 배너마다 다른 시리즈 */
@@ -112,8 +114,13 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
   // 배너 카운터: 보통은 이 배너 것만, 시리즈 범위면 같은 시리즈 배너를 이어서 센다
   if (pity < 0) pity = 0; // 기준값이 음수로 남은 경우(아래 repairBaselines가 고친다)
   // 묶음 단위(엔드필드 무기 신청 10개): 묶음 안에서 최고 등급이 나오면 그 묶음까지로 천장이 끝난다
+  // 그 밖에는 10의 배수로 올려서 본다(단뽑이 없으므로: 39 → 40, 62 → 70. 사용자 2026-11-26)
   const unit = group.odds?.unit ?? 1;
-  if (unit > 1 && lastTop) pity = Math.floor(pity / unit) * unit;
+  if (unit > 1) {
+    const top = lastTop as Pull | null;
+    const sameBatch = top ? pulls.slice(pulls.indexOf(top) + 1).filter((p) => p.sessionId === top.sessionId).length : 0;
+    pity = Math.ceil(Math.max(0, pity - sameBatch) / unit) * unit;
+  }
 
   const onBanner = rec.pulls.filter((p) => p.group === groupId && (p.banner === banner ||
     (group.counterScope === "series" && !!banner && seriesOf(p.banner) === seriesOf(banner))));
@@ -142,6 +149,7 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
     bannerPulls,
     counters,
     lastTop,
+    unit,
   };
 }
 
@@ -196,7 +204,7 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       if (featuredAt !== null && up(n) === featuredAt && p.featured === true) ceiling = "full";
       else if (atHard) ceiling = group?.featuredRule !== "none" && guaranteed ? "full" : "half";
       // 기준값이 음수라(화면 값에 맞추느라 뺀 뒤 기록을 지운 경우) 횟수가 0 이하로 나오면, 기록된 뽑기 수로 센다
-      hits.push({ pull: p, count: since > 0 ? since : seen, ceiling });
+      hits.push({ pull: p, count: up(since > 0 ? since : seen), ceiling });
       since = 0;
       seen = 0;
       if (group && group.featuredRule !== "none") guaranteed = p.featured === false;
@@ -575,6 +583,9 @@ export function recordTopAt(
   const st = groupStatus(rec, game, groupId);
   // 천장보다 큰 숫자는 받지 않는다(잘못 넣으면 그만큼 뽑기가 더해지므로)
   const hard = findGroup(game, groupId).hardPity;
+  // 묶음 단위(엔드필드 무기 신청)는 10의 배수로 올린다: 39 → 40
+  const unit = findGroup(game, groupId).odds?.unit ?? 1;
+  n = Math.ceil(n / unit) * unit;
   if (!Number.isInteger(n) || n < 1 || (hard !== null && n > hard)) return { records, mode: "baseline" };
   const pulls = countedPulls(rec, game, groupId);
   const lastTop = pulls.map((p) => p.top).lastIndexOf(true);

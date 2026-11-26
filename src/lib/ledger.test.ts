@@ -456,3 +456,19 @@ describe("직접 입력 안전장치", () => {
     expect(recordTopAt(r, "endfield", G, 200, { name: "가", featured: null }, t(0)).records).toBe(r);
   });
 });
+
+describe("엔드필드 무기고는 10의 배수로만", () => {
+  it("39뽑 입력 → 40뽑으로 기록, 예전에 37뽑으로 들어간 기록도 40뽑으로 표시", async () => {
+    const { recordTopAt } = await import("./ledger");
+    const G = "endfield-arsenal";
+    let r = emptyRecords();
+    r.games.endfield.currentBanner[G] = "W";
+    const out = recordTopAt(r, "endfield", G, 39, { name: "무기", featured: true }, t(0));
+    expect(out.records.games.endfield.pulls).toHaveLength(40);
+    expect(topHistory(out.records.games.endfield, G).map((h) => h.count)).toEqual([40]);
+    r = recordSession(r, "endfield", G, 37, new Map([[36, { name: "무기", featured: false }]]), t(1));
+    expect(topHistory(r.games.endfield, G).map((h) => h.count)).toEqual([40]);
+    r = recordSession(r, "endfield", G, 12, new Map(), t(2));
+    expect(groupStatus(r.games.endfield, "endfield", G).pity).toBe(20);
+  });
+});
