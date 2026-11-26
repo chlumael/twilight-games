@@ -7,7 +7,7 @@
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange }: {
+  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo }: {
     groupLabel?: string;
     status: GroupStatus;
     /** Known banners for this group from the data pack. */
@@ -29,7 +29,10 @@
     exchanges?: Exchange[];
     onExchange?: (name: string) => void;
     onRemoveExchange?: (id: string) => void;
+    /** 최고 등급 없이 "이 배너에서 n번째까지 뽑았다"만 맞추기 */
+    onPullsTo?: (n: number) => void;
   } = $props();
+  let countOnly = $state(false);
   const canExchange = $derived(!!onExchange && status.counters.some((c) => /교환/.test(c.label)));
   let byExchange = $state(false);
 
@@ -41,6 +44,7 @@
   const addFeatured = $derived(addName.trim() && guessFeatured ? guessFeatured(addName.trim()) : null);
   function saveAdd() {
     if (byExchange) { onExchange?.(addName.trim()); adding = false; byExchange = false; addName = ""; return; }
+    if (countOnly) { if (addN && addN > 0) onPullsTo?.(addN); adding = false; countOnly = false; addN = null; return; }
     if (!addN || addN < 1 || !onTopAt) return;
     onTopAt(addN, addName.trim());
     adding = false; addN = null; addName = "";
@@ -171,9 +175,12 @@
         <input class="n" type="number" min="1" step={step} placeholder={String(status.bannerPulls + step)} bind:value={addN} aria-label="이 배너에서 몇 번째" />
         <span>번째</span>
       {/if}
-      <input class="nm" list="top-names" placeholder="{topLabel} 이름" bind:value={addName} aria-label="이름" />
+{#if !countOnly}
+            <input class="nm" list="top-names" placeholder="{topLabel} 이름" bind:value={addName} aria-label="이름" />
       <datalist id="top-names">{#each topNames as n (n)}<option value={n}></option>{/each}</datalist>
       {#if addFeatured === true}<span class="badge win">픽업</span>{:else if addFeatured === false}<span class="badge">픽뚫</span>{/if}
+      {/if}
+      {#if onPullsTo && !byExchange}<label class="exch"><input type="checkbox" bind:checked={countOnly} />횟수만</label>{/if}
       <button type="submit" disabled={byExchange ? !addName.trim() : !addN}>저장</button>
       <button type="button" onclick={() => (adding = false)}>취소</button>
     </form>

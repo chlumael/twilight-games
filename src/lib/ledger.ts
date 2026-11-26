@@ -687,3 +687,27 @@ export function repairBaselines(records: Records): Records {
   }
   return next ?? records;
 }
+
+/**
+ * 직접 입력: "이 배너에서 지금까지 n번 뽑았다"(최고 등급 없이 횟수만 맞추기, 배너 누적).
+ * 지금 누적보다 크면 차이만큼 뽑기를 더한다. 더하면 천장에 닿는 경우는 받지 않는다(그 안에 최고 등급이 나왔을 것).
+ */
+export function recordPullsTo(
+  records: Records,
+  game: GameId,
+  groupId: string,
+  n: number,
+  now: Date = new Date(),
+): { records: Records; mode: "added" | "too-far" | "invalid" } {
+  const group = findGroup(game, groupId);
+  const unit = group.odds?.unit ?? 1;
+  n = Math.ceil(n / unit) * unit;
+  const st = groupStatus(records.games[game], game, groupId);
+  if (!Number.isInteger(n) || n <= st.bannerPulls || n > 2000) return { records, mode: "invalid" };
+  const add = n - st.bannerPulls;
+  if (group.hardPity !== null && st.pity + add >= group.hardPity) return { records, mode: "too-far" };
+  const next = recordSession(records, game, groupId, add, new Map(), now);
+  const last = next.undo[next.undo.length - 1];
+  if (last) last.label = `${GAMES[game].shortName} 배너 ${n}번째까지 횟수 맞추기`;
+  return { records: next, mode: "added" };
+}

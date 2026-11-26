@@ -20,7 +20,7 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, removeExchange } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, removeExchange, recordPullsTo } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
@@ -983,7 +983,12 @@
           chosen={rec.chosen?.[groupId]?.banner === status.banner ? rec.chosen[groupId].name : ""} onChoose={setChosen}
           exchanges={(rec.exchanges ?? []).filter((e) => e.group === groupId && e.banner === status.banner)}
           onExchange={(name) => { update(recordExchange(records, game, groupId, name || null)); notify(`${name || def.topLabel} 교환 기록`); }}
-          onRemoveExchange={(id) => update(removeExchange(records, game, id))} />
+          onRemoveExchange={(id) => update(removeExchange(records, game, id))}
+          onPullsTo={(n) => {
+            const out = recordPullsTo(records, game, groupId, n);
+            if (out.mode === "added") { update(out.records); notify(`배너 ${n}번째까지 횟수를 맞췄습니다`); }
+            else notify(out.mode === "too-far" ? `그 사이에 ${def.topLabel}이 나왔을 횟수입니다. ${def.topLabel}부터 넣어 주세요` : `지금 기록(${status.bannerPulls}번째)보다 큰 숫자를 넣어 주세요`);
+          }} />
         <ForecastPanel {game} record={rec} {groupId} bannerEnd={currentPackBanner?.end ?? null} onPlan={setIncomePlan} />
 
 

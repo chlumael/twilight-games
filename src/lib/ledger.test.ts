@@ -466,3 +466,20 @@ describe("직접 입력: 이 배너에서 n번째에 최고 등급 (배너 누�
     expect(groupStatus(r.games.endfield, "endfield", A).pity).toBe(20);
   });
 });
+
+describe("직접 입력: 횟수만 맞추기", () => {
+  it("무기고 10번째·50번째 6성 뒤 60번째까지 뽑았다 → 총 60, 천장 10", async () => {
+    const { recordTopAt, recordPullsTo, hitLabel } = await import("./ledger");
+    const A = "endfield-arsenal";
+    let r = emptyRecords();
+    r.games.endfield.currentBanner[A] = "W";
+    r = recordTopAt(r, "endfield", A, 10, { name: "무기1", featured: false }, t(0)).records;
+    r = recordTopAt(r, "endfield", A, 50, { name: "무기2", featured: false }, t(1)).records;
+    const out = recordPullsTo(r, "endfield", A, 58, t(2));
+    expect(out.mode).toBe("added");
+    expect(groupStatus(out.records.games.endfield, "endfield", A)).toMatchObject({ pity: 10, bannerPulls: 60 });
+    expect(topHistory(out.records.games.endfield, A).map((h) => [h.count, hitLabel(h)])).toEqual([[10, "픽뚫"], [40, "픽뚫/반천"]]);
+    expect(recordPullsTo(out.records, "endfield", A, 100, t(3)).mode).toBe("too-far");
+    expect(recordPullsTo(out.records, "endfield", A, 30, t(3)).mode).toBe("invalid");
+  });
+});
