@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mergeMine, buildItems, dText, edgeOn, monthCells, onDay, periodText, validMine, ymdStart } from "./calendar";
+import { startsOn, mergeMine, buildItems, dText, edgeOn, monthCells, onDay, periodText, validMine, ymdStart } from "./calendar";
 import type { BannerPack } from "./banners";
 
 const at = (s: string) => new Date(s).getTime();
@@ -56,5 +56,23 @@ describe("내 일정 기기끼리 합치기", () => {
   const m = (id: string, start = "2026-12-01") => ({ id, title: id, start, end: null, game: null });
   it("양쪽 것을 모두 남기고, 지운 것은 뺀다", () => {
     expect(mergeMine([m("a"), m("b")], [m("b"), m("c", "2026-11-30")], ["a"]).map((x) => x.id)).toEqual(["c", "b"]);
+  });
+});
+
+describe("달력 칸 (시작일 기준)", () => {
+  it("그날 시작하는 일정만, 버전은 끝나는 날에도 '종료'로. 앞선 배너에 있던 픽업은 복각", () => {
+    const p: BannerPack = { schemaVersion: 1, generatedAt: "x", games: { genshin: [
+      { id: "a", group: "genshin-char", name: "A", start: "2026-01-01T00:00:00", end: "2026-01-20T00:00:00", version: null, featured: [{ id: "x", ko: "푸리나" }], featuredRare: [] },
+      { id: "b", group: "genshin-char", name: "B", start: "2026-11-03T00:00:00", end: "2026-11-24T00:00:00", version: null, featured: [{ id: "x", ko: "푸리나" }], featuredRare: [] },
+      { id: "c", group: "genshin-char", name: "C", start: "2026-11-24T00:00:00", end: "2026-12-15T00:00:00", version: null, featured: [{ id: "y", ko: "자백" }], featuredRare: [] },
+      { id: "c2", group: "genshin-char", name: "C 다른 이름", start: "2026-11-24T00:00:00", end: "2026-12-15T00:00:00", version: null, featured: [{ id: "y", ko: "자백" }], featuredRare: [] },
+    ] }, events: { genshin: [{ id: "v", kind: "version", title: "7.2 버전", start: "2026-11-04T07:00:00", end: "2026-12-16T06:00:00" }] } };
+    const items = buildItems(p);
+    expect(items.find((i) => i.id === "pickup:a")?.tag).toBe("픽업");
+    expect(items.find((i) => i.id === "pickup:b")?.tag).toBe("복각");
+    expect(items.find((i) => i.id === "pickup:c2")?.tag).toBe("픽업"); // 같은 날 두 번 들어 있어도 신규
+    expect(startsOn(items, ymdStart("2026-11-03")).map((e) => e.item.short)).toEqual(["푸리나"]);
+    expect(startsOn(items, ymdStart("2026-12-16"))).toMatchObject([{ ending: true, item: { kind: "version" } }]);
+    expect(startsOn(items, ymdStart("2026-11-10"))).toEqual([]);
   });
 });

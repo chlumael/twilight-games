@@ -56,6 +56,14 @@
   const overlay = api.androidMode === "overlay";
   let collapsed = $state(!web);
   let view = $state<"main" | "settings" | "review" | "top" | "stats" | "calendar">("main");
+  /** 아래 탭 (선 아이콘: 24칸 기준 경로) */
+  const TABS = [
+    { id: "main", label: "홈", icon: "M3 11 12 4l9 7M5 10v10h5v-6h4v6h5V10" },
+    { id: "calendar", label: "달력", icon: "M4 6h16v14H4zM4 10h16M8 3v5M16 3v5" },
+    { id: "stats", label: "통계", icon: "M5 20V11M12 20V5M19 20v-6" },
+    { id: "review", label: "확인", icon: "M5 12.5 10 17l9-10" },
+    { id: "settings", label: "설정", icon: "M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4" },
+  ] as const;
   let clickThrough = $state(false);
   let toast = $state<string | null>(null);
   let newVersion = $state<string | null>(null); // PC판: 켤 때 찾은 새 버전
@@ -935,12 +943,6 @@
       </div>
       <span class="spacer" data-tauri-drag-region></span>
       {#if clickThrough}<span class="muted small">통과</span>{/if}
-      <button class="icon pend" class:has={pending > 0} onclick={() => (view = view === "review" ? "main" : "review")} title="확인 대기">
-        확인 {pending}
-      </button>
-      <button class="icon" onclick={() => (view = view === "calendar" ? "main" : "calendar")} title="달력">달력</button>
-      <button class="icon" onclick={() => (view = view === "stats" ? "main" : "stats")} title="통계">통계</button>
-      <button class="icon" onclick={() => (view = view === "settings" ? "main" : "settings")} aria-label="설정">⚙</button>
       {#if !web}<button class="icon" onclick={() => { collapsed = true; view = "main"; }} aria-label="접기">▴</button>{/if}
       {#if api.androidMode === "app"}
         <button class="icon launch" onclick={() => api.android?.startOverlay()} title="게임 위에 띄우기">⧉ 띄우기</button>
@@ -1067,6 +1069,19 @@
     </div>
   {/if}
 
+  {#if !collapsed}
+    <!-- 화면 이동은 아래 탭 다섯 개로만 한다(새 기능은 탭을 늘리지 않고 이 안에 넣는다, DESIGN.md §8 화면 규칙) -->
+    <nav class="tabbar" aria-label="화면">
+      {#each TABS as t (t.id)}
+        {@const on = t.id === "main" ? view === "main" || view === "top" : view === t.id}
+        <button class:on onclick={() => (view = on && t.id !== "main" ? "main" : t.id)} title={t.label} aria-label={t.label}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={t.icon} /></svg>
+          {#if t.id === "review" && pending > 0}<b class="badge">{pending}</b>{/if}
+          <span>{t.label}</span>
+        </button>
+      {/each}
+    </nav>
+  {/if}
   {#if toast}<div class="toast">{toast}</div>{/if}
 </main>
 
@@ -1085,8 +1100,6 @@
   .have small { font-size: 10px; color: var(--muted); margin-left: 1px; }
   header { display: flex; align-items: center; gap: 6px; padding: 7px 6px 7px 10px; cursor: move; position: relative; }
   .game-select { font-size: 11px; padding: 0 2px; border: none; background: transparent; color: inherit; cursor: pointer; max-width: 150px; }
-  .pend { white-space: nowrap; font-size: 12px; }
-  .pend.has { color: var(--warn); font-weight: 700; }
   .spacer { flex: 1; align-self: stretch; }
   .small { font-size: 11px; }
   .body { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
@@ -1115,6 +1128,13 @@
     padding: 5px 12px; border-radius: 999px; font-size: 12px; white-space: nowrap;
   }
   main.collapsed .toast { display: none; }
+  .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); background: rgba(0, 0, 0, 0.22); padding-bottom: env(safe-area-inset-bottom); }
+  .tabbar button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0 6px; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 10px; }
+  .tabbar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tabbar button.on { color: var(--text); font-weight: 700; }
+  .tabbar button.on::before { content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 2px; background: var(--top); border-radius: 2px; }
+  .tabbar .badge { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 15px; padding: 0 3px; border-radius: 8px; background: var(--warn, #f5b041); color: #1a1408; font-size: 9px; line-height: 15px; text-align: center; font-weight: 800; }
+  .toast { bottom: 64px; }
 
   /* ---- phone / browser web app ---- */
   main.web {

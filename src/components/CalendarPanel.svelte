@@ -1,12 +1,14 @@
 <script lang="ts">
+  // 달력 (사용자 요청 2026-11-26). 화면 방식은 사용자가 보여 준 예시처럼: 칸마다 그날 시작하는 일정 이름을 적고,
+  // 넘치면 "+N", 날짜를 누르면 아래에 그날 일정 전체(시작하는 것 + 진행 중인 것).
   import { untrack } from "svelte";
-  // 달력 (사용자 요청 2026-11-26): 픽업 기간, 게임 안 이벤트, 버전 시작·끝, 외부 행사, 내 일정.
   import {
-    buildItems, dayOf, dText, edgeOn, KIND_LABEL, monthCells, onDay, periodText, validMine, ymd,
+    buildItems, dayOf, dText, edgeOn, monthCells, onDay, periodText, startsOn, validMine, ymd,
     type CalItem, type CalKind, type MyEvent,
   } from "../lib/calendar";
   import type { BannerPack } from "../lib/banners";
   import { GAME_IDS, GAMES } from "../lib/games";
+  import { currencyIcon } from "../lib/icons";
   import type { GameId } from "../lib/types";
 
   let { pack, mine = [], game, onMine, onClose }: {
@@ -18,25 +20,27 @@
     onClose: () => void;
   } = $props();
 
-  // 게임마다 다른 색 (달력 칸의 점·막대)
-  const COLOR: Record<string, string> = { genshin: "#6fb6ff", arknights: "#9aa3ad", endfield: "#ffcf3a", limbus: "#e0534a", none: "#b48cff" };
-  const KINDS: CalKind[] = ["pickup", "event", "version", "offline", "mine"];
+  const GAME_ICON: Record<GameId, string> = { genshin: "intertwined", arknights: "orundum", endfield: "oroberyl", limbus: "lunacy" };
+  const icon = (g: GameId | null) => (g ? currencyIcon(g, GAME_ICON[g]) : undefined);
+  /** 종류 고르기 (픽업·복각은 한 묶음) */
+  const KINDS: { k: CalKind; label: string }[] = [
+    { k: "pickup", label: "픽업" }, { k: "event", label: "이벤트" }, { k: "version", label: "업데이트" },
+    { k: "offline", label: "행사" }, { k: "mine", label: "내 일정" },
+  ];
 
   let games = $state<Set<GameId>>(new Set([untrack(() => game)])); // 처음에는 지금 보던 게임만
-  let kinds = $state<Set<CalKind>>(new Set(KINDS));
+  let kinds = $state<Set<CalKind>>(new Set(["pickup", "version", "offline", "mine"])); // 이벤트는 많아서 처음에는 끔
   const now = Date.now();
   let month = $state({ y: new Date(now).getFullYear(), m: new Date(now).getMonth() });
   let picked = $state(dayOf(now));
+  let showOngoing = $state(false);
 
   const all = $derived(buildItems(pack, mine));
   const shown = $derived(all.filter((it) => kinds.has(it.kind) && (it.game === null || games.has(it.game))));
-  const cells = $derived(monthCells(month.y, month.m));
-  const dayItems = $derived(sortForDay(onDay(shown, picked, now), picked));
+  const cells = $derived(monthCells(month.y, month.m).map((c) => ({ ...c, entries: startsOn(shown, c.day) })));
+  const starting = $derived(startsOn(shown, picked));
+  const ongoing = $derived(onDay(shown, picked, now).filter((it) => !starting.some((e) => e.item.id === it.id)));
 
-  function sortForDay(list: CalItem[], day: number): CalItem[] {
-    const rank = (it: CalItem) => (edgeOn(it, day) ? 0 : 1) * 10 + KINDS.indexOf(it.kind);
-    return [...list].sort((a, b) => rank(a) - rank(b) || a.start - b.start);
-  }
   function toggle<T>(set: Set<T>, v: T): Set<T> {
     const next = new Set(set);
     if (next.has(v)) next.delete(v); else next.add(v);
@@ -50,14 +54,7 @@
     month = { y: new Date(now).getFullYear(), m: new Date(now).getMonth() };
     picked = dayOf(now);
   }
-  /** 그 칸에 그릴 표시: 게임별 점(최대 4) + 그날 시작·끝나는 것이 있으면 강조 */
-  function marks(day: number) {
-    const list = onDay(shown, day, now);
-    const games = [...new Set(list.map((it) => it.game ?? "none"))].slice(0, 4);
-    const edge = list.some((it) => edgeOn(it, day));
-    const version = list.some((it) => it.kind === "version" && edgeOn(it, day) === "start");
-    return { games, edge, version, n: list.length };
-  }
+  const tagClass = (it: CalItem, ending = false) => (ending ? "end" : it.tag === "복각" ? "rerun" : it.kind);
 
   // 내 일정 넣기
   let adding = $state(false);
@@ -79,60 +76,72 @@
   }
   const pickedText = $derived.by(() => {
     const d = new Date(picked);
-    return `${d.getMonth() + 1}월 ${d.getDate()}일 (${"일월화수목금토"[d.getDay()]})${dayOf(now) === picked ? " · 오늘" : ""}`;
+    return `${d.getMonth() + 1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
   });
 </script>
 
 <section class="cal">
-  <div class="chead">
+  <div class="top">
     <strong>달력</strong>
-    <button class="small" onclick={goToday}>오늘</button>
-    <button class="close" onclick={onClose} aria-label="닫기">✕</button>
+    <span class="sp"></span>
+    <button class="ghost" onclick={onClose} aria-label="닫기">✕</button>
   </div>
 
-  <div class="filters">
-    <div class="chips">
+  <div class="bar">
+    <div class="games">
       {#each GAME_IDS as id (id)}
-        <button class="chip" class:on={games.has(id)} style:--c={COLOR[id]} onclick={() => (games = toggle(games, id))}>
-          <i></i>{GAMES[id].shortName}
+        <button class="g" class:on={games.has(id)} onclick={() => (games = toggle(games, id))}>
+          {#if icon(id)}<img src={icon(id)} alt="" />{/if}<span>{GAMES[id].shortName}</span>
         </button>
       {/each}
     </div>
-    <div class="chips">
-      {#each KINDS as k (k)}
-        <button class="chip kind" class:on={kinds.has(k)} onclick={() => (kinds = toggle(kinds, k))}>{KIND_LABEL[k]}</button>
+    <div class="kinds">
+      {#each KINDS as { k, label } (k)}
+        <button class="k {k}" class:on={kinds.has(k)} onclick={() => (kinds = toggle(kinds, k))}>{label}</button>
       {/each}
     </div>
   </div>
 
   <div class="month">
-    <button onclick={() => move(-1)} aria-label="지난달">◀</button>
+    <button class="ghost arrow" onclick={() => move(-1)} aria-label="지난달">‹</button>
     <strong>{month.y}년 {month.m + 1}월</strong>
-    <button onclick={() => move(1)} aria-label="다음 달">▶</button>
+    <button class="ghost arrow" onclick={() => move(1)} aria-label="다음 달">›</button>
+    <button class="today-btn" onclick={goToday}>오늘</button>
+    <span class="sp"></span>
+    <span class="hint">시작일에 표시</span>
   </div>
 
   <div class="grid">
     {#each ["일", "월", "화", "수", "목", "금", "토"] as w, i (w)}<span class="wd" class:sun={i === 0} class:sat={i === 6}>{w}</span>{/each}
     {#each cells as c (c.day)}
-      {@const mk = marks(c.day)}
-      <button class="cell" class:out={!c.inMonth} class:today={c.day === dayOf(now)} class:picked={c.day === picked} onclick={() => (picked = c.day)}>
-        <span class="dn" class:edge={mk.edge} class:ver={mk.version}>{new Date(c.day).getDate()}</span>
-        <span class="dots">{#each mk.games as g (g)}<i style:background={COLOR[g]}></i>{/each}</span>
+      {@const isToday = c.day === dayOf(now)}
+      <button class="cell" class:out={!c.inMonth} class:picked={c.day === picked} onclick={() => { picked = c.day; showOngoing = false; }}>
+        <span class="dn" class:sun={new Date(c.day).getDay() === 0}>{new Date(c.day).getDate()}{#if isToday}<em>오늘</em>{/if}</span>
+        {#each c.entries.slice(0, 4) as e (e.item.id + e.ending)}
+          <span class="ent {tagClass(e.item, e.ending)}">
+            {#if icon(e.item.game)}<img src={icon(e.item.game)} alt="" />{/if}
+            <span class="nm">{e.item.short}</span>
+            <span class="tag {tagClass(e.item, e.ending)}">{e.ending ? "종료" : e.item.tag}</span>
+          </span>
+        {/each}
+        {#if c.entries.length > 4}<span class="more">+{c.entries.length - 4}</span>{/if}
       </button>
     {/each}
   </div>
 
   <div class="day">
-    <div class="dtitle">
+    <div class="dhead">
       <strong>{pickedText}</strong>
-      <button class="small" onclick={openAdd}>＋ 내 일정</button>
+      <span class="sp"></span>
+      <button class="ghost small" onclick={openAdd}>＋ 내 일정</button>
     </div>
+
     {#if adding}
-      <form class="add card" onsubmit={(e) => { e.preventDefault(); saveMine(); }}>
+      <form class="add" onsubmit={(e) => { e.preventDefault(); saveMine(); }}>
         <input placeholder="일정 이름 (예: 콜라보 카페)" bind:value={draft.title} aria-label="일정 이름" />
         <div class="arow">
           <input type="date" bind:value={draft.start} aria-label="시작일" />
-          <span>~</span>
+          <span class="muted">~</span>
           <input type="date" bind:value={draft.end} aria-label="끝나는 날 (없으면 하루)" />
         </div>
         <div class="arow">
@@ -141,82 +150,137 @@
             {#each GAME_IDS as id (id)}<option value={id}>{GAMES[id].shortName}</option>{/each}
           </select>
           <span class="sp"></span>
-          <button type="submit" class="save" disabled={!draft.title.trim() || !draft.start}>저장</button>
-          <button type="button" onclick={() => (adding = false)}>취소</button>
+          <button type="submit" class="primary" disabled={!draft.title.trim() || !draft.start}>저장</button>
+          <button type="button" class="ghost" onclick={() => (adding = false)}>취소</button>
         </div>
       </form>
     {/if}
-    {#if !dayItems.length}
-      <p class="muted none">이날 일정이 없습니다.</p>
-    {/if}
-    {#each dayItems as it (it.id)}
-      {@const edge = edgeOn(it, picked)}
-      <div class="item" style:--c={COLOR[it.game ?? "none"]}>
-        <div class="irow">
-          <span class="tag">{it.game ? GAMES[it.game].shortName : "내 일정"}</span>
-          {#if it.kind !== "mine" || it.game}<span class="kind">{KIND_LABEL[it.kind]}</span>{/if}
-          {#if edge === "start" || edge === "both"}<span class="edge s">시작</span>{/if}
-          {#if edge === "end" || edge === "both"}<span class="edge e">종료</span>{/if}
-          <span class="d">{dText(it, now)}</span>
-        </div>
-        <div class="ititle">
-          {#if it.url}<a href={it.url} target="_blank" rel="noopener noreferrer">{it.title}</a>{:else}{it.title}{/if}
-        </div>
-        <div class="imeta">
-          <span>{periodText(it)}{it.approx ? " (일부 추정)" : ""}</span>
-          {#if it.kind === "mine"}<button class="x" onclick={() => removeMine(it.id)} aria-label="내 일정 지우기">지우기</button>{/if}
-        </div>
-      </div>
+
+    {#if !starting.length && !ongoing.length}<p class="muted empty">일정이 없습니다.</p>{/if}
+    {#each starting as e (e.item.id + e.ending)}
+      {@render row(e.item, e.ending)}
     {/each}
+    {#if ongoing.length}
+      <button class="ongoing" onclick={() => (showOngoing = !showOngoing)}>
+        진행 중 {ongoing.length}개 {showOngoing ? "▲" : "▼"}
+      </button>
+      {#if showOngoing}
+        {#each ongoing as it (it.id)}{@render row(it, false)}{/each}
+      {/if}
+    {/if}
   </div>
 </section>
 
+{#snippet row(it: CalItem, ending: boolean)}
+  {@const edge = edgeOn(it, picked)}
+  <div class="row">
+    {#if icon(it.game)}<img class="ri" src={icon(it.game)} alt="" />{:else}<span class="ri none"></span>{/if}
+    <div class="rmain">
+      <div class="rtitle">
+        <span class="tag {tagClass(it, ending)}">{ending ? "종료" : it.tag}</span>
+        {#if it.url}<a href={it.url} target="_blank" rel="noopener noreferrer">{it.title}</a>{:else}<span>{it.title}</span>{/if}
+      </div>
+      <div class="rmeta">
+        <span>{periodText(it)}{it.approx ? " · 일부 추정" : ""}</span>
+        {#if edge === "end" && !ending}<span class="endmark">오늘 종료</span>{/if}
+        <span class="sp"></span>
+        <span>{dText(it, now)}</span>
+        {#if it.kind === "mine"}<button class="ghost small" onclick={() => removeMine(it.id)}>지우기</button>{/if}
+      </div>
+    </div>
+  </div>
+{/snippet}
+
 <style>
-  .cal { display: flex; flex-direction: column; gap: 10px; font-size: 13px; }
-  .chead { display: flex; align-items: center; gap: 8px; }
-  .chead strong { flex: 1; font-size: 15px; }
-  .small { font-size: 12px; padding: 3px 10px; }
-  .close { padding: 2px 8px; }
-  .filters { display: flex; flex-direction: column; gap: 6px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 10px; opacity: 0.55; }
-  .chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
-  .chip.on { opacity: 1; border-color: var(--c, var(--top)); font-weight: 700; }
-  .chip.kind.on { border-color: var(--top); }
-  .month { display: flex; align-items: center; justify-content: space-between; }
-  .month button { padding: 4px 14px; }
-  .month strong { font-size: 15px; }
-  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-  .wd { text-align: center; font-size: 11px; color: var(--muted); padding: 2px 0; }
-  .wd.sun { color: #ff8a7a; }
-  .wd.sat { color: #7fb4ff; }
-  .cell { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 0 6px; min-height: 46px; border-radius: 8px; background: var(--panel); border: 1px solid transparent; }
-  .cell.out { opacity: 0.4; }
-  .cell.today .dn { color: var(--top); font-weight: 800; }
-  .cell.picked { border-color: var(--top); }
-  .dn { font-size: 13px; font-variant-numeric: tabular-nums; }
-  .dn.edge { text-decoration: underline; text-underline-offset: 3px; }
-  .dn.ver { background: var(--top); color: #1a1408; border-radius: 6px; padding: 0 4px; text-decoration: none; }
-  .dots { display: flex; gap: 2px; min-height: 6px; }
-  .dots i { width: 6px; height: 6px; border-radius: 50%; }
-  .day { display: flex; flex-direction: column; gap: 6px; }
-  .dtitle { display: flex; align-items: center; justify-content: space-between; }
-  .none { margin: 4px 0; }
-  .item { border-left: 4px solid var(--c); background: var(--panel); border-radius: 8px; padding: 7px 10px; display: flex; flex-direction: column; gap: 3px; }
-  .irow { display: flex; align-items: center; gap: 6px; font-size: 11px; }
-  .tag { font-weight: 700; color: var(--c); }
-  .kind { color: var(--muted); }
-  .edge { font-weight: 700; padding: 0 5px; border-radius: 4px; }
-  .edge.s { background: color-mix(in srgb, var(--good) 25%, transparent); color: var(--good); }
-  .edge.e { background: color-mix(in srgb, #ff8a7a 25%, transparent); color: #ff8a7a; }
-  .d { margin-left: auto; color: var(--muted); }
-  .ititle { font-size: 14px; font-weight: 600; word-break: keep-all; line-height: 1.35; }
-  .ititle a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
-  .imeta { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); }
-  .x { font-size: 11px; padding: 1px 8px; }
-  .add { display: flex; flex-direction: column; gap: 6px; padding: 8px; }
+  /* 종류별 색: 픽업(보라) · 복각(보라 테두리) · 이벤트(청록) · 업데이트(주황) · 행사(분홍) · 내 일정(연보라) · 종료(회색) */
+  .cal {
+    --c-pickup: #7c6cf0; --c-event: #26a69a; --c-version: #e0972a; --c-offline: #e0679a; --c-mine: #a98bf5;
+    container-type: inline-size;
+    display: flex; flex-direction: column; gap: 10px; font-size: 13px;
+  }
+  .sp { flex: 1; }
+  .ghost { background: none; border: 1px solid transparent; padding: 3px 8px; }
+  .small { font-size: 12px; }
+  .top { display: flex; align-items: center; }
+  .top strong { font-size: 16px; }
+
+  .bar { display: flex; flex-direction: column; gap: 6px; }
+  .games, .kinds { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .g, .k { flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 4px 11px; border-radius: 999px; opacity: 0.5; }
+  .g img { width: 16px; height: 16px; object-fit: contain; }
+  .g.on, .k.on { opacity: 1; font-weight: 700; }
+  .g.on { border-color: var(--top); }
+  .k.on { color: #fff; border-color: transparent; }
+  .k.pickup.on { background: var(--c-pickup); }
+  .k.event.on { background: var(--c-event); }
+  .k.version.on { background: var(--c-version); }
+  .k.offline.on { background: var(--c-offline); }
+  .k.mine.on { background: var(--c-mine); }
+
+  .month { display: flex; align-items: center; gap: 4px; }
+  .month strong { font-size: 15px; min-width: 7.5em; text-align: center; }
+  .arrow { font-size: 20px; line-height: 1; padding: 0 10px; }
+  .today-btn { font-size: 12px; padding: 3px 10px; }
+  .hint { font-size: 11px; color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .wd { text-align: center; font-size: 11px; color: var(--muted); padding: 5px 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }
+  .wd.sun, .dn.sun { color: #ff7a7a; }
+  .wd.sat { color: #7fb0ff; }
+  .cell {
+    display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 2px; min-height: 66px; padding: 3px 2px 4px;
+    border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0;
+    background: none; text-align: left; overflow: hidden; min-width: 0; color: inherit;
+  }
+  .cell.out { opacity: 0.35; }
+  .cell.picked { outline: 2px solid var(--top); outline-offset: -2px; }
+  .dn { font-size: 12px; font-weight: 700; padding: 0 2px; display: flex; align-items: center; gap: 3px; }
+  .dn em { font-style: normal; font-size: 9px; font-weight: 700; background: var(--top); color: #1a1408; border-radius: 4px; padding: 0 3px; }
+  .ent { display: flex; align-items: center; gap: 2px; min-width: 0; font-size: 10px; line-height: 1.4; border-left: 2px solid var(--c-pickup); padding-left: 2px; }
+  .ent img { width: 11px; height: 11px; flex: none; object-fit: contain; }
+  .ent .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ent .tag { display: none; }
+  .ent.event { border-color: var(--c-event); }
+  .ent.version { border-color: var(--c-version); font-weight: 700; }
+  .ent.offline { border-color: var(--c-offline); }
+  .ent.mine { border-color: var(--c-mine); }
+  .ent.rerun { border-left-style: dotted; }
+  .ent.end { border-color: var(--muted); color: var(--muted); }
+  .more { font-size: 10px; color: var(--muted); padding-left: 3px; }
+
+  /* 넓은 화면(PC 창, 태블릿): 칸을 키우고 이름 옆에 표시를 붙인다 */
+  @container (min-width: 560px) {
+    .cell { min-height: 96px; padding: 5px 5px 6px; gap: 3px; }
+    .dn { font-size: 13px; margin-bottom: 2px; }
+    .ent { font-size: 12px; gap: 4px; border-left: 0; padding-left: 0; }
+    .ent img { width: 14px; height: 14px; }
+    .ent .tag { display: inline-block; }
+  }
+
+  .tag { flex: none; font-size: 10px; font-weight: 700; padding: 0 5px; border-radius: 4px; color: #fff; background: var(--c-pickup); line-height: 1.6; }
+  .tag.rerun { background: none; color: var(--c-pickup); box-shadow: inset 0 0 0 1px var(--c-pickup); }
+  .tag.event { background: var(--c-event); }
+  .tag.version { background: var(--c-version); }
+  .tag.offline { background: var(--c-offline); }
+  .tag.mine { background: var(--c-mine); }
+  .tag.end { background: var(--muted); }
+
+  .day { display: flex; flex-direction: column; gap: 4px; }
+  .dhead { display: flex; align-items: center; }
+  .dhead strong { font-size: 14px; }
+  .empty { margin: 2px 0; }
+  .row { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .ri { width: 20px; height: 20px; flex: none; object-fit: contain; margin-top: 1px; }
+  .ri.none { border-radius: 50%; background: var(--c-mine); width: 10px; height: 10px; margin: 6px 5px; }
+  .rmain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .rtitle { display: flex; align-items: baseline; gap: 6px; font-size: 14px; font-weight: 600; line-height: 1.35; word-break: keep-all; }
+  .rtitle a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  .rmeta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .endmark { color: #ff8a7a; font-weight: 700; }
+  .ongoing { align-self: flex-start; font-size: 12px; padding: 4px 10px; margin-top: 4px; }
+
+  .add { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: var(--radius); background: var(--panel); }
   .arow { display: flex; align-items: center; gap: 6px; }
   .arow input { flex: 1; min-width: 0; }
-  .sp { flex: 1; }
-  .save { font-weight: 700; }
+  .primary { font-weight: 700; }
 </style>

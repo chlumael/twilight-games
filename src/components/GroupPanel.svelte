@@ -166,7 +166,7 @@
   <button class="binfo" onclick={() => (detail = !detail)} aria-expanded={detail}>
     {#each current.featured as f (f.id)}<span class="feat">{itemName(f)}</span>{/each}
     {#if daysLeft(current) !== null}<span class="dday">D-{daysLeft(current)}</span>{/if}
-    <span class="bname">{current.name}</span>
+    {#if !current.featured.length || !current.featured.every((f) => current.name.includes(itemName(f)))}<span class="bname">{current.name}</span>{/if}
     <span class="more">{detail ? "접기 ▲" : "자세히 ▼"}</span>
   </button>
   {#if detail}

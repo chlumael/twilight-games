@@ -31,6 +31,10 @@ export interface CalItem {
   kind: CalKind;
   game: GameId | null;
   title: string;
+  /** 달력 칸에 쓰는 짧은 이름 (픽업은 픽업 이름) */
+  short: string;
+  /** 칸 옆 작은 표시: 픽업 / 복각 / 이벤트 / 업데이트 / 행사 / 내 일정 */
+  tag: string;
   /** 시각(ms) */
   start: number;
   /** 시각(ms). null = 끝나는 날 미정 */
@@ -60,13 +64,21 @@ export function ymd(t: number): string {
 export function buildItems(pack: BannerPack | null, mine: MyEvent[] = []): CalItem[] {
   const out: CalItem[] = [];
   for (const [game, list] of Object.entries(pack?.games ?? {}) as [GameId, NonNullable<BannerPack["games"][GameId]>][]) {
-    for (const b of list) {
-      if (!b.start) continue;
+    // 복각: 픽업 이름이 전부 같은 게임의 더 앞선 배너에서 이미 픽업이었던 것
+    // (같은 날 시작한 배너끼리는 비교하지 않는다: 같은 배너가 자료에 두 번 들어 있는 경우가 있다)
+    const firstSeen = new Map<string, string>(); // 이름 → 처음 픽업된 시작 시각
+    const sorted = [...list].filter((x) => x.start).sort((x, y) => x.start!.localeCompare(y.start!));
+    for (const b of sorted) for (const f of b.featured) { const n = f.ko ?? f.en ?? f.id; if (!firstSeen.has(n)) firstSeen.set(n, b.start!.slice(0, 10)); }
+    for (const b of sorted) {
+      const names = b.featured.map((f) => f.ko ?? f.en ?? f.id);
+      const rerun = names.length > 0 && names.every((n) => (firstSeen.get(n) ?? "9") < b.start!.slice(0, 10));
       const group = GAMES[game]?.groups.find((g) => g.id === b.group);
       out.push({
         id: `pickup:${b.id}`, kind: "pickup", game,
+        short: bannerLabel(b).replace(/ · /g, " / "),
+        tag: rerun ? "복각" : "픽업",
         title: `${group ? `${group.name} · ` : ""}${bannerLabel(b)}`,
-        start: Date.parse(b.start), end: b.end ? Date.parse(b.end) : null,
+        start: Date.parse(b.start!), end: b.end ? Date.parse(b.end) : null,
         approx: !!(b.startApprox || b.endApprox), source: b.source,
       });
     }
@@ -77,14 +89,16 @@ export function buildItems(pack: BannerPack | null, mine: MyEvent[] = []): CalIt
       const start = Date.parse(e.start);
       if (Number.isNaN(start)) continue;
       out.push({
-        id: e.id, kind: e.kind, game, title: e.title, start, end: e.end ? Date.parse(e.end) : null,
+        id: e.id, kind: e.kind, game, title: e.title, short: e.title.replace(/^「([^」]+)」\s*/, "$1 "),
+        tag: e.kind === "version" ? "업데이트" : e.kind === "offline" ? "행사" : "이벤트",
+        start, end: e.end ? Date.parse(e.end) : null,
         approx: !!(e.startApprox || e.endApprox), source: e.source, url: e.url,
       });
     }
   }
   for (const m of mine) {
     out.push({
-      id: `mine:${m.id}`, kind: "mine", game: m.game, title: m.title,
+      id: `mine:${m.id}`, kind: "mine", game: m.game, title: m.title, short: m.title, tag: "내 일정",
       start: ymdStart(m.start), end: ymdStart(m.end ?? m.start) + DAY - 1, approx: false,
     });
   }
@@ -161,4 +175,26 @@ export function mergeMine(local: MyEvent[], remote: MyEvent[], removed: string[]
   const byId = new Map<string, MyEvent>();
   for (const m of [...remote, ...local]) if (!gone.has(m.id)) byId.set(m.id, m);
   return [...byId.values()].sort((a, b) => a.start.localeCompare(b.start));
+}
+
+/** 달력 칸 한 줄: 그날 시작하는 일정(버전은 끝나는 날에도 "버전 종료"로 한 번 더) */
+export interface CellEntry {
+  item: CalItem;
+  /** 끝나는 날 표시인지 (버전 종료) */
+  ending: boolean;
+}
+
+/**
+ * 시작일 기준 표시(사용자가 보여 준 "픽업지지" 방식): 그날 시작하는 일정만 칸에 적는다.
+ * 버전은 시작일과 끝나는 날 둘 다 보여 준다(사용자 요청: 새 버전 시작일, 버전 끝나는 날).
+ */
+export function startsOn(items: CalItem[], day: number): CellEntry[] {
+  const from = dayOf(day);
+  const out: CellEntry[] = [];
+  for (const it of items) {
+    if (dayOf(it.start) === from) out.push({ item: it, ending: false });
+    else if (it.kind === "version" && it.end !== null && dayOf(it.end) === from) out.push({ item: it, ending: true });
+  }
+  const rank: Record<CalKind, number> = { version: 0, pickup: 1, event: 2, offline: 3, mine: 4 };
+  return out.sort((a, b) => rank[a.item.kind] - rank[b.item.kind] || (a.item.game ?? "").localeCompare(b.item.game ?? ""));
 }
