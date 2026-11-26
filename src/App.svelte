@@ -653,12 +653,18 @@
     next.games[game].chosen = chosen;
     update(next);
   }
-  /** 이름 후보: 지금 배너 픽업 → 이 게임의 최고 등급 이름들 */
+  /** 이름 후보: 지금 배너 픽업 → 그 배너에서 나올 수 있는 것(있으면) → 이 종류의 최고 등급 이름들 */
   const topNames = $derived.by(() => {
     const featured = (currentPackBanner?.featured ?? []).map(itemName);
-    const all = game === "genshin"
-      ? Object.entries(genshinItems).filter(([, v]) => v.rarity === 5).map(([k]) => k)
-      : [...(sixStars[game] ?? [])];
+    const pool = (currentPackBanner?.pool ?? []).map(itemName);
+    let all: string[];
+    if (pool.length) all = pool; // 배너에 정해진 목록이 있으면 그것만 (엔드필드 무기 배너의 6성 무기)
+    else if (game === "genshin") {
+      // 캐릭터 기원은 캐릭터, 무기 기원은 무기, 집록은 둘 다
+      const kind = groupId === "genshin-char" ? "character" : groupId === "genshin-weapon" ? "weapon" : null;
+      all = Object.entries(genshinItems).filter(([, v]) => v.rarity === 5 && (!kind || v.kind === kind)).map(([k]) => k);
+    } else if (groupId === "endfield-arsenal" || groupId === "endfield-refactor-arsenal") all = []; // 무기 배너에 오퍼레이터 이름을 섞지 않는다
+    else all = [...(sixStars[game] ?? [])];
     return [...new Set([...featured, ...all])];
   });
 

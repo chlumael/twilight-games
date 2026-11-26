@@ -32,6 +32,8 @@ export interface PackBanner {
   series?: string;
   featured: PackItem[];
   featuredRare: PackItem[];
+  /** 이 배너에서 나올 수 있는 픽업 아닌 최고 등급 목록 (엔드필드 무기 배너: 픽뚫로 나오는 6성 무기) */
+  pool?: PackItem[];
 }
 
 export interface BannerPack {

@@ -126,6 +126,17 @@ export function parseArsenal(text) {
     const period = body.slice(0, 3).find((l) => l.startsWith("개방 시간") && l.includes("~")) ?? "";
     const [from = "", to = ""] = period.split("~");
     const weapon = up.replace(/ \(UP\)$/, "").trim();
+    // 이 배너에서 나올 수 있는 다른 6성 무기(픽뚫 후보): "[6성 무기]" 표에서 "6성 무기" 줄 바로 다음 줄이 이름
+    const from6 = body.indexOf("[6성 무기]");
+    const to6 = body.findIndex((l, i) => i > from6 && /^\[\d성 무기\]$/.test(l));
+    const table = from6 >= 0 ? body.slice(from6 + 1, to6 > from6 ? to6 : body.length) : [];
+    const pool = [];
+    for (let i = 0; i < table.length - 1; i++) {
+      if (table[i] !== "6성 무기") continue;
+      const nm = table[i + 1].replace(/ \(UP\)$/, "").trim();
+      if (!nm || nm === "무기 희귀도" || nm === weapon || /%|^·/.test(nm) || pool.includes(nm)) continue;
+      pool.push(nm);
+    }
     out.push({
       id: `endfield:arsenal:${name}`,
       group: refactor ? "endfield-refactor-arsenal" : "endfield-arsenal",
@@ -136,6 +147,8 @@ export function parseArsenal(text) {
       source: "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
       featured: [{ id: `ko:${weapon}`, ko: weapon }],
       featuredRare: [],
+      // 픽업이 아닌 6성 무기 목록(직접 입력의 이름 후보·픽뚫 판정에 쓴다)
+      pool: pool.map((ko) => ({ id: `ko:${ko}`, ko })),
     });
   }
   return out;

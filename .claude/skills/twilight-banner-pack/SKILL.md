@@ -54,3 +54,5 @@ for g,l in d['games'].items():
 ## 새 출처를 붙일 때
 
 `build.mjs`에 게임 함수를 추가하고 같은 형식(`id, group, name, start, end, version, featured[{id,en,cn,ko}], featuredRare`)으로 낸다. 그룹 ID는 `src/lib/games.ts`와 `validate.mjs`의 목록에 있어야 한다. 접속 가능 여부는 먼저 curl로 확인한다(위키류는 Cloudflare로 막힌 곳이 많음 → `twilight-game-reference`).
+
+- 엔드필드 무기 배너(무기고 신청·재구축 신청)는 공지 「확률 상세 안내」에서 수집한다(`parseArsenal`): "(UP)" 무기 = 픽업, [6성 무기] 표의 나머지 = `pool`(픽뚫 후보). 지금 열린 것만 공지에 나오므로 이전 팩과 합친다(`mergeArsenal`).
