@@ -168,6 +168,9 @@ export interface ImportResult {
  * - 긴급 모집은 천장·누적 횟수에 안 들어가므로 넣지 않는다.
  * - 기록이 덮는 시간 구간 안의 기존 뽑기(화면 감지·수동)는 공식 기록으로 바꾼다.
  */
+/** 화면 감지 기록이 실제 뽑은 시각보다 늦게 찍힐 수 있는 최대 시간 */
+export const SCREEN_LAG_MS = 15 * 60 * 1000;
+
 export function importHistory(
   records: Records,
   game: GameId,
@@ -205,7 +208,13 @@ export function importHistory(
   const groups = new Set(ordered.map((v) => v.group));
   const from = Date.parse(ordered[0].r.time) - 60_000;
   const to = Date.parse(ordered[ordered.length - 1].r.time) + 60_000;
-  const inRange = (p: Pull) => groups.has(p.group) && Date.parse(p.time) >= from && Date.parse(p.time) <= to;
+  // 화면 감지 기록은 뽑기 연출이 끝나고 가챠 화면으로 돌아온 시각에 찍히므로 실제 뽑은 시각보다 늦다.
+  // 그래서 화면 감지 기록은 마지막 공식 기록 뒤 15분까지 같은 뽑기로 보고 바꾼다(겹쳐 두 번 세지 않게).
+  const inRange = (p: Pull) => {
+    if (!groups.has(p.group)) return false;
+    const t = Date.parse(p.time);
+    return t >= from && t <= (p.source === "screen" ? to + SCREEN_LAG_MS : to);
+  };
   const replacedPulls = rec.pulls.filter(inRange);
   rec.pulls = rec.pulls.filter((p) => !inRange(p));
 

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PackBanner } from "./banners";
 import { importHistory, mergePages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, parseRecordTime } from "./history";
-import { emptyRecords, recordSession, topHistory } from "./ledger";
+import { emptyRecords, recordDetected, recordSession, topHistory } from "./ledger";
 import { parseFrameText } from "./recognize";
 
 const phone = parseFrameText(readFileSync(new URL("./fixtures/endfield-history-phone.txt", import.meta.url), "utf8"));
@@ -58,6 +58,17 @@ describe("엔드필드 공식 기록 읽기", () => {
     const hits = topHistory(out.records.games.endfield, "endfield-chartered");
     expect(hits.map((h) => [h.pull.name, h.count, h.pull.featured])).toEqual([["명하", 4, true]]);
     expect(out.records.undo.at(-1)?.replacedPulls).toHaveLength(1);
+  });
+
+  it("반영: 화면 감지 기록은 몇 분 늦게 찍혀도 같은 뽑기로 보고 바꾼다 (두 번 세지 않음)", () => {
+    let r = emptyRecords();
+    r.games.endfield.currentBanner["endfield-chartered"] = banner.id;
+    r = recordDetected(r, "endfield", "endfield-chartered", 3, [], {}, new Date("2026-11-07T00:13:00Z")); // 공식 기록 3분 뒤
+    r = recordSession(r, "endfield", "endfield-chartered", 1, new Map(), new Date("2026-11-07T00:13:00Z")); // 직접 입력은 그대로
+    const rows = [...parseEndfieldHistory(phone)!.rows, { banner: "은하수를 부르는 불꽃", name: "명하", time: "2026-11-07T00:10:00.000Z", emergency: false }];
+    const out = importHistory(r, "endfield", rows, ctx);
+    expect(out).toMatchObject({ added: 4, replaced: 3 });
+    expect(out.records.games.endfield.pulls.filter((p) => p.source === "manual")).toHaveLength(1);
   });
 
   it("배너를 못 찾으면(기초 헤드헌팅 등) 건너뛴다", () => {
