@@ -41,6 +41,14 @@
   let adding = $state(false);
   let addN = $state<number | null>(null);
   let addName = $state("");
+  /** 이름 후보: 적은 글자를 포함하는 것(앞에서부터 맞는 것 먼저). 아무것도 안 적었으면 목록이 짧을 때만 전부 */
+  const picks = $derived.by(() => {
+    const q = addName.trim().replace(/\s+/g, "");
+    if (topNames.length <= 12) return topNames; // 후보가 적으면(배너에 정해진 목록) 늘 전부 보여 준다
+    if (!q) return topNames.slice(0, 6);
+    const hit = topNames.filter((n) => n.replace(/\s+/g, "").includes(q));
+    return [...hit.filter((n) => n.replace(/\s+/g, "").startsWith(q)), ...hit.filter((n) => !n.replace(/\s+/g, "").startsWith(q))].slice(0, 10);
+  });
   const addFeatured = $derived(addName.trim() && guessFeatured ? guessFeatured(addName.trim()) : null);
   function saveAdd() {
     if (byExchange) { onExchange?.(addName.trim()); adding = false; byExchange = false; addName = ""; return; }
@@ -169,20 +177,33 @@
 {#if onTopAt}
   {#if adding}
     <form class="add" onsubmit={(e) => { e.preventDefault(); saveAdd(); }}>
-      {#if canExchange}<label class="exch"><input type="checkbox" bind:checked={byExchange} />교환</label>{/if}
-      {#if !byExchange}
-        <span>배너</span>
-        <input class="n" type="number" min="1" step={step} placeholder={String(status.bannerPulls + step)} bind:value={addN} aria-label="이 배너에서 몇 번째" />
-        <span>번째</span>
+      <div class="aline">
+        {#if !byExchange}
+          <span>배너</span>
+          <input class="n" type="number" inputmode="numeric" min="1" step={step} placeholder={String(status.bannerPulls + step)} bind:value={addN} aria-label="이 배너에서 몇 번째" />
+          <span>번째</span>
+        {/if}
+        {#if canExchange}<label class="exch"><input type="checkbox" bind:checked={byExchange} />교환</label>{/if}
+        {#if onPullsTo && !byExchange}<label class="exch"><input type="checkbox" bind:checked={countOnly} />횟수만</label>{/if}
+      </div>
+      {#if !countOnly}
+        <div class="aline">
+          <input class="nm" placeholder="{topLabel} 이름 (아래에서 고르거나 적기)" bind:value={addName} aria-label="이름" autocomplete="off" />
+          {#if addFeatured === true}<span class="badge win">픽업</span>{:else if addFeatured === false}<span class="badge">픽뚫</span>{/if}
+        </div>
+        {#if picks.length}
+          <!-- 이름 후보: 적은 글자가 들어간 것만(픽업 먼저). 누르면 이름 칸에 들어간다 -->
+          <div class="picks">
+            {#each picks as n (n)}
+              <button type="button" class="pick" class:on={n === addName.trim()} class:feat={guessFeatured?.(n) === true} onclick={() => (addName = n)}>{n}</button>
+            {/each}
+          </div>
+        {/if}
       {/if}
-{#if !countOnly}
-            <input class="nm" list="top-names" placeholder="{topLabel} 이름" bind:value={addName} aria-label="이름" />
-      <datalist id="top-names">{#each topNames as n (n)}<option value={n}></option>{/each}</datalist>
-      {#if addFeatured === true}<span class="badge win">픽업</span>{:else if addFeatured === false}<span class="badge">픽뚫</span>{/if}
-      {/if}
-      {#if onPullsTo && !byExchange}<label class="exch"><input type="checkbox" bind:checked={countOnly} />횟수만</label>{/if}
-      <button type="submit" disabled={byExchange ? !addName.trim() : !addN}>저장</button>
-      <button type="button" onclick={() => (adding = false)}>취소</button>
+      <div class="aline end">
+        <button type="submit" class="save" disabled={byExchange ? !addName.trim() : !addN}>저장</button>
+        <button type="button" onclick={() => (adding = false)}>취소</button>
+      </div>
     </form>
   {:else}
     <button class="addbtn" onclick={() => (adding = true)}>＋ {topLabel} 기록</button>
@@ -216,11 +237,18 @@
 {/if}
 
 <style>
+  .aline { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .aline.end { justify-content: flex-end; }
+  .aline .save { font-weight: 700; padding: 6px 16px; }
+  .picks { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pick { padding: 6px 10px; font-size: 13px; border-radius: var(--btn-radius); }
+  .pick.feat { border-color: var(--top); font-weight: 700; }
+  .pick.on { background: var(--top); color: #1a1408; }
   .exch { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
   .x { padding: 0 6px; font-size: 11px; }
   .choose { font-size: 12px; padding: 2px 4px; max-width: 100%; }
-  .add { display: flex; align-items: center; gap: 5px; font-size: 12px; }
-  .add .n { width: 4.2em; }
+  .add { display: flex; flex-direction: column; gap: 6px; font-size: 13px; padding: 8px; border-radius: var(--radius); background: var(--panel); }
+  .add .n { width: 5em; }
   .add .nm { flex: 1; min-width: 0; }
   .addbtn { align-self: flex-start; font-size: 12px; padding: 3px 10px; }
   .hero { display: flex; align-items: center; gap: 14px; }

@@ -45,6 +45,9 @@ export function parseNotice(bulletin) {
   const line = periods.find((l) => /Asia/i.test(l)) ?? periods[0] ?? "";
   const [from = "", to = ""] = line.split("~");
   const announced = new Date(bulletin.displayTime * 1000).toISOString();
+  // "획득 가능 6성 오퍼레이터 목록: 가/나/다" → 픽업을 뺀 나머지(픽뚫 후보)
+  const listLine = text.split("\n").find((l) => l.includes("획득 가능 6성 오퍼레이터 목록"));
+  const pool = (listLine?.split(/목록\s*[:：]/)[1] ?? "").split("/").map((n) => n.trim()).filter((n) => n && n !== up[1]);
   return {
     id: `endfield:official:${bulletin.cid}`,
     group: GROUP[kind],
@@ -53,6 +56,7 @@ export function parseNotice(bulletin) {
     end: serverTime(to),
     announced,
     featured: [{ id: `ko:${up[1]}`, ko: up[1] }],
+    ...(pool.length ? { pool: pool.map((ko) => ({ id: `ko:${ko}`, ko })) } : {}),
   };
 }
 
