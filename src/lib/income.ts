@@ -1,4 +1,4 @@
-// 재화 예측 (DESIGN.md §6-2, 사용자 요청 2026-11-26): 월정액·패스로 앞으로 받을 재화를 목표일까지 더해 가능 횟수를 계산한다.
+// 재화 예측 (DESIGN.md §6-2, 사용자 요청 2026-11-26): 월정액으로 앞으로 받을 재화를 목표일까지 더해 가능 횟수를 계산한다.
 // 지급량은 출처를 확인한 것만 넣는다. 출처와 상태(확인됨/추정)는 note에 적는다.
 import { availablePulls, groupStatus } from "./ledger";
 import { findGroup } from "./games";
@@ -17,23 +17,12 @@ export interface DailyPass {
   note: string;
 }
 
-/** 한 기간에 한 번 정해진 양을 받는 패스 (기행 등). 남은 양은 사용자가 고칠 수 있다 */
-export interface PeriodPass {
-  id: string;
-  label: string;
-  kind: "period";
-  total: Record<string, number>;
-  note: string;
-}
-
-export type Pass = DailyPass | PeriodPass;
+export type Pass = DailyPass;
 
 export const PASSES: Record<GameId, Pass[]> = {
   genshin: [
     { id: "welkin", label: "공월 축복", kind: "daily", daily: { primogem: 90 }, days: 30, maxDays: 180,
       note: "매일 원석 90, 30일(최대 180일). 출처: 플레이스테이션 스토어 상품 설명(2026-11-26 확인)" },
-    { id: "gnostic-hymn", label: "기행 유료(Gnostic Hymn)", kind: "period", total: { primogem: 680, intertwined: 4 },
-      note: "기행 한 기간에 원석 680 + 뒤엉킨 인연 4. 출처: 원신 위키 Battle Pass 문서(2026-11-26 확인). 레벨별 지급 시점은 미확인 — 아직 안 받은 양을 직접 고치세요" },
   ],
   arknights: [
     { id: "monthly-card", label: "월간 카드", kind: "daily", daily: { orundum: 200 }, days: 30, maxDays: 90,
@@ -55,15 +44,13 @@ export const PASSES: Record<GameId, Pass[]> = {
 export interface IncomePlan {
   /** 매일형 월정액: 끝나는 날(YYYY-MM-DD). 없으면 사용 안 함 */
   until: Record<string, string>;
-  /** 기간형 패스: 구매했는지와 아직 안 받은 양 */
-  period: Record<string, { on: boolean; remaining: Record<string, number> }>;
   /** 직접 입력: 하루 평균 무과금 수입(일일 임무 등). 게임이 정한 값이 아니라 사용자가 정한다 */
   extraDaily: Record<string, number>;
   /** 목표일(YYYY-MM-DD). 없으면 지금 배너가 끝나는 날 */
   target: string | null;
 }
 
-export const emptyPlan = (): IncomePlan => ({ until: {}, period: {}, extraDaily: {}, target: null });
+export const emptyPlan = (): IncomePlan => ({ until: {}, extraDaily: {}, target: null });
 
 const DAY = 864e5;
 /** YYYY-MM-DD → 그날 0시(현지) */
@@ -92,21 +79,13 @@ export function projectIncome(game: GameId, plan: IncomePlan, target: number, no
   const lines: ForecastLine[] = [];
   const add = (g: Record<string, number>) => { for (const [k, v] of Object.entries(g)) gains[k] = (gains[k] ?? 0) + v; };
   for (const p of PASSES[game]) {
-    if (p.kind === "daily") {
-      const until = plan.until[p.id];
-      if (!until) continue;
-      const days = daysUntil(Math.min(dayStart(until), target), from);
-      if (!days) continue;
-      const g = Object.fromEntries(Object.entries(p.daily).map(([k, v]) => [k, v * days]));
-      add(g);
-      lines.push({ label: p.label, gains: g, days });
-    } else {
-      const st = plan.period[p.id];
-      if (!st?.on) continue;
-      const g = { ...p.total, ...st.remaining };
-      add(g);
-      lines.push({ label: p.label, gains: g });
-    }
+    const until = plan.until[p.id];
+    if (!until) continue;
+    const days = daysUntil(Math.min(dayStart(until), target), from);
+    if (!days) continue;
+    const g = Object.fromEntries(Object.entries(p.daily).map(([k, v]) => [k, v * days]));
+    add(g);
+    lines.push({ label: p.label, gains: g, days });
   }
   const days = daysUntil(target, from);
   const extra = Object.fromEntries(Object.entries(plan.extraDaily).filter(([, v]) => v > 0).map(([k, v]) => [k, v * days]));

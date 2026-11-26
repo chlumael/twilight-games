@@ -43,19 +43,14 @@
     <PityRing value={status.pity} max={status.hardPity} soft={status.softFrom} sub={status.hardPity ? `/ ${status.hardPity}` : undefined} size={100} />
   {/if}
   <div class="side">
-    <span class="caption">{topLabel} 이후 뽑기</span>
     {#if status.guaranteed !== null}
       <span class="chip" class:on={status.guaranteed}>
         {status.guaranteed ? "다음 픽업 확정" : "다음 50:50"}{status.guaranteeUncertain ? " ?" : ""}
       </span>
     {/if}
-    {#if inSoft}
-      <span class="chip hot">확률 상승 중</span>
-    {:else if toSoft !== null}
-      <span class="hint">확률 상승까지 {toSoft}회</span>
-    {/if}
+    {#if inSoft}<span class="chip hot">확률 상승 중</span>{/if}
     {#if status.hardPity}
-      <span class="hint">천장까지 {Math.max(0, status.hardPity - status.pity)}회</span>
+      <span class="hint">천장까지 {Math.max(0, status.hardPity - status.pity)}회{#if !inSoft && toSoft !== null} · 확률 상승까지 {toSoft}회{/if}</span>
     {/if}
   </div>
 </section>
@@ -80,6 +75,7 @@
   <PullStrip pulls={recent} />
 </section>
 
+{#if !current || custom}
 <div class="banner">
   <span>배너</span>
   {#if custom || !banners.length}
@@ -111,6 +107,7 @@
     <button class="tolist" onclick={() => { typing = false; onBanner(""); }}>목록에서 선택</button>
   {:else if status.counters.length}<span class="hint">{status.bannerPulls}회</span>{/if}
 </div>
+{/if}
 {#if current}
   <button class="binfo" onclick={() => (detail = !detail)} aria-expanded={detail}>
     {#each current.featured as f (f.id)}<span class="feat">{itemName(f)}</span>{/each}
@@ -150,7 +147,6 @@
   .hero.wide { flex-direction: column; align-items: stretch; gap: 8px; }
   .hero.wide .side { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
   .side { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
-  .caption { font-size: 12px; color: var(--muted); }
   .chip {
     font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: var(--btn-radius);
     background: var(--panel); border: 1px solid var(--line);

@@ -87,8 +87,12 @@ const contexts = {
       }
     }
     await pick("genshin");
-    await page.click("text=/★/"); await page.waitForTimeout(200); await shot("top-form");
-    await page.click("text=취소");
+    // 예측 패널(펼친 모습)
+    if (await page.locator("section.forecast button.head").count()) {
+      await page.click("section.forecast button.head"); await page.waitForTimeout(200);
+      await page.locator("section.forecast").screenshot({ path: path.join(outDir, `${mode}-forecast.png`) });
+      await page.click("section.forecast button.head");
+    }
     await page.click("[aria-label=설정]"); await page.waitForTimeout(200); await shot("settings");
     await page.click("[aria-label=설정]");
     // 통계 화면: 내용 전체를 찍는다

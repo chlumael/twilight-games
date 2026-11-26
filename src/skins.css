@@ -30,7 +30,6 @@ main[data-skin="genshin"] .hero, main[data-skin="genshin"] .history, main[data-s
 }
 main[data-skin="genshin"] .tabs { background: rgba(40, 52, 84, 0.35) !important; border-radius: 999px !important; }
 main[data-skin="genshin"] .tabs button { color: #fff; border-radius: 999px !important; }
-main[data-skin="genshin"] .act-top { background: linear-gradient(180deg, #4a5a8a, #313d63); color: #ffe3a0; border: 1px solid #d3bc8e; border-radius: 999px; }
 main[data-skin="genshin"] .strip .cell { border-radius: 50%; }
 main[data-skin="genshin"] .strip .cell.top { background: radial-gradient(circle, #fff6d6, #e9a93a 70%); }
 
@@ -47,7 +46,6 @@ main[data-skin="arknights"] header { border-bottom: 1px solid rgba(255, 255, 255
 main[data-skin="arknights"] .brand-title { font-size: 24px; font-style: italic; letter-spacing: 0.02em; }
 main[data-skin="arknights"] .brand-sub::before { content: "// "; color: var(--a2); }
 main[data-skin="arknights"] .card { border: 1px solid rgba(255, 255, 255, 0.14); border-left: 2px solid var(--a2); }
-main[data-skin="arknights"] .act-top { background: #161616; color: var(--top); border: 1px solid var(--top); clip-path: var(--btn-clip); }
 main[data-skin="arknights"] .strip { grid-template-columns: repeat(20, 1fr) !important; gap: 2px !important; }
 main[data-skin="arknights"] .strip .cell {
   aspect-ratio: 1 / 3; border-radius: 0; background: linear-gradient(0deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.04));
@@ -77,7 +75,6 @@ main[data-skin="endfield"] .brand-title { background: #ffd400; color: #111; padd
 main[data-skin="endfield"] .brand-sub { color: #bdbdbd; }
 main[data-skin="endfield"] .brand-sub::before { content: "// "; color: #ffd400; }
 main[data-skin="endfield"] .card { border: 1px solid rgba(0, 0, 0, 0.2); box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.08); }
-main[data-skin="endfield"] .act-top { background: #1b1b1b; color: #ff5a4a; border: none; clip-path: var(--btn-clip); }
 main[data-skin="endfield"] .tabs { background: transparent !important; gap: 4px !important; padding: 0 !important; }
 main[data-skin="endfield"] .tabs button { background: #d6d6d2; color: #444; border-radius: 0 !important; }
 main[data-skin="endfield"] .strip .cell { border-radius: 0; }
@@ -100,7 +97,6 @@ main[data-skin="limbus"] {
 main[data-skin="limbus"] header { border-bottom: 1px solid rgba(201, 161, 74, 0.45); background: linear-gradient(90deg, rgba(160, 30, 22, 0.45), transparent 80%); }
 main[data-skin="limbus"] .brand-title { color: #e9c77a; letter-spacing: 0.14em; }
 main[data-skin="limbus"] .card { border: 1px solid #8a6a2c; outline: 1px solid rgba(201, 161, 74, 0.2); outline-offset: 2px; }
-main[data-skin="limbus"] .act-top { background: linear-gradient(180deg, #6e1711, #3a0c09); color: #f2c14e; border: 1px solid #c9a14a; }
 main[data-skin="limbus"] .strip { grid-template-columns: repeat(10, 1fr) !important; gap: 4px !important; }
 main[data-skin="limbus"] .strip .cell {
   aspect-ratio: 4 / 3; border-radius: 4px; background: #2a1d16;

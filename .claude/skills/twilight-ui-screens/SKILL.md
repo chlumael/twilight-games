@@ -30,7 +30,7 @@ node $S/screens.cjs overlay <scratchpad>/shots
 python3 -I $S/sheet.py <scratchpad>/shots/sheet.png <scratchpad>/shots/mobile-*.png
 ```
 
-- 4개 게임 + 최고 등급 입력 창 + 설정 화면을 `<mode>-<이름>.png`로 저장한다.
+- 4개 게임 + 예측 패널 + 설정 화면을 `<mode>-<이름>.png`로 저장한다.
 - 콘솔 오류와 실패한 요청이 끝에 출력된다. 보내기 전에 고친다. 단, `raw.githubusercontent.com/.../main/data/banners.json` 404는 배너 팩이 아직 `main`에 없을 때 정상이다(앱에 들어 있는 팩을 대신 씀).
 - 보내기 전에 Read로 직접 본다. 확인할 것: 글자 잘림·줄바꿈, 겹침, 스크롤해야만 보이는 버튼, 숫자가 계산상 맞는지(예: 원석 12480 + 창세 980 → 115회 가능).
 - 시드 데이터는 `scripts/sample-data.json`. 새 재화·그룹을 추가했으면 여기에도 넣어야 화면에 나온다.

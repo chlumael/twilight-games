@@ -9,7 +9,6 @@
   import ScreenPanel from "./components/ScreenPanel.svelte";
   import SettingsPanel from "./components/SettingsPanel.svelte";
   import StatsPanel from "./components/StatsPanel.svelte";
-  import TopForm from "./components/TopForm.svelte";
   import PromptBar from "./components/PromptBar.svelte";
   import ForecastPanel from "./components/ForecastPanel.svelte";
   import type { IncomePlan } from "./lib/income";
@@ -371,8 +370,6 @@
   );
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
-  const cost1 = $derived(spendPreview(rec.currency, group.spend, 1));
-  const cost10 = $derived(spendPreview(rec.currency, group.spend, 10));
   const banners = $derived(groupBanners(pack, game, groupId));
   /** 기록에 저장된 배너 ID를 보여 줄 이름으로 바꾼다 (팩에 없으면 그대로). */
   function packBannerName(id: string): string {
@@ -380,7 +377,6 @@
     return b ? `${bannerLabel(b)} · ${b.name}` : id;
   }
   const currentPackBanner = $derived(banners.find((b) => b.id === status.banner));
-  const suggestions = $derived(currentPackBanner?.featured.map(itemName) ?? []);
 
   // Follow the banner schedule: switch groups to the running banner unless the user typed one.
   $effect(() => {
@@ -927,34 +923,7 @@
         <ForecastPanel {game} record={rec} {groupId} bannerEnd={currentPackBanner?.end ?? null} onPlan={setIncomePlan} />
 
 
-        {#if view === "top"}
-          <TopForm
-            {suggestions}
-            guessFeatured={(n) => matchFeatured(currentPackBanner, n)}
-            topLabel={def.topLabel}
-            lastSessionSize={lastSessionSize(rec, groupId)}
-            showFeatured={group.featuredRule !== "none" || group.bannerCounters.length > 0}
-            onSubmit={saveTop}
-            onCancel={() => (view = "main")}
-          />
-        {:else}
-          <section class="actions">
-            {#each [{ n: 1, cost: cost1, label: skin.pull1 }, { n: 10, cost: cost10, label: skin.pull10 }] as b (b.n)}
-              <button class="primary pull" onclick={() => pull(b.n)}>
-                <span class="plabel">{b.label}</span>
-                <span class="pcost">
-                  {#each b.cost.items as it (it.key)}
-                    {@const ic = currencyIcon(game, it.key)}
-                    {#if ic}<img src={ic} alt="" />{:else}<i class="nog" title={def.currencies.find((c) => c.key === it.key)?.label}></i>{/if}<span>{it.amount.toLocaleString()}</span>
-                  {/each}
-                  {#if b.cost.shortfall}<span class="short">부족 {b.cost.shortfall}</span>{/if}
-                </span>
-              </button>
-            {/each}
-            <button class="act-top" onclick={() => (view = "top")}>★ {def.topLabel}</button>
-            <button class="undo" onclick={doUndo} title="되돌리기 (Ctrl+Alt+Z)" aria-label="되돌리기">↶</button>
-          </section>
-        {/if}
+        <!-- 화면 아래 수동 뽑기 버튼은 뺐다(사용자 2026-11-26). PC는 단축키(Ctrl+Alt+1·0·6·Z)로 직접 입력할 수 있다 -->
 
       {/if}
     </div>
@@ -986,16 +955,6 @@
   .tabs { display: flex; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.3); border-radius: var(--radius); }
   .tabs button { flex: 1; border: none; background: transparent; color: var(--muted); padding: 5px 4px; font-size: 12px; border-radius: calc(var(--radius) * 0.7); }
   .tabs button.active { background: var(--tab-active-bg); color: var(--tab-active-fg); font-weight: 700; }
-  .actions { display: grid; grid-template-columns: 1fr 1fr 0.9fr 34px; gap: 6px; }
-  .actions button { padding: 7px 4px; font-weight: 700; }
-  .pull { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-  .plabel { font-size: 13px; }
-  .pcost { display: flex; align-items: center; gap: 2px; font-size: 11px; font-weight: 600; opacity: 0.85; flex-wrap: wrap; justify-content: center; }
-  .pcost img { width: 16px; height: 16px; object-fit: contain; }
-  .short { color: var(--warn); }
-  .nog { width: 8px; height: 8px; margin: 0 3px; transform: rotate(45deg); border: 2px solid currentColor; }
-  .actions button.primary { background: var(--btn-bg); color: var(--btn-fg); border: var(--btn-border); clip-path: var(--btn-clip); }
-  .undo { color: var(--muted); font-size: 16px; }
   .review { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
   .autolog { display: flex; flex-direction: column; gap: 6px; padding: 10px; font-size: 12px; align-self: stretch; }
   .arow { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: var(--text); }
@@ -1034,11 +993,6 @@
   }
   .games button.active { opacity: 1; border-color: var(--line); background: var(--panel); font-weight: 700; }
   .games img { width: 24px; height: 24px; object-fit: contain; }
-  main.web .actions {
-    position: sticky; bottom: 0; z-index: 3; margin: 0 -14px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-    background: linear-gradient(180deg, transparent, rgba(var(--bg-rgb), 0.96) 28%);
-  }
-  main.web .actions button { padding: 11px 4px; }
   main.web :global(input), main.web :global(select) { font-size: 16px; } /* no zoom-on-focus */
   .launch { font-size: 12px; font-weight: 700; white-space: nowrap; }
 
@@ -1050,7 +1004,5 @@
   main.overlay .games img { width: 18px; height: 18px; }
   main.overlay .games span { font-size: 10px; }
   main.overlay .body { padding: 8px 10px 0; gap: 8px; }
-  main.overlay .actions { margin: 0 -10px; padding: 6px 10px 8px; }
-  main.overlay .actions button { padding: 7px 3px; }
   main.overlay :global(input), main.overlay :global(select) { font-size: 13px; }
 </style>

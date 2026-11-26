@@ -10,7 +10,7 @@ describe("재화 예측", () => {
   it("월정액 데이터의 재화 이름은 그 게임 재화만", () => {
     for (const [g, list] of Object.entries(PASSES)) {
       const keys = new Set(GAMES[g as keyof typeof GAMES].currencies.map((c) => c.key));
-      for (const p of list) for (const k of Object.keys(p.kind === "daily" ? p.daily : p.total)) expect(keys.has(k), `${g} ${p.id} ${k}`).toBe(true);
+      for (const p of list) for (const k of Object.keys(p.daily)) expect(keys.has(k), `${g} ${p.id} ${k}`).toBe(true);
     }
   });
   it("공월: 목표일까지 남은 날 × 90 (오늘 몫은 받았다고 봄), 끝나는 날이 먼저면 거기까지", () => {
@@ -18,10 +18,6 @@ describe("재화 예측", () => {
     expect(projectIncome("genshin", plan, target, now).gains).toEqual({ primogem: 900 });
     const short = { ...emptyPlan(), until: { welkin: "2026-11-30" } };
     expect(projectIncome("genshin", short, target, now).gains).toEqual({ primogem: 360 });
-  });
-  it("기행: 켜면 남은 양(기본 전체), 고친 양이 있으면 그 값", () => {
-    const plan = { ...emptyPlan(), period: { "gnostic-hymn": { on: true, remaining: { intertwined: 2 } } } };
-    expect(projectIncome("genshin", plan, target, now).gains).toEqual({ primogem: 680, intertwined: 2 });
   });
   it("직접 입력한 하루 수입도 더한다", () => {
     const plan = { ...emptyPlan(), extraDaily: { oroberyl: 100 } };
