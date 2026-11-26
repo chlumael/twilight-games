@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyRecords, recordSession } from "./ledger";
-import { bannerStats, gameStats, groupStats, luckLabel } from "./stats";
+import { bannerStats, gameStats, groupStats, luckLabel, luckPercentile, topPmf } from "./stats";
 
 const t = (min: number) => new Date(Date.UTC(2026, 10, 24, 12, min));
 
@@ -63,13 +63,17 @@ describe("통계", () => {
     expect(g.firstPull).toBe(t(0).toISOString());
   });
 
-  it("운 평가는 최고 등급 3개 이상일 때만", () => {
-    const base = groupStats(sample().games.genshin, "genshin", "genshin-char");
-    expect(luckLabel(base)).toBeNull();
-    expect(luckLabel({ ...base, tops: 3, pityRatio: 0.4 })).toBe("운이 아주 좋음");
-    expect(luckLabel({ ...base, tops: 3, pityRatio: 0.6 })).toBe("운이 좋은 편");
-    expect(luckLabel({ ...base, tops: 3, pityRatio: 0.8 })).toBe("보통");
-    expect(luckLabel({ ...base, tops: 3, pityRatio: 0.95 })).toBe("천장 근처에서 자주 나옴");
+  it("운 등급: 평균 운 기준 상위 몇 %", () => {
+    const pmf = topPmf({ base: 0.006, softFrom: 74, step: 0.06 }, 90);
+    expect(pmf.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 6);
+    // 원신 캐릭터: 10뽑에 나오면 아주 운이 좋음, 90뽑이면 거의 꼴찌
+    expect(luckPercentile("genshin", "genshin-char", [10])!).toBeLessThan(7);
+    expect(luckPercentile("genshin", "genshin-char", [90])!).toBeGreaterThan(99);
+    const mid = luckPercentile("genshin", "genshin-char", [62, 62])!;
+    expect(mid).toBeGreaterThan(20);
+    expect(mid).toBeLessThan(50);
+    expect(luckLabel(groupStats(sample().games.genshin, "genshin", "genshin-char"), "genshin")).toMatch(/^상위 /);
+    expect(luckPercentile("endfield", "endfield-refactor", [10])).toBeNull(); // 확률 모름
   });
 
   it("4성 기록: 화면 읽기로 이름이 남은 것만, 최근부터", () => {

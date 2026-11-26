@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PackBanner } from "./banners";
-import { importHistory, mergePages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, parseRecordTime } from "./history";
+import { importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, parseRecordTime } from "./history";
 import { emptyRecords, recordDetected, recordSession, topHistory } from "./ledger";
 import { parseFrameText } from "./recognize";
 
@@ -111,5 +111,17 @@ describe("명일방주 요스타 가챠 기록 읽기", () => {
       banners: [], topRarity: 6, isTop: () => false, groupOf: (b) => (/커널/.test(b) ? null : "arknights-limited"), newId: () => `a${++n}`,
     });
     expect(out).toMatchObject({ added: 0, skipped: 10 });
+  });
+});
+
+describe("빠진 쪽 확인", () => {
+  it("읽은 쪽 사이에 빠진 쪽을 찾는다", () => {
+    const row = { banner: "b", name: "n", time: "2026-11-01T00:00:00.000Z", emergency: false };
+    let store = mergePages({}, { game: "endfield", page: 1, rows: [row] });
+    store = mergePages(store, { game: "endfield", page: 2, rows: [{ ...row, name: "m" }] });
+    expect(missingPages(store)).toEqual([]);
+    store = mergePages(store, { game: "endfield", page: 5, rows: [{ ...row, name: "k" }] });
+    expect(missingPages(store)).toEqual([3, 4]);
+    expect(missingPages(mergePages({}, { game: "arknights", page: null, rows: [row] }))).toEqual([]);
   });
 });

@@ -155,6 +155,14 @@ export function mergePages(store: Record<string, HistoryRow>, page: HistoryPage)
   return next;
 }
 
+/** 읽어 둔 기록 쪽 번호 사이에 빠진 쪽 (예: 1, 2, 4쪽을 읽었으면 [3]). 쪽 번호를 모르는 화면은 따지지 않는다 */
+export function missingPages(store: Record<string, HistoryRow>): number[] {
+  const pages = [...new Set(Object.keys(store).map((k) => Number(k.split("|")[0])).filter((n) => Number.isInteger(n) && n > 0))].sort((a, b) => a - b);
+  const out: number[] = [];
+  for (let i = 1; i < pages.length; i++) for (let n = pages[i - 1] + 1; n < pages[i]; n++) out.push(n);
+  return out;
+}
+
 export interface ImportResult {
   records: Records;
   added: number;

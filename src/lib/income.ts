@@ -33,10 +33,10 @@ export const PASSES: Record<GameId, Pass[]> = {
       note: "매일 오로베릴 200(접속해서 받아야 함, 못 받은 날은 사라짐), 30일(최대 180일). 출처: 플레이스테이션 스토어·GameWith(2026-11-26 확인)" },
   ],
   limbus: [
-    { id: "lunacy-batch", label: "월간 광기 묶음(Batch)", kind: "daily", daily: { lunacy: 65 }, days: 30, maxDays: null,
-      note: "매일 무료 광기 65, 30일씩 연장. 출처: 림버스 위키 Shop 문서(2026-11-26 확인)" },
-    { id: "lunacy-supply", label: "월간 광기 공급(Supply)", kind: "daily", daily: { lunacy: 39 }, days: 30, maxDays: null,
-      note: "매일 무료 광기 39, 30일씩 연장. 출처: 림버스 위키 Shop 문서 — 위키의 합계(1720)와 39×30+650(1820)이 맞지 않아 하루 양은 추정" },
+    { id: "lunacy-monthly", label: "월간 광기", kind: "daily", daily: { lunacy: 65 }, days: 30, maxDays: null,
+      note: "9,900원: 유료 광기 650 + 매일 무료 광기 65, 30일. 출처: 나무위키 Limbus Company/아이템 및 상점(2026-11-26 검색). 영어 위키 Shop 문서는 하루 양을 반대로 적어 차이가 있음 — 가격 대비 합계가 맞는 나무위키 기준" },
+    { id: "lunacy-monthly-small", label: "소형 월간 광기", kind: "daily", daily: { lunacy: 39 }, days: 30, maxDays: null,
+      note: "4,400원: 유료 광기 130 + 매일 무료 광기 39, 30일. 출처: 나무위키(위와 같음)" },
   ],
 };
 
@@ -105,6 +105,8 @@ export interface Forecast {
   toTop: number | null;
   /** 픽업 확정까지 가장 많이 필요한 횟수 (50:50 픽뚫까지 고려). 알 수 없으면 null */
   toFeatured: number | null;
+  /** 아직 못 받은 배너 무료 뽑기 (엔드필드: 30회 채우면 10회). 받았거나 없으면 null */
+  bonus: { label: string; pulls: number; remaining: number } | null;
 }
 
 export function forecast(rec: GameRecord, game: GameId, groupId: string, plan: IncomePlan, target: number, now: Date = new Date()): Forecast {
@@ -124,7 +126,10 @@ export function forecast(rec: GameRecord, game: GameId, groupId: string, plan: I
     const counter = idx >= 0 ? st.counters[idx] : undefined;
     if (counter && !counter.done) toFeatured = toFeatured === null ? counter.remaining : Math.min(toFeatured, counter.remaining);
   }
+  const bonus = group.bonus && st.bannerPulls < group.bonus.at
+    ? { label: group.bonus.label, pulls: group.bonus.pulls, remaining: group.bonus.at - st.bannerPulls } : null;
   return {
+    bonus,
     nowPulls: availablePulls(rec.currency, group.spend),
     laterPulls: availablePulls(later, group.spend),
     gains, lines, toTop, toFeatured,

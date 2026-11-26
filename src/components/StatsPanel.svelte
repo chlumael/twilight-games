@@ -44,7 +44,7 @@
     {/if}
 
     {#each stats.groups.filter((g) => g.pulls > 0) as g (g.groupId)}
-      {@const luck = luckLabel(g)}
+      {@const luck = luckLabel(g, game)}
       <div class="group card">
         <div class="gtitle"><b>{g.name}</b>{#if luck}<span class="luck">{luck}</span>{/if}</div>
         <div class="rows">
@@ -56,16 +56,8 @@
           {#if g.featuredWon + g.featuredLost > 0}
             <div><span>픽업 성공</span><b>{pct(g.featuredRate)} ({g.featuredWon}승 {g.featuredLost}패)</b></div>
           {/if}
-          {#if g.pityRatio !== null && g.tops >= 3}
-            <div><span>천장 대비 평균</span><b>{pct(g.pityRatio)}</b></div>
-          {/if}
         </div>
-        {#if g.pityRatio !== null && g.tops >= 3}
-          <div class="bar"><div style:width="{Math.min(100, g.pityRatio * 100)}%"></div></div>
-          <p class="muted small">천장 대비 평균은 "평균 뽑기 수 ÷ 천장"입니다. 낮을수록 일찍 나온 것입니다.</p>
-        {:else if g.pityRatio !== null}
-          <p class="muted small">{def.topLabel} 기록이 3개 이상 쌓이면 천장 대비 평균과 운 평가가 표시됩니다.</p>
-        {/if}
+        {#if luck}<p class="muted small">운 등급: 평균적인 운의 사람들 중 내 위치(게임 확률로 계산). {def.topLabel} {g.tops}개 기준이라 개수가 적으면 크게 흔들립니다.</p>{/if}
         {#if g.rare.length}
           <div class="rare">
             <span class="k">4성 기록 {g.rare.length}개 (화면 읽기로 기록된 것)</span>
@@ -117,8 +109,6 @@
   .rows { display: flex; flex-direction: column; gap: 4px; }
   .rows > div { display: flex; justify-content: space-between; gap: 8px; }
   .rows b { color: var(--text); }
-  .bar { height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--muted) 25%, transparent); overflow: hidden; }
-  .bar div { height: 100%; background: var(--accent); }
   .hits { display: flex; flex-direction: column; gap: 3px; }
   .hit { display: grid; grid-template-columns: 30px 1fr auto auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 12%, transparent); }
   .hit.lost { background: color-mix(in srgb, var(--muted) 14%, transparent); }

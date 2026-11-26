@@ -47,6 +47,8 @@ export interface GameRecord {
   currentBanner: Record<string, string>;
   /** Last local change (ISO). Used to pick the newer copy when syncing devices. */
   updatedAt?: string | null;
+  /** 원신 무기·집록: 배너별로 고른 무기(신각의 길). 확정 포인트 계산에 쓴다 */
+  chosen?: Record<string, { banner: string; name: string }>;
   /** 재화 예측 설정 (월정액 끝나는 날 등, src/lib/income.ts) */
   income?: import("./income").IncomePlan;
 }

@@ -28,6 +28,8 @@ export interface PackBanner {
   /** 이 정보를 읽어 온 곳 (예: "공식 홈페이지 공지") */
   source?: string;
   version: string | null;
+  /** 엔드필드 재구축: 같은 시리즈끼리만 천장 이월. 배너 이름에 붙는 시리즈 이름(모르면 없음) */
+  series?: string;
   featured: PackItem[];
   featuredRare: PackItem[];
 }

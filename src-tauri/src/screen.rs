@@ -56,6 +56,8 @@ pub fn set_screen_profiles(state: State<'_, ScreenProfiles>, profiles: Vec<crate
 const SLOW: Duration = Duration::from_millis(2500);
 const FAST: Duration = Duration::from_millis(1000);
 const FAST_WINDOW: Duration = Duration::from_secs(20);
+/// 반복 간격. 새 방식의 화면 판단(작은 부분 모양 비교)은 이 간격마다 한다(글자 인식은 판단된 화면의 칸만).
+const PROBE: Duration = Duration::from_millis(250);
 // 윈도우 글자 인식은 "헤드헌팅"을 "해드현팅"처럼 읽기도 해서 조각 낱말도 넣는다.
 const GACHA_WORDS: [&str; 10] = ["헤드헌팅", "헌팅", "현팅", "해드", "기원", "추출", "진행", "LUNACY", "UID", "획득결과"];
 
@@ -79,6 +81,8 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, profiles: State
         }
         let _ = app.emit("screen-state", serde_json::json!({ "state": "started", "message": "" }));
         let mut last_gacha = std::time::Instant::now() - FAST_WINDOW;
+        // 화면 전체 글자 읽기(예전 방식)를 마지막으로 한 때. 잘라 읽기(새 방식)는 0.25초마다 판단만 해서 결과 화면을 놓치지 않게 한다
+        let mut last_full = std::time::Instant::now() - SLOW;
         while flag.load(Ordering::SeqCst) {
             // 새 방식(정해진 위치만 잘라 읽기): 판단 가능한 화면이 있을 때만
             let snapshot = profiles.lock().map(|p| p.clone()).unwrap_or_default();
@@ -96,6 +100,12 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, profiles: State
                     }
                 }
             }
+            let interval = if last_gacha.elapsed() < FAST_WINDOW { FAST } else { SLOW };
+            if last_full.elapsed() < interval {
+                std::thread::sleep(PROBE);
+                continue;
+            }
+            last_full = std::time::Instant::now();
             match imp::read_once() {
                 Ok(Some(frame)) => {
                     if frame.lines.iter().any(|l| { let t = l.t.replace(' ', ""); GACHA_WORDS.iter().any(|w| t.contains(w)) }) {
@@ -110,7 +120,7 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, profiles: State
                     return;
                 }
             }
-            std::thread::sleep(if last_gacha.elapsed() < FAST_WINDOW { FAST } else { SLOW });
+            std::thread::sleep(PROBE);
         }
     });
     Ok(())

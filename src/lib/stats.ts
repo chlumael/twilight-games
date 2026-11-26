@@ -1,5 +1,5 @@
-// 통계: 기록에서 계산하는 요약값. 게임 확률을 가정하지 않고 기록과 천장 규칙만 쓴다.
-import { GAMES } from "./games";
+// 통계: 기록에서 계산하는 요약값. 운 등급만 게임 확률(games.ts의 odds)을 써서 "평균 운 기준 상위 몇 %"를 계산한다.
+import { GAMES, type PityGroup } from "./games";
 import { topHistory, type TopHit } from "./ledger";
 import type { GameId, GameRecord, Pull } from "./types";
 
@@ -124,10 +124,49 @@ export function gameStats(rec: GameRecord, game: GameId): GameStats {
 }
 
 /** 운 평가 문구: 천장 대비 평균. 기록이 적으면(3개 미만) 판단하지 않는다. */
-export function luckLabel(s: GroupStats): string | null {
-  if (s.pityRatio === null || s.tops < 3) return null;
-  if (s.pityRatio <= 0.5) return "운이 아주 좋음";
-  if (s.pityRatio <= 0.7) return "운이 좋은 편";
-  if (s.pityRatio <= 0.85) return "보통";
-  return "천장 근처에서 자주 나옴";
+/** 최고 등급 하나가 n번째 뽑기에서 나올 확률 (n = 1부터). 천장이 없으면 꼬리가 아주 작아질 때까지 */
+export function topPmf(odds: NonNullable<PityGroup["odds"]>, hardPity: number | null): number[] {
+  const out: number[] = [];
+  let survive = 1;
+  const limit = hardPity ?? 2000;
+  for (let n = 1; n <= limit; n++) {
+    let p = odds.base;
+    if (odds.softFrom !== null && n >= odds.softFrom) p += odds.step * (n - odds.softFrom + 1);
+    if (hardPity !== null && n === hardPity) p = 1;
+    p = Math.min(1, p);
+    out.push(survive * p);
+    survive *= 1 - p;
+    if (survive < 1e-9) break;
+  }
+  return out;
+}
+
+/**
+ * 운 등급: 같은 수의 최고 등급을 얻은 "평균적인 사람들" 중에서 내 총 뽑기 수가 상위 몇 %인지.
+ * 게임 확률로 만든 분포에서 P(총 뽑기 ≤ 나) × 100. 작을수록 운이 좋다. 확률을 모르면 null.
+ * (나중에 친구 기록이 모이면 실제 사용자 분포로 바꿀 수 있다 — DESIGN.md §8.5)
+ */
+export function luckPercentile(game: GameId, groupId: string, counts: number[]): number | null {
+  const group = GAMES[game].groups.find((g) => g.id === groupId);
+  if (!group?.odds || !counts.length) return null;
+  const pmf = topPmf(group.odds, group.hardPity);
+  let dist = [1]; // 합의 분포: dist[s] = P(합 = s)
+  for (let k = 0; k < counts.length; k++) {
+    const next = new Array(dist.length + pmf.length).fill(0);
+    for (let a = 0; a < dist.length; a++) {
+      if (!dist[a]) continue;
+      for (let b = 0; b < pmf.length; b++) next[a + b + 1] += dist[a] * pmf[b];
+    }
+    dist = next;
+  }
+  const total = counts.reduce((a, b) => a + b, 0);
+  let cdf = 0;
+  for (let s2 = 0; s2 <= Math.min(total, dist.length - 1); s2++) cdf += dist[s2];
+  return Math.min(100, Math.max(0, cdf * 100));
+}
+
+export function luckLabel(s: GroupStats, game: GameId): string | null {
+  const p = luckPercentile(game, s.groupId, s.hits.map((h) => h.count));
+  if (p === null) return null;
+  return `상위 ${p < 1 ? p.toFixed(1) : Math.round(p)}%`;
 }

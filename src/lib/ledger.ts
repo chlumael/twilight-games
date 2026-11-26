@@ -56,16 +56,36 @@ export interface GroupStatus {
   lastTop: Pull | null;
 }
 
-export function groupStatus(rec: GameRecord, game: GameId, groupId: string): GroupStatus {
+/** 배너 id → 시리즈 (엔드필드 재구축). 기본은 배너마다 다른 시리즈 */
+export type SeriesOf = (bannerId: string) => string;
+let seriesResolver: SeriesOf = (b) => b;
+/** 배너 데이터 팩을 읽은 뒤 시리즈 정보를 알려 준다 (App) */
+export function setSeriesOf(fn: SeriesOf): void {
+  seriesResolver = fn;
+}
+
+/** 지금 배너의 천장 계산에 들어가는 뽑기 (시간순) */
+function countedPulls(rec: GameRecord, game: GameId, groupId: string, seriesOf: SeriesOf = seriesResolver): Pull[] {
+  const group = findGroup(game, groupId);
+  const banner = rec.currentBanner[groupId] ?? "";
+  let pulls = rec.pulls.filter((p) => p.group === groupId).sort(byTime);
+  if (group.carryOver === false) pulls = pulls.filter((p) => p.banner === banner);
+  else if (group.carryOver === "series") {
+    const series = seriesOf(banner);
+    pulls = pulls.filter((p) => p.banner === banner || (!!banner && seriesOf(p.banner) === series));
+  }
+  return pulls;
+}
+
+export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seriesOf: SeriesOf = seriesResolver): GroupStatus {
   const group = findGroup(game, groupId);
   const banner = rec.currentBanner[groupId] ?? "";
   const base = rec.baseline[groupId] ?? emptyBaseline();
   const baseOnThisBanner = base.banner === banner;
 
-  let pulls = rec.pulls.filter((p) => p.group === groupId).sort(byTime);
-  if (!group.carryOver) pulls = pulls.filter((p) => p.banner === banner);
+  const pulls = countedPulls(rec, game, groupId, seriesOf);
 
-  let pity = group.carryOver || baseOnThisBanner ? base.pity : 0;
+  let pity = group.carryOver === true || baseOnThisBanner ? base.pity : 0;
   let guaranteed = base.guaranteed;
   let uncertain = false;
   let lastTop: Pull | null = null;
@@ -74,8 +94,15 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string): Gro
       pity = 0;
       lastTop = p;
       if (group.featuredRule !== "none") {
-        uncertain = p.featured === null;
-        guaranteed = p.featured === false;
+        // 원신 무기·집록: 고른 무기(신각의 길)가 있으면 그 이름이 아니면 다음 확정
+        const chosen = group.featuredRule === "fate-point" ? rec.chosen?.[groupId] : undefined;
+        if (chosen && chosen.banner === p.banner && p.name) {
+          uncertain = false;
+          guaranteed = p.name !== chosen.name;
+        } else {
+          uncertain = p.featured === null;
+          guaranteed = p.featured === false;
+        }
       }
     } else {
       pity++;
@@ -360,7 +387,7 @@ function baseForBanner(rec: GameRecord, game: GameId, groupId: string, banner: s
   const b0 = { ...emptyBaseline(), ...(rec.baseline[groupId] ?? {}) };
   if (b0.banner === banner) return b0;
   const group = findGroup(game, groupId);
-  return { ...emptyBaseline(), banner, pity: group.carryOver ? b0.pity : 0, guaranteed: b0.guaranteed };
+  return { ...emptyBaseline(), banner, pity: group.carryOver === true ? b0.pity : 0, guaranteed: b0.guaranteed };
 }
 
 /**
@@ -478,4 +505,51 @@ export function resetPity(records: Records, game: GameId, groupId: string): Reco
   next.games[game].baseline[groupId] = base;
   next.games[game].updatedAt = new Date().toISOString();
   return next;
+}
+
+/**
+ * 직접 입력: "n뽑에 최고 등급(이름)이 나왔다". n은 직전 최고 등급 이후 몇 번째인지(예: 32스택에서 10연 7번째 → 39).
+ * - n이 지금 스택보다 크면: 모자란 뽑기를 더하고 마지막을 최고 등급으로 (아직 기록 안 된 뽑기)
+ * - 이미 기록된 뽑기 안이면: 그 자리를 최고 등급으로 표시
+ * - 앱이 기록하기 전(시작 상태) 구간이면: 천장 스택만 n만큼 줄인다
+ * 픽업 여부는 배너의 픽업 이름과 같은지로 정해서 넘긴다(모르면 null).
+ */
+export function recordTopAt(
+  records: Records,
+  game: GameId,
+  groupId: string,
+  n: number,
+  info: TopInfo,
+  now: Date = new Date(),
+): { records: Records; mode: "added" | "marked" | "baseline" } {
+  const rec = records.games[game];
+  const st = groupStatus(rec, game, groupId);
+  const pulls = countedPulls(rec, game, groupId);
+  const lastTop = pulls.map((p) => p.top).lastIndexOf(true);
+  const since = pulls.slice(lastTop + 1);
+  const before = st.pity - since.length; // 시작 상태(앱이 못 본 구간)에서 온 스택
+  if (n > st.pity) {
+    const add = n - st.pity;
+    const next = recordSession(records, game, groupId, add, new Map([[add - 1, info]]), now);
+    const last = next.undo[next.undo.length - 1];
+    if (last) last.label = `${GAMES[game].shortName} ${n}뽑 ${info.name ?? GAMES[game].topLabel} 직접 입력`;
+    return { records: next, mode: "added" };
+  }
+  if (n > before) {
+    const target = since[n - before - 1];
+    const next = structuredClone(records);
+    const p = next.games[game].pulls.find((x) => x.id === target.id)!;
+    const old = structuredClone(p);
+    p.top = true;
+    p.name = info.name;
+    p.featured = info.featured;
+    pushUndo(next, { game, label: `${GAMES[game].shortName} ${n}뽑 ${info.name ?? GAMES[game].topLabel} 표시`, addedPullIds: [], replacedPulls: [old], prevCurrency: { ...next.games[game].currency } });
+    return { records: next, mode: "marked" };
+  }
+  const base = baseForBanner(rec, game, groupId, st.banner);
+  base.pity -= n;
+  const next = structuredClone(records);
+  next.games[game].baseline[groupId] = base;
+  next.games[game].updatedAt = new Date().toISOString();
+  return { records: next, mode: "baseline" };
 }

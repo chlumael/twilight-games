@@ -7,7 +7,7 @@
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner }: {
+  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose }: {
     groupLabel?: string;
     status: GroupStatus;
     /** Known banners for this group from the data pack. */
@@ -17,7 +17,25 @@
     recent: Pull[];
     hits: TopHit[];
     onBanner: (name: string) => void;
+    /** 직접 입력: 이름 후보(픽업 먼저), 픽업 판정, 저장 — "n뽑에 이름" */
+    topNames?: string[];
+    guessFeatured?: (name: string) => boolean | null;
+    onTopAt?: (n: number, name: string) => void;
+    /** 원신 무기·집록: 고를 수 있는 무기(이 배너 픽업)와 지금 고른 무기 */
+    chooseOptions?: string[];
+    chosen?: string;
+    onChoose?: (name: string) => void;
   } = $props();
+
+  let adding = $state(false);
+  let addN = $state<number | null>(null);
+  let addName = $state("");
+  const addFeatured = $derived(addName.trim() && guessFeatured ? guessFeatured(addName.trim()) : null);
+  function saveAdd() {
+    if (!addN || addN < 1 || !onTopAt) return;
+    onTopAt(addN, addName.trim());
+    adding = false; addN = null; addName = "";
+  }
 
   const inSoft = $derived(status.softFrom !== null && status.pity + 1 >= status.softFrom);
   const toSoft = $derived(status.softFrom !== null ? Math.max(0, status.softFrom - 1 - status.pity) : null);
@@ -47,6 +65,12 @@
       <span class="chip" class:on={status.guaranteed}>
         {status.guaranteed ? "다음 픽업 확정" : "다음 50:50"}{status.guaranteeUncertain ? " ?" : ""}
       </span>
+    {/if}
+    {#if onChoose && chooseOptions.length}
+      <select class="choose" value={chosen} onchange={(e) => onChoose((e.currentTarget as HTMLSelectElement).value)} aria-label="고른 무기">
+        <option value="">고른 무기 선택</option>
+        {#each chooseOptions as o (o)}<option value={o}>{o}</option>{/each}
+      </select>
     {/if}
     {#if inSoft}<span class="chip hot">확률 상승 중</span>{/if}
     {#if status.hardPity}
@@ -129,6 +153,22 @@
   {/if}
 {/if}
 
+{#if onTopAt}
+  {#if adding}
+    <form class="add" onsubmit={(e) => { e.preventDefault(); saveAdd(); }}>
+      <input class="n" type="number" min="1" max="999" placeholder={String(status.pity)} bind:value={addN} aria-label="몇 번째" />
+      <span>뽑</span>
+      <input class="nm" list="top-names" placeholder="{topLabel} 이름" bind:value={addName} aria-label="이름" />
+      <datalist id="top-names">{#each topNames as n (n)}<option value={n}></option>{/each}</datalist>
+      {#if addFeatured === true}<span class="badge win">픽업</span>{:else if addFeatured === false}<span class="badge">픽뚫</span>{/if}
+      <button type="submit" disabled={!addN}>저장</button>
+      <button type="button" onclick={() => (adding = false)}>취소</button>
+    </form>
+  {:else}
+    <button class="addbtn" onclick={() => (adding = true)}>＋ {topLabel} 기록</button>
+  {/if}
+{/if}
+
 {#if lastHits.length}
   <section class="hits">
     {#each lastHits as h (h.pull.id)}
@@ -143,6 +183,11 @@
 {/if}
 
 <style>
+  .choose { font-size: 12px; padding: 2px 4px; max-width: 100%; }
+  .add { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+  .add .n { width: 4.2em; }
+  .add .nm { flex: 1; min-width: 0; }
+  .addbtn { align-self: flex-start; font-size: 12px; padding: 3px 10px; }
   .hero { display: flex; align-items: center; gap: 14px; }
   .hero.wide { flex-direction: column; align-items: stretch; gap: 8px; }
   .hero.wide .side { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px 10px; }

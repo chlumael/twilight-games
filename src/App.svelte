@@ -20,7 +20,7 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, resetPity, syncBannerPulls } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
@@ -34,7 +34,7 @@
   import arknightsSixFile from "../data/names/arknights-6star.json";
   import { applyLimbusHistory, mergeSequence, parseLimbusHistory, type LimbusRow } from "./lib/limbus-history";
   import {
-    importHistory, mergePages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow,
+    importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow,
   } from "./lib/history";
   import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
@@ -164,25 +164,11 @@
     prompts = dropPrompt(prompts, p.id);
     if (p.action.type === "genshin-reload") {
       if (yes) loadGenshinWishes();
-    } else if (p.action.type === "arknights-carry") {
-      if (!yes) {
-        update(resetPity(records, "arknights", p.action.group));
-        notify("새 배너부터 6성 스택을 0으로 셉니다");
-      } else notify("6성 스택을 이어갑니다");
     }
   }
   function askGenshinReload() {
     if (!api.inTauri) return;
     ask({ text: "5성이 나왔습니다. 원신 기원 기록을 새로 불러올까요?", yes: "불러오기", no: "나중에", action: { type: "genshin-reload" } });
-  }
-  /** 명일방주 일반 헤드헌팅 배너가 바뀌었을 때 (이월 여부 미확정 — 설정에 따라 묻거나 고정) */
-  function onBannerChanged(g: GameId, gid: string, from: string, to: string, recs: Records) {
-    if (g !== "arknights" || gid !== "arknights-standard" || !from || from === to) return;
-    if (groupStatus(recs.games.arknights, "arknights", gid).pity === 0) return;
-    const mode = settings.arknightsStandardCarry ?? "ask";
-    if (mode === "carry") return;
-    if (mode === "reset") { update(resetPity(recs, "arknights", gid)); return; }
-    ask({ text: "명일방주 일반 헤드헌팅 배너가 바뀌었습니다. 6성 스택을 이어갈까요?", yes: "이어가기", no: "0부터", action: { type: "arknights-carry", group: gid, from, to } });
   }
 
   // ---- 원신 기원 기록 불러오기 (PC, DESIGN.md §4.9) ----
@@ -259,6 +245,9 @@
     for (const g of HISTORY_GAMES) {
       const rows = historyRowsOf(g);
       if (!rows.length) continue;
+      // 중간 쪽을 건너뛰었으면 반영하지 않는다(사이 기록이 빠지지 않게). 읽어 둔 쪽은 남겨 두니 빠진 쪽만 보여 주면 된다
+      const gap = missingPages(historyStore[g] ?? {});
+      if (gap.length) { notify(`${GAMES[g].shortName} 기록 ${gap.join(", ")}쪽을 못 읽었습니다. 그 쪽을 열어 주세요`); continue; }
       const choices = Object.fromEntries([...new Set(rows.map((r) => r.banner))].map((b) => [b, g === "arknights" ? arknightsDefault(b) : ""]));
       applyHistory(g, choices);
     }
@@ -355,6 +344,12 @@
   let steady: { game: GameId; counts: SteadyCounts } | null = null;
   let pack = $state.raw<BannerPack | null>(isPack(bundledPack) ? bundledPack : null);
 
+  // 엔드필드 재구축 시리즈별 천장 이월: 배너 데이터의 series (없으면 배너마다 새로)
+  $effect(() => {
+    const series = new Map<string, string>();
+    for (const list of Object.values(pack?.games ?? {})) for (const b of list) if (b.series) series.set(b.id, b.series);
+    setSeriesOf((id) => series.get(id) ?? id);
+  });
   const def = $derived(GAMES[game]);
   const skin = $derived(SKINS[game]);
   const rec = $derived(records.games[game]);
@@ -382,7 +377,6 @@
   $effect(() => {
     if (!loaded || !pack) return;
     let next: Records | null = null;
-    const changes: [GameId, string, string, string][] = [];
     for (const id of GAME_IDS) {
       for (const g of GAMES[id].groups) {
         const cur = (next ?? records).games[id].currentBanner[g.id] ?? "";
@@ -390,12 +384,10 @@
         if (to) {
           next ??= structuredClone(records);
           next.games[id].currentBanner[g.id] = to;
-          changes.push([id, g.id, cur, to]);
         }
       }
     }
     if (next) records = next;
-    for (const [g, gid, from, to] of changes) onBannerChanged(g, gid, from, to, records);
   });
 
   function notify(msg: string) {
@@ -580,12 +572,33 @@
   }
 
   function setBanner(name: string) {
-    const from = records.games[game].currentBanner[groupId] ?? "";
     const next = structuredClone(records);
     next.games[game].currentBanner[groupId] = name;
     update(next);
-    onBannerChanged(game, groupId, from, name, records);
   }
+
+  /** 직접 입력 "n뽑에 이름" (사용자 2026-11-26). 픽업 여부는 배너의 픽업 이름과 같은지로 */
+  function saveTopAt(n: number, name: string) {
+    const out = recordTopAt(records, game, groupId, n, { name: name || null, featured: name ? matchFeatured(currentPackBanner, name) : null });
+    update(out.records);
+    notify(out.mode === "baseline" ? `${n}뽑 ${def.topLabel}: 앱 기록 전 구간이라 천장 스택만 맞췄습니다` : `${n}뽑 ${name || def.topLabel} 기록`);
+  }
+  /** 원신 무기·집록에서 고른 무기 (신각의 길) */
+  function setChosen(name: string) {
+    const next = structuredClone(records);
+    const chosen = { ...(next.games[game].chosen ?? {}) };
+    if (name) chosen[groupId] = { banner: status.banner, name }; else delete chosen[groupId];
+    next.games[game].chosen = chosen;
+    update(next);
+  }
+  /** 이름 후보: 지금 배너 픽업 → 이 게임의 최고 등급 이름들 */
+  const topNames = $derived.by(() => {
+    const featured = (currentPackBanner?.featured ?? []).map(itemName);
+    const all = game === "genshin"
+      ? Object.entries(genshinItems).filter(([, v]) => v.rarity === 5).map(([k]) => k)
+      : [...(sixStars[game] ?? [])];
+    return [...new Set([...featured, ...all])];
+  });
 
   function setIncomePlan(plan: IncomePlan) {
     const next = structuredClone(records);
@@ -919,7 +932,10 @@
         </nav>
         {/if}
 
-        <GroupPanel {status} groupLabel={group.name} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} {banners} onBanner={setBanner} />
+        <GroupPanel {status} groupLabel={group.name} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} {banners} onBanner={setBanner}
+          {topNames} guessFeatured={(n) => matchFeatured(currentPackBanner, n)} onTopAt={saveTopAt}
+          chooseOptions={group.featuredRule === "fate-point" ? (currentPackBanner?.featured ?? []).map(itemName) : []}
+          chosen={rec.chosen?.[groupId]?.banner === status.banner ? rec.chosen[groupId].name : ""} onChoose={setChosen} />
         <ForecastPanel {game} record={rec} {groupId} bannerEnd={currentPackBanner?.end ?? null} onPlan={setIncomePlan} />
 
 

@@ -1,9 +1,7 @@
 // 확인 창: 오버레이 위에 뜨는 작은 질문 줄 (단축키 Ctrl+Alt+Y 예 / Ctrl+Alt+N 아니요).
-// 쓰는 곳은 DESIGN.md §4.8 참고 (명일방주 일반 배너 천장 이어가기, 원신 기원 기록 새로 불러오기).
+// 쓰는 곳은 DESIGN.md §4.8 참고 (원신 기원 기록 새로 불러오기).
 
-export type PromptAction =
-  | { type: "genshin-reload" }
-  | { type: "arknights-carry"; group: string; from: string; to: string };
+export type PromptAction = { type: "genshin-reload" };
 
 export interface Prompt {
   id: string;
@@ -13,7 +11,7 @@ export interface Prompt {
   action: PromptAction;
 }
 
-const keyOf = (a: PromptAction) => (a.type === "arknights-carry" ? `${a.type}:${a.group}:${a.to}` : a.type);
+const keyOf = (a: PromptAction) => a.type;
 
 /** 같은 질문이 이미 있으면 다시 쌓지 않는다 */
 export function pushPrompt(list: Prompt[], p: Prompt): Prompt[] {

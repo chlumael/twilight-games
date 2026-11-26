@@ -40,5 +40,6 @@ describe("재화 예측", () => {
     const f = forecast(r.games.endfield, "endfield", "endfield-chartered", emptyPlan(), target, now);
     expect(f.toTop).toBe(53);
     expect(f.toFeatured).toBe(100);
+    expect(f.bonus).toEqual({ label: "긴급 모집", pulls: 10, remaining: 10 }); // 20회 뽑음 → 10회 더 뽑으면 무료 10회
   });
 });

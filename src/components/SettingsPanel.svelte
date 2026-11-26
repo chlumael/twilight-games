@@ -133,21 +133,6 @@
     {/each}
   </section>
 
-  {#if game === "arknights"}
-  <section>
-    <h4>명일방주 일반 헤드헌팅</h4>
-    <label class="row">배너가 바뀔 때 6성 스택
-      <select value={settings.arknightsStandardCarry ?? "ask"}
-        onchange={(e) => onSettings({ ...settings, arknightsStandardCarry: (e.currentTarget as HTMLSelectElement).value as "ask" | "carry" | "reset" })}>
-        <option value="ask">바뀔 때마다 묻기</option>
-        <option value="carry">항상 이어가기</option>
-        <option value="reset">항상 새로 세기</option>
-      </select>
-    </label>
-    <p class="muted hint">일반 배너끼리 스택이 이어지는지는 아직 확인되지 않았습니다. 확인되면 여기서 고정하세요.</p>
-  </section>
-  {/if}
-
   {#if game === "genshin" && onGenshinWishes}
   <section>
     <h4>원신 기원 기록 불러오기</h4>

@@ -280,3 +280,66 @@ describe("결과 화면 기록·화면 값 맞추기", () => {
     expect(syncPityFromScreen(r, "endfield", "endfield-arsenal", 30, null)).toBe(r);
   });
 });
+
+describe("엔드필드 재구축: 같은 시리즈끼리만 이월", () => {
+  it("시리즈를 모르면 배너마다 새로, 같은 시리즈면 이어짐", async () => {
+    const { setSeriesOf } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.endfield.currentBanner["endfield-refactor"] = "A";
+    r = recordSession(r, "endfield", "endfield-refactor", 30, new Map(), t(0));
+    r.games.endfield.currentBanner["endfield-refactor"] = "B";
+    expect(groupStatus(r.games.endfield, "endfield", "endfield-refactor").pity).toBe(0);
+    setSeriesOf((id) => (id === "A" || id === "B" ? "색채" : id));
+    expect(groupStatus(r.games.endfield, "endfield", "endfield-refactor").pity).toBe(30);
+    setSeriesOf((id) => id);
+  });
+  it("명일방주 일반은 배너가 바뀌면 새로 (이월 안 되는 것으로 계산)", () => {
+    let r = emptyRecords();
+    r.games.arknights.currentBanner["arknights-standard"] = "A";
+    r = recordSession(r, "arknights", "arknights-standard", 20, new Map(), t(0));
+    r.games.arknights.currentBanner["arknights-standard"] = "B";
+    expect(groupStatus(r.games.arknights, "arknights", "arknights-standard").pity).toBe(0);
+  });
+});
+
+describe("직접 입력: n뽑에 최고 등급", () => {
+  const G = "endfield-chartered";
+  const st = (r: ReturnType<typeof emptyRecords>) => groupStatus(r.games.endfield, "endfield", G);
+  it("32스택에서 10연을 기록했고 7번째(39뽑)에 나왔다 → 그 자리 표시, 남은 스택 3", async () => {
+    const { recordTopAt } = await import("./ledger");
+    let r = syncPityFromScreen(emptyRecords(), "endfield", G, 48, null); // 32스택
+    r = recordSession(r, "endfield", G, 10, new Map(), t(0));
+    const out = recordTopAt(r, "endfield", G, 39, { name: "케르", featured: true }, t(1));
+    expect(out.mode).toBe("marked");
+    expect(st(out.records).pity).toBe(3);
+    expect(out.records.games.endfield.pulls.find((p) => p.top)).toMatchObject({ name: "케르", featured: true, indexInSession: 6 });
+  });
+  it("아직 기록 안 된 뽑기면 모자란 만큼 더한다", async () => {
+    const { recordTopAt } = await import("./ledger");
+    const r = syncPityFromScreen(emptyRecords(), "endfield", G, 48, null); // 32스택, 기록 0
+    const out = recordTopAt(r, "endfield", G, 39, { name: "케르", featured: false }, t(1));
+    expect(out.mode).toBe("added");
+    expect(out.records.games.endfield.pulls).toHaveLength(7);
+    expect(st(out.records).pity).toBe(0);
+  });
+  it("시작 상태 구간이면 스택만 줄인다", async () => {
+    const { recordTopAt } = await import("./ledger");
+    const r = syncPityFromScreen(emptyRecords(), "endfield", G, 48, null);
+    const out = recordTopAt(r, "endfield", G, 20, { name: null, featured: null }, t(1));
+    expect(out.mode).toBe("baseline");
+    expect(st(out.records).pity).toBe(12);
+  });
+});
+
+describe("원신 무기: 고른 무기(신각의 길)", () => {
+  it("픽업 무기라도 고른 무기가 아니면 다음 확정", () => {
+    let r = emptyRecords();
+    r.games.genshin.currentBanner["genshin-weapon"] = "W";
+    r = recordSession(r, "genshin", "genshin-weapon", 1, new Map([[0, { name: "픽업B", featured: true }]]), t(0));
+    expect(groupStatus(r.games.genshin, "genshin", "genshin-weapon").guaranteed).toBe(false);
+    r.games.genshin.chosen = { "genshin-weapon": { banner: "W", name: "픽업A" } };
+    expect(groupStatus(r.games.genshin, "genshin", "genshin-weapon").guaranteed).toBe(true);
+    r.games.genshin.chosen = { "genshin-weapon": { banner: "W", name: "픽업B" } };
+    expect(groupStatus(r.games.genshin, "genshin", "genshin-weapon").guaranteed).toBe(false);
+  });
+});
