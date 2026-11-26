@@ -38,11 +38,10 @@
 <section class="stats">
   <div class="shead">
     <strong>통계 · {def.name}</strong>
-    <button onclick={onClose}>닫기</button>
   </div>
 
   {#if stats.pulls === 0}
-    <p class="muted">아직 기록된 뽑기가 없습니다. 뽑기를 기록하면 여기에 통계가 쌓입니다.</p>
+    <p class="muted">아직 기록된 뽑기가 없습니다.</p>
   {:else}
     <div class="grid">
       <div class="tile card"><span class="k">기록된 뽑기</span><b>{stats.pulls}회</b></div>
@@ -53,7 +52,7 @@
       {/if}
     </div>
     {#if stats.firstPull && stats.lastPull}
-      <p class="muted small">기록 기간: {day(stats.firstPull)} ~ {day(stats.lastPull)} · 앱에 기록한 뽑기만 셉니다.</p>
+      <p class="muted small">{day(stats.firstPull)} ~ {day(stats.lastPull)}</p>
     {/if}
 
     {#each stats.groups.filter((g) => g.pulls > 0) as g (g.groupId)}
@@ -70,7 +69,6 @@
             <div><span>픽업 성공</span><b>{pct(g.featuredRate)} ({g.featuredWon}승 {g.featuredLost}패)</b></div>
           {/if}
         </div>
-        {#if luck}<p class="muted small">운 등급: 평균적인 운의 사람들 중 내 위치(게임 확률로 계산). {def.topLabel} {g.tops}개 기준이라 개수가 적으면 크게 흔들립니다.</p>{/if}
         {#if g.rare.length}
           <div class="rare">
             <span class="k">4성 기록 {g.rare.length}개 (화면 읽기로 기록된 것)</span>
@@ -115,7 +113,7 @@
               <button onclick={() => onRemove([b.sessionId], `${groupName(b.group)} ${b.count}회 지우기`)}>지우기</button>
             </div>
           {/each}
-          <p class="muted small">잘못 들어간 묶음을 지우세요. 지운 것은 "확인" 화면의 되돌리기나 Ctrl+Alt+Z로 복구할 수 있습니다. 천장 숫자는 가챠 화면을 다시 읽거나 "시작 상태"에서 맞춥니다.</p>
+          <p class="muted small">지운 것은 "확인"에서 되돌리기</p>
         {/if}
       </div>
     {/if}

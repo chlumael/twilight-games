@@ -77,6 +77,8 @@
   const others = $derived(banners.filter((b) => !active.includes(b)).slice(-6).reverse());
   const current = $derived(banners.find((b) => b.id === status.banner));
   let typing = $state(false);
+  /** 배너 고르기·입력 칸을 펼쳤는지 (배너 자료에 지금 배너가 없을 때만) */
+  let editing = $state(false);
   let detail = $state(false);
   const custom = $derived(typing || (status.banner !== "" && !current));
 </script>
@@ -129,19 +131,26 @@
   <PullStrip pulls={recent} />
 </section>
 
-{#if !current || custom}
+{#if (!current || custom) && !editing}
+  <!-- 배너 자료에 지금 배너가 없을 때: 한 줄로만 보이고, 눌러야 고르기·입력 칸이 나온다 -->
+  <button class="binfo bset" onclick={() => (editing = true)}>
+    <span class="feat">{status.banner || "배너 미지정"}</span>
+    {#if status.counters.length}<span class="muted">{status.bannerPulls}회</span>{/if}
+    <span class="more">바꾸기 ✎</span>
+  </button>
+{:else if !current || custom}
 <div class="banner">
   <span>배너</span>
   {#if custom || !banners.length}
     <input
       value={current ? "" : status.banner}
       placeholder="배너 이름 (천장 분리 기준)"
-      onchange={(e) => { onBanner((e.currentTarget as HTMLInputElement).value.trim()); typing = false; }}
+      onchange={(e) => { onBanner((e.currentTarget as HTMLInputElement).value.trim()); typing = false; editing = false; }}
     />
   {:else}
     <select value={status.banner} onchange={(e) => {
       const v = (e.currentTarget as HTMLSelectElement).value;
-      if (v === "__custom") typing = true; else onBanner(v);
+      if (v === "__custom") typing = true; else { onBanner(v); editing = false; }
     }}>
       {#if !current}<option value="">배너 선택</option>{/if}
       {#if active.length}

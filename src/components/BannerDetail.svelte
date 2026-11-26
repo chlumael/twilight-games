@@ -31,7 +31,7 @@
   const upLeft = $derived.by(() => {
     const left = pool?.entries.find((e) => e.featured)?.left;
     if (left == null) return "";
-    return left <= 1 ? "이 배너가 끝나면 목록에서 빠집니다." : `다음 ${left - 1}개 배너 동안 픽뚫로 나오고, 그 뒤에는 목록에서 빠집니다.`;
+    return left <= 1 ? "이 배너 뒤 목록에서 빠짐" : `다음 ${left - 1}개 배너까지 픽뚫로 나옴`;
   });
   function gradeLabel(i: PackItem, top: boolean): string {
     if (!i.grade) {
@@ -72,9 +72,6 @@
         {#if remaining}<b>{remaining}</b>{/if}
         {#if days !== null}<span>전체 {days}일</span>{/if}
       </div>
-      {#if banner.startApprox || banner.endApprox}
-        <p class="note">"약"으로 표시된 시각은 공지에 정확한 날짜가 없어 추정한 값입니다. 하루쯤 다를 수 있습니다.</p>
-      {/if}
     {:else}
       <p class="note">이 배너는 일정 정보가 없습니다.</p>
     {/if}
@@ -99,7 +96,7 @@
           <span class="pchip" class:lim={e.left != null}>{e.name}{#if leftText(e.left)}<small>{leftText(e.left)}</small>{/if}</span>
         {/each}
       </div>
-      {#if upLeft}<p class="note">픽업 {topLabel}은 {upLeft}</p>{/if}
+      {#if upLeft}<p class="note">픽업 {topLabel}: {upLeft}</p>{/if}
     </div>
   {/if}
 
@@ -109,7 +106,7 @@
   </div>
 
   <div class="block">
-    <div class="label">배너 일정 (최근 {schedule.length}개 · 누르면 그 배너로 바꿉니다)</div>
+    <div class="label">배너 일정</div>
     <div class="list">
       {#each schedule as b (b.id)}
         {@const st = bannerState(b)}

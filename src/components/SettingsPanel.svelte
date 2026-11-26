@@ -87,7 +87,6 @@
 <div class="settings">
   <header>
     <strong>설정</strong>
-    <button class="icon" onclick={onClose} aria-label="닫기">✕</button>
   </header>
 
   {#if !web}
@@ -100,14 +99,14 @@
         oninput={(e) => onSettings({ ...settings, opacity: Number((e.currentTarget as HTMLInputElement).value) })}
       />
     </label>
-    <p class="muted hint">단축키(Ctrl+Alt+): T 클릭 통과 · H 접기/펼치기 · Q 확인 대기 · Z 되돌리기 · 1 지금 탭에 1회 · 0 지금 탭에 10회 · 6 최고 등급 떴다 · Y/N 확인 창 예/아니요</p>
-    <p class="muted hint">새 화면 인식 틀({GAMES[game].shortName}): 화면 {gameScreens.length}개 중 {readyScreens}개 준비. 준비 안 된 화면은 스크린샷을 받아 채울 예정이고, 그 전까지는 예전 방식으로 읽습니다.</p>
+    <p class="muted hint">단축키 Ctrl+Alt+ T 클릭 통과 · H 접기 · Q 확인 · Z 되돌리기 · 1/0 1회/10회 · 6 최고 등급 · Y/N 예/아니요</p>
+    <p class="muted hint">화면 인식 틀 {readyScreens}/{gameScreens.length}</p>
   </section>
   {/if}
 
   <section>
     <h4>{GAMES[game].name} 시작 상태</h4>
-    <p class="muted hint">앱을 쓰기 전 기록입니다. 천장 스택 = 마지막 {GAMES[game].topLabel} 뒤로 뽑은 횟수(게임의 "N회 내 확정"은 남은 횟수라 반대입니다). 지금 배너 누적 = 앱에 기록하기 전에 이 배너에서 뽑은 횟수.</p>
+    <p class="muted hint">앱을 쓰기 전 기록. 천장 스택 = 마지막 {GAMES[game].topLabel} 뒤로 뽑은 횟수</p>
     {#each GAMES[game].groups as g (g.id)}
       {@const b = baseline(g.id)}
       <div class="base">
@@ -139,7 +138,7 @@
       <button onclick={onGenshinWishes} disabled={genshinWishBusy}>{genshinWishBusy ? "불러오는 중…" : "기원 기록 불러오기"}</button>
     </div>
     {#if genshinWishMsg}<p class="hint">{genshinWishMsg}</p>{/if}
-    <p class="muted hint">게임에서 기원 → 기록 화면을 한 번 연 뒤 누르세요. 원신 로그에서 기원 기록 주소를 찾아 원신 공식 기록 서버에서 캐릭터·무기·집록 기원 기록을 받습니다. 그 주소의 인증 값은 저장하지 않고 원신 서버 외에는 보내지 않습니다. 두 번째부터는 새 기록만 받습니다.</p>
+    <p class="muted hint">게임에서 기원 기록 화면을 한 번 연 뒤 누르기 · 인증 값은 저장하지 않음</p>
   </section>
   {/if}
 
@@ -200,13 +199,11 @@
         <span class="muted">버전 {android.appVersion()}</span>
         <button onclick={() => android?.checkUpdate?.()}>업데이트 확인</button>
       </div>
-      <p class="muted hint">앱을 켤 때 6시간마다 새 버전을 확인하고, 있으면 알려줍니다.</p>
       {#if android?.setAutoScreenRead}
         <label class="autoread">
           <input type="checkbox" checked={autoRead} onchange={(e) => { autoRead = (e.currentTarget as HTMLInputElement).checked; android?.setAutoScreenRead?.(autoRead); }} />
           창을 띄울 때 화면 읽기도 함께 시작
         </label>
-        <p class="muted hint">켜 두면 "띄우기"를 누를 때 화면 녹화 허용 창이 바로 뜹니다. 허용은 안드로이드 규칙상 매번 한 번 눌러야 합니다.</p>
       {/if}
     </section>
   {/if}
@@ -223,12 +220,11 @@
           <button onclick={onSync}>지금 동기화</button>
           <button onclick={onSignOut}>로그아웃</button>
         </div>
-        <p class="muted hint">기록이 계정에 저장됩니다. 앱을 지우거나 기기를 바꿔도 같은 계정으로 로그인하면 돌아옵니다.</p>
       {:else if androidMode === "overlay"}
-        <p class="muted hint">로그인은 앱 화면의 설정에서 할 수 있습니다.</p>
+        <p class="muted hint">로그인은 앱 화면의 설정에서</p>
       {:else}
         <button onclick={onSignIn}>구글 계정으로 로그인</button>
-        <p class="muted hint">로그인하면 기록이 계정에 저장되어, 앱을 지우거나 기기를 바꿔도 남습니다. 지금 이 기기의 기록은 계정 기록과 합쳐집니다.</p>
+        <p class="muted hint">로그인하면 기기를 바꿔도 기록이 남습니다</p>
       {/if}
     </section>
   {/if}
@@ -240,7 +236,7 @@
       <button onclick={onImport}>가져오기</button>
     </div>
     <p class="muted hint">
-      {account ? "기록은 이 기기와 트래커 계정에 함께 저장됩니다." : androidMode ? "기록은 이 휴대폰 앱에만 저장됩니다. 앱을 지우면 사라지니 로그인하거나 가끔 내보내기로 백업하세요." : web ? "기록은 이 브라우저에만 저장됩니다. 브라우저 데이터를 지우면 사라지니 로그인하거나 가끔 내보내기로 백업하세요." : "기록은 이 PC에만 저장되며 매일 자동 백업(7일)됩니다."}
+      {account ? "이 기기 + 계정에 저장" : androidMode ? "이 휴대폰에만 저장 · 앱을 지우면 사라짐" : web ? "이 브라우저에만 저장 · 브라우저 데이터를 지우면 사라짐" : "이 PC에만 저장 · 매일 자동 백업(7일)"}
     </p>
   </section>
 </div>
