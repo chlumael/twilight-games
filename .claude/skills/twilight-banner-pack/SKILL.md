@@ -55,6 +55,7 @@ for g,l in d['games'].items():
 
 `build.mjs`에 게임 함수를 추가하고 같은 형식(`id, group, name, start, end, version, featured[{id,en,cn,ko}], featuredRare`)으로 낸다. 그룹 ID는 `src/lib/games.ts`와 `validate.mjs`의 목록에 있어야 한다. 접속 가능 여부는 먼저 curl로 확인한다(위키류는 Cloudflare로 막힌 곳이 많음 → `twilight-game-reference`).
 
+- 엔드필드 무기고 신청은 신청마다 있는 공지 "「X 신청」 기간 한정 판매 설명"에서 수집한다(`parseArsenalNotice`, 종료는 `resolveArsenalEnds`가 "특별 허가 3회 진행 후 종료(「A」부터)"로 계산). 공지 표기가 여러 가지다(기간이 다음 줄, "「A」를 기준으로 3회의", "특수 헤드헌팅 진행 후 종료", 픽업 줄 없음) — 새 표기로 해석이 실패하면 `warnings`에 제목이 남는다. 재구축 신청은 아래처럼 「확률 상세 안내」에서.
 - 엔드필드 무기 배너(무기고 신청·재구축 신청)는 공지 「확률 상세 안내」에서 수집한다(`parseArsenal`): "(UP)" 무기 = 픽업, [6성 무기] 표의 나머지 = `pool`(픽뚫 후보). 지금 열린 것만 공지에 나오므로 이전 팩과 합친다(`mergeArsenal`).
 - 원신 배너의 5성 목록(`pool`, 픽뚫 후보): 공식 기원 상세의 `r5_prob_list`에서 픽업이 아닌 이름(`genshin-official.mjs`의 `fetchWishDetails`·`applyWishPools`). 지금 열린 기원만 나오므로 지난 배너는 이전 팩에서 이어받는다.
 - 엔드필드 캐릭터 배너의 6성 목록(`pool`, 픽뚫 후보): 배너 공지의 "획득 가능(한) 6성 오퍼레이터 목록" 줄(공지마다 "가능"/"가능한" 두 표기), 없으면 「확률 상세 안내」의 [6성 오퍼레이터] 표(`parseHeadhuntPools`, 재구축은 이 표만 있음). 둘 다 없는 배너는 앱이 규칙으로 계산한다(`games.ts`의 `rotation`, `banners.ts`의 `bannerPool`, DESIGN.md §8). 이름을 손으로 채우지 않는다.

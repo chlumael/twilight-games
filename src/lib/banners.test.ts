@@ -119,3 +119,12 @@ describe("엔드필드 「오퍼레이터 제외 규칙」: 픽업 6성은 그 �
     expect(bannerPool([w], w, rules).entries.map((e) => e.name)).toEqual(["검", "창", "활"]);
   });
 });
+
+describe("함께 열린 배너가 여럿일 때", () => {
+  it("가장 최근에 열린 배너를 고른다", () => {
+    const now = new Date("2026-11-26T00:00:00Z");
+    const list = [b("old", "2026-10-14T00:00:00Z", "2026-12-23T00:00:00Z"), b("new", "2026-11-24T00:00:00Z", null), b("mid", "2026-11-05T00:00:00Z", null)];
+    expect(autoBanner(list, "", now)).toBe("new");
+    expect(autoBanner(list, "old", now)).toBeNull(); // 사용자가 고른 진행 중 배너는 그대로
+  });
+});

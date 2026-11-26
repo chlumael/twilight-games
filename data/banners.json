@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-26T06:11:17.787Z",
+ "generatedAt": "2026-11-26T06:44:02.300Z",
  "games": {
   "genshin": [
    {
@@ -6719,13 +6719,658 @@
     "startApprox": true
    },
    {
+    "id": "endfield:arsenal:용조 신청",
+    "group": "endfield-arsenal",
+    "name": "「용조 신청」",
+    "start": "2026-01-21T05:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-03-11T04:30:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:용조의 불꽃",
+      "ko": "용조의 불꽃"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:백야의 별",
+      "ko": "백야의 별"
+     },
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:클래니벌",
+      "ko": "클래니벌"
+     },
+     {
+      "id": "ko:기사도 정신",
+      "ko": "기사도 정신"
+     },
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     },
+     {
+      "id": "ko:과거의 일품",
+      "ko": "과거의 일품"
+     }
+    ],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:arsenal:순행 신청",
+    "group": "endfield-arsenal",
+    "name": "「순행 신청」",
+    "start": "2026-02-07T04:00:00.000Z",
+    "end": "2026-03-29T03:59:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:사명의 길",
+      "ko": "사명의 길"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:기사도 정신",
+      "ko": "기사도 정신"
+     },
+     {
+      "id": "ko:망각",
+      "ko": "망각"
+     },
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:테르밋 커터",
+      "ko": "테르밋 커터"
+     },
+     {
+      "id": "ko:백야의 별",
+      "ko": "백야의 별"
+     },
+     {
+      "id": "ko:모범",
+      "ko": "모범"
+     }
+    ]
+   },
+   {
+    "id": "endfield:arsenal:화도 신청",
+    "group": "endfield-arsenal",
+    "name": "「화도 신청」",
+    "start": "2026-02-24T04:00:00.000Z",
+    "end": "2026-04-16T04:00:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:예술의 폭군",
+      "ko": "예술의 폭군"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:부요",
+      "ko": "부요"
+     },
+     {
+      "id": "ko:백야의 별",
+      "ko": "백야의 별"
+     },
+     {
+      "id": "ko:J.E.T.",
+      "ko": "J.E.T."
+     },
+     {
+      "id": "ko:기사도 정신",
+      "ko": "기사도 정신"
+     },
+     {
+      "id": "ko:분쇄의 군주",
+      "ko": "분쇄의 군주"
+     }
+    ],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:arsenal:신아 신청",
+    "group": "endfield-arsenal",
+    "name": "「신아 신청」",
+    "start": "2026-03-11T05:00:00.000Z",
+    "startApprox": true,
+    "end": "2026-05-22T03:59:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:반항",
+      "ko": "반항"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:클래니벌",
+      "ko": "클래니벌"
+     },
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:기사도 정신",
+      "ko": "기사도 정신"
+     },
+     {
+      "id": "ko:테르밋 커터",
+      "ko": "테르밋 커터"
+     },
+     {
+      "id": "ko:분쇄의 군주",
+      "ko": "분쇄의 군주"
+     },
+     {
+      "id": "ko:J.E.T.",
+      "ko": "J.E.T."
+     }
+    ]
+   },
+   {
+    "id": "endfield:arsenal:적옥 신청",
+    "group": "endfield-arsenal",
+    "name": "「적옥 신청」",
+    "start": "2026-03-29T04:00:00.000Z",
+    "end": "2026-06-26T03:59:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:늑대의 혈흔",
+      "ko": "늑대의 혈흔"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:부요",
+      "ko": "부요"
+     },
+     {
+      "id": "ko:위대한 이름",
+      "ko": "위대한 이름"
+     },
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:과거의 일품",
+      "ko": "과거의 일품"
+     },
+     {
+      "id": "ko:폭발 유닛",
+      "ko": "폭발 유닛"
+     },
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     }
+    ]
+   },
+   {
+    "id": "endfield:arsenal:항해 신청",
+    "group": "endfield-arsenal",
+    "name": "「항해 신청」",
+    "start": "2026-04-16T04:30:00.000Z",
+    "startApprox": true,
+    "end": "2026-07-15T10:00:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:고독한 나룻배",
+      "ko": "고독한 나룻배"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:망각",
+      "ko": "망각"
+     },
+     {
+      "id": "ko:기사도 정신",
+      "ko": "기사도 정신"
+     },
+     {
+      "id": "ko:위대한 이름",
+      "ko": "위대한 이름"
+     },
+     {
+      "id": "ko:J.E.T.",
+      "ko": "J.E.T."
+     },
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:모범",
+      "ko": "모범"
+     }
+    ],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:arsenal:질풍 신청",
+    "group": "endfield-arsenal",
+    "name": "「질풍 신청」",
+    "start": "2026-05-14T04:00:00.000Z",
+    "end": "2026-06-03T04:00:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:사명의 길",
+      "ko": "사명의 길"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:망각",
+      "ko": "망각"
+     },
+     {
+      "id": "ko:폭발 유닛",
+      "ko": "폭발 유닛"
+     },
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:백야의 별",
+      "ko": "백야의 별"
+     },
+     {
+      "id": "ko:모범",
+      "ko": "모범"
+     },
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     }
+    ],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:arsenal:용작 신청",
+    "group": "endfield-arsenal",
+    "name": "「용작 신청」",
+    "start": "2026-05-14T04:00:00.000Z",
+    "end": "2026-06-03T04:00:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:용조의 불꽃",
+      "ko": "용조의 불꽃"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:테르밋 커터",
+      "ko": "테르밋 커터"
+     },
+     {
+      "id": "ko:백야의 별",
+      "ko": "백야의 별"
+     },
+     {
+      "id": "ko:클래니벌",
+      "ko": "클래니벌"
+     },
+     {
+      "id": "ko:폭발 유닛",
+      "ko": "폭발 유닛"
+     },
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     },
+     {
+      "id": "ko:과거의 일품",
+      "ko": "과거의 일품"
+     }
+    ],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:arsenal:붉은 결속 신청",
+    "group": "endfield-arsenal",
+    "name": "「붉은 결속 신청」",
+    "start": "2026-06-03T04:15:00.000Z",
+    "startApprox": true,
+    "end": "2026-08-09T03:59:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:적영",
+      "ko": "적영"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:과거의 일품",
+      "ko": "과거의 일품"
+     },
+     {
+      "id": "ko:분쇄의 군주",
+      "ko": "분쇄의 군주"
+     },
+     {
+      "id": "ko:클래니벌",
+      "ko": "클래니벌"
+     },
+     {
+      "id": "ko:부요",
+      "ko": "부요"
+     },
+     {
+      "id": "ko:폭발 유닛",
+      "ko": "폭발 유닛"
+     },
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     }
+    ]
+   },
+   {
+    "id": "endfield:arsenal:적색화 신청",
+    "group": "endfield-arsenal",
+    "name": "「적색화 신청」",
+    "start": "2026-06-26T04:00:00.000Z",
+    "end": "2026-09-01T04:00:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:붉게 물든 가호",
+      "ko": "붉게 물든 가호"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     },
+     {
+      "id": "ko:J.E.T.",
+      "ko": "J.E.T."
+     },
+     {
+      "id": "ko:클래니벌",
+      "ko": "클래니벌"
+     },
+     {
+      "id": "ko:테르밋 커터",
+      "ko": "테르밋 커터"
+     },
+     {
+      "id": "ko:망각",
+      "ko": "망각"
+     },
+     {
+      "id": "ko:모범",
+      "ko": "모범"
+     }
+    ],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:arsenal:제대 신청",
+    "group": "endfield-arsenal",
+    "name": "「제대 신청」",
+    "start": "2026-07-15T10:30:00.000Z",
+    "startApprox": true,
+    "end": "2026-09-30T03:59:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:42식 · 척결",
+      "ko": "42식 · 척결"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:과거의 일품",
+      "ko": "과거의 일품"
+     },
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:위대한 이름",
+      "ko": "위대한 이름"
+     },
+     {
+      "id": "ko:J.E.T.",
+      "ko": "J.E.T."
+     },
+     {
+      "id": "ko:폭발 유닛",
+      "ko": "폭발 유닛"
+     },
+     {
+      "id": "ko:망각",
+      "ko": "망각"
+     }
+    ]
+   },
+   {
+    "id": "endfield:arsenal:찬란 신청",
+    "group": "endfield-arsenal",
+    "name": "「찬란 신청」",
+    "start": "2026-08-09T04:00:00.000Z",
+    "end": "2026-11-05T03:59:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:찬란한 밤의 데뷔",
+      "ko": "찬란한 밤의 데뷔"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:분쇄의 군주",
+      "ko": "분쇄의 군주"
+     },
+     {
+      "id": "ko:클래니벌",
+      "ko": "클래니벌"
+     },
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     },
+     {
+      "id": "ko:J.E.T.",
+      "ko": "J.E.T."
+     },
+     {
+      "id": "ko:폭발 유닛",
+      "ko": "폭발 유닛"
+     },
+     {
+      "id": "ko:테르밋 커터",
+      "ko": "테르밋 커터"
+     }
+    ]
+   },
+   {
+    "id": "endfield:arsenal:한기 신청",
+    "group": "endfield-arsenal",
+    "name": "「한기 신청」",
+    "start": "2026-09-01T04:30:00.000Z",
+    "startApprox": true,
+    "end": "2026-11-24T04:00:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:추운 밤의 그림자",
+      "ko": "추운 밤의 그림자"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:모범",
+      "ko": "모범"
+     },
+     {
+      "id": "ko:클래니벌",
+      "ko": "클래니벌"
+     },
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     },
+     {
+      "id": "ko:망각",
+      "ko": "망각"
+     },
+     {
+      "id": "ko:폭발 유닛",
+      "ko": "폭발 유닛"
+     },
+     {
+      "id": "ko:부요",
+      "ko": "부요"
+     }
+    ],
+    "endApprox": true
+   },
+   {
+    "id": "endfield:arsenal:전옥 신청",
+    "group": "endfield-arsenal",
+    "name": "「전옥 신청」",
+    "start": "2026-10-14T10:30:00.000Z",
+    "startApprox": true,
+    "end": "2026-12-23T03:59:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:옥에 깃든 형체",
+      "ko": "옥에 깃든 형체"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:과거의 일품",
+      "ko": "과거의 일품"
+     },
+     {
+      "id": "ko:쐐기",
+      "ko": "쐐기"
+     },
+     {
+      "id": "ko:J.E.T.",
+      "ko": "J.E.T."
+     },
+     {
+      "id": "ko:기사도 정신",
+      "ko": "기사도 정신"
+     },
+     {
+      "id": "ko:분쇄의 군주",
+      "ko": "분쇄의 군주"
+     },
+     {
+      "id": "ko:위대한 이름",
+      "ko": "위대한 이름"
+     }
+    ]
+   },
+   {
+    "id": "endfield:arsenal:월영 신청",
+    "group": "endfield-arsenal",
+    "name": "「월영 신청」",
+    "start": "2026-11-05T04:00:00.000Z",
+    "end": null,
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    "featured": [
+     {
+      "id": "ko:환월",
+      "ko": "환월"
+     }
+    ],
+    "featuredRare": [],
+    "pool": [
+     {
+      "id": "ko:테르밋 커터",
+      "ko": "테르밋 커터"
+     },
+     {
+      "id": "ko:백야의 별",
+      "ko": "백야의 별"
+     },
+     {
+      "id": "ko:용사",
+      "ko": "용사"
+     },
+     {
+      "id": "ko:망각",
+      "ko": "망각"
+     },
+     {
+      "id": "ko:클래니벌",
+      "ko": "클래니벌"
+     },
+     {
+      "id": "ko:모범",
+      "ko": "모범"
+     }
+    ]
+   },
+   {
     "id": "endfield:arsenal:유영 신청",
     "group": "endfield-arsenal",
     "name": "「유영 신청」",
-    "start": "2026-11-26T03:47:07.718Z",
+    "start": "2026-11-24T04:30:00.000Z",
+    "startApprox": true,
     "end": null,
     "version": null,
-    "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+    "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
     "featured": [
      {
       "id": "ko:달콤한 거래",
@@ -6758,8 +7403,7 @@
       "id": "ko:과거의 일품",
       "ko": "과거의 일품"
      }
-    ],
-    "startApprox": true
+    ]
    },
    {
     "id": "endfield:arsenal:표류 신청",

@@ -213,7 +213,7 @@ export const GAMES: Record<GameId, GameDef> = {
         hardPity: 99,
         softFrom: 51,
         // 표준 헤드헌팅(단일·더블 픽업 등)끼리는 50회 확률 상승 횟수를 함께 세고 배너가 끝나도 이어진다
-        // (중국 서버 게임 안 규칙 글 + 일본 공략 일치, 한국 서버 글은 공개 자료에 없음. DESIGN.md §6)
+        // (중국 서버 게임 안 규칙 글 + 일본 공략 일치, 사용자 확정 2026-11-26. DESIGN.md §6)
         carryOver: true,
         featuredRule: "none",
         // 지향 셀렉션(단일 픽업): 픽업 없이 150회가 지나면 다음 6성은 픽업, 배너마다 1번(중국 공식 공지)

@@ -208,6 +208,78 @@ export function mergeArsenal(current, previous, nowIso) {
   return out.sort((a, b) => a.start.localeCompare(b.start));
 }
 
+/**
+ * 「X 신청」 기간 한정 판매 설명 공지 한 건 → 무기고 신청 배너. 무기고 신청마다 이 공지가 따로 있다(2026-11-26 확인).
+ * - 픽업: "확률 증가 6성 무기: [이름(무기 종류)]" — 괄호 안 무기 종류는 뗀다(「확률 상세 안내」 표기와 맞춤)
+ * - 6성 목록: "획득 가능(한) 6성 무기 목록: a(종류)/b(종류)/…"
+ * - 시작: "개방 시간(기간): 2026/11/05 12:00(서버 시간) 개방" 꼴이면 그 시각, 날짜가 없으면 공지 시각(startApprox)
+ * - 종료: "「특별 허가 헤드헌팅」 3회 진행 후 종료(「이름」부터 집계)" → { from: 이름, count: 3 }. 실제 시각은 resolveArsenalEnds가 채운다
+ */
+export function parseArsenalNotice(bulletin) {
+  const head = (bulletin.title ?? "").match(/^「([^」]+ 신청)」\s*기간 한정 판매/);
+  if (!head) return null;
+  const name = head[1];
+  const text = plainText(bulletin.data);
+  const lines = text.split("\n");
+  const strip = (n) => n.replace(/\([^)]*\)\s*$/, "").trim();
+  // 픽업: "확률 증가 6성 무기: [X]" 줄, 없으면 첫 문장 "6성 무기 [X]의 획득 확률이 증가"
+  const upLine = lines.find((l) => /확률 증가\S* 6성 무기\s*[:：]/.test(l)) ?? lines.find((l) => /6성 무기 \[[^\]]+\]의 획득 확률이 증가/.test(l));
+  const up = upLine?.match(/\[([^\]]+)\]/)?.[1];
+  if (!up) return null;
+  const weapon = strip(up);
+  const listLine = lines.find((l) => /획득 가능한? 6성 무기 목록/.test(l));
+  const pool = (listLine?.split(/목록\s*[:：]/)[1] ?? "").replace(/\.\s*$/, "").split("/").map(strip).filter((n) => n && n !== weapon);
+  // 기간: "개방 시간(기간):" 줄. 그 줄이 비어 있으면 다음 "·" 줄 전까지에서 Asia 서버 줄(없으면 날짜가 있는 줄)
+  const at = lines.findIndex((l) => /개방 (시간|기간)\s*[:：]/.test(l));
+  let period = at >= 0 ? lines[at].replace(/^.*개방 (시간|기간)\s*[:：]\s*/, "") : "";
+  if (at >= 0 && !period) {
+    const block = [];
+    for (const l of lines.slice(at + 1)) { if (l.startsWith("·") || l.startsWith("▼")) break; block.push(l); }
+    period = block.find((l) => /^Asia 서버\s*[:：]/.test(l)) ?? block.find((l) => /\d{4}\/\d/.test(l) || /종료/.test(l)) ?? "";
+  }
+  const start = serverTime(period.split("~")[0].split("개방")[0]);
+  // 종료 규칙 세 가지: "특별 허가 3회 진행 후 종료(「X」부터 집계)", "「X」(을) 기준으로 3회의 「특별 허가」 이후 종료",
+  // "「X」 특수 헤드헌팅 진행 후 종료"(그다음 특별 허가가 열릴 때까지로 본다)
+  const m1 = period.match(/특별 허가 헤드헌팅」\s*(\d+)회 진행 후 종료\s*\(「([^」]+)」부터/);
+  const m2 = period.match(/「([^」]+)」\s*(?:을|를)?\s*기준으로\s*(\d+)회의\s*「특별 허가 헤드헌팅」/);
+  const m3 = /특수 헤드헌팅 진행 후 종료/.test(period);
+  const rule = m1 ? [null, m1[1], m1[2]] : m2 ? [null, m2[2], m2[1]] : m3 ? [null, "0", ""] : null;
+  const announced = new Date(bulletin.displayTime * 1000).toISOString();
+  return {
+    id: `endfield:arsenal:${name}`,
+    group: "endfield-arsenal",
+    name: `「${name}」`,
+    start: start ?? announced,
+    ...(start ? {} : { startApprox: true }),
+    end: serverTime(period.split("~")[1] ?? ""),
+    version: null,
+    source: "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
+    featured: [{ id: `ko:${weapon}`, ko: weapon }],
+    featuredRare: [],
+    pool: pool.map((ko) => ({ id: `ko:${ko}`, ko })),
+    ...(rule ? { endRule: { count: Number(rule[1]), from: rule[2] } } : {}),
+  };
+}
+
+/**
+ * "특별 허가 3회 진행 후 종료(「A」부터 집계)" → A부터 세어 3번째 특별 허가 배너가 끝나는 시각.
+ * 그 배너가 아직 공지되지 않았으면 종료일 없음(진행 중). 처리한 뒤 endRule은 지운다.
+ */
+export function resolveArsenalEnds(arsenal, chartered) {
+  const list = [...chartered].sort((a, b) => a.start.localeCompare(b.start));
+  return arsenal.map(({ endRule, ...b }) => {
+    if (b.end || !endRule) return b;
+    if (endRule.count === 0) {
+      // 특수 헤드헌팅과 함께 끝나는 것: 그 뒤 처음 열리는 특별 허가의 시작을 종료로 본다(근사값)
+      const next = list.find((c) => c.start > b.start);
+      return next ? { ...b, end: next.start, endApprox: true } : b;
+    }
+    const i = list.findIndex((c) => c.name.startsWith(`「${endRule.from}」`));
+    const last = i >= 0 ? list[i + endRule.count - 1] : undefined;
+    return last?.end ? { ...b, end: last.end, ...(last.endApprox ? { endApprox: true } : {}) } : b;
+  });
+}
+
 /** 해석하지 못한 헤드헌팅 공지 제목 (빌드 결과에 경고로 남긴다) */
 export const skippedNotices = [];
 
@@ -220,6 +292,13 @@ export async function endfieldOfficial() {
   }
   const parsed = [];
   const skipped = [];
+  // 무기고 신청: 신청마다 있는 "기간 한정 판매 설명" 공지에서
+  const arsenalNotices = [];
+  for (const n of notices.filter((n) => /^「[^」]+ 신청」\s*기간 한정 판매/.test(n.title ?? ""))) {
+    const b = parseArsenalNotice(await get(`${API}/${n.cid}?${QUERY}`));
+    if (b) arsenalNotices.push(b);
+    else skippedNotices.push(n.title);
+  }
   for (const n of notices.filter((n) => n.title?.includes("헤드헌팅"))) {
     const detail = await get(`${API}/${n.cid}?${QUERY}`);
     for (const name of sixStarNames(detail.data)) collectedSixStars.add(name);
@@ -241,5 +320,10 @@ export async function endfieldOfficial() {
       if (b && !b.pool && p.pool.length) b.pool = p.pool.map((ko) => ({ id: `ko:${ko}`, ko }));
     }
   } else skippedNotices.push("확률 상세 안내(무기 배너) 공지를 찾지 못함");
-  return [...resolveSchedule(parsed), ...arsenal];
+  const heads = resolveSchedule(parsed);
+  // 무기고 신청은 전용 공지가 정본이다. 「확률 상세 안내」에서는 재구축 신청만 쓴다(무기고 신청 공지에 없는 것만 보충)
+  const own = new Set(arsenalNotices.map((b) => b.id));
+  const extra = arsenal.filter((b) => b.group === "endfield-refactor-arsenal" || !own.has(b.id));
+  const timed = resolveArsenalEnds(arsenalNotices, heads.filter((b) => b.group === "endfield-chartered"));
+  return [...heads, ...timed, ...extra];
 }

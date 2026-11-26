@@ -110,7 +110,9 @@ export function autoBanner(list: PackBanner[], current: string, now: Date = new 
   const active = activeBanners(list, now);
   if (!active.length || active.some((b) => b.id === current)) return null;
   const fromPack = list.some((b) => b.id === current);
-  return current === "" || fromPack ? active[0].id : null;
+  // 여러 개가 함께 열려 있으면(엔드필드 무기고 신청 등) 가장 최근에 열린 것. 시작이 같으면 원래 순서
+  const newest = active.reduce((m, b) => ((b.start ?? "") > (m.start ?? "") ? b : m), active[0]);
+  return current === "" || fromPack ? newest.id : null;
 }
 
 /** Was `name` one of the banner's featured top-rarity items? null when unknown. */
