@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBanner, mergeBanners, noticeGroup, parseNames, parsePeriod, poolId } from "./arknights-official.mjs";
+import { arknightsPoolGroups, buildBanner, mergeBanners, noticeGroup, parseNames, parsePeriod, poolId } from "./arknights-official.mjs";
 
 const L = (text, score, h, x = 0) => ({ text, score, h, x, y: 0 });
 // 실제 "일반 헤드헌팅" 공지 그림을 읽은 결과
@@ -59,5 +59,19 @@ describe("명일방주 공식 공지 해석", () => {
     const merged = mergeBanners(old, [{ id: "b", start: "2", needsReview: true }, { id: "c", start: "3" }]);
     expect(merged.map((b) => b.id)).toEqual(["a", "b", "c"]);
     expect(merged[1].needsReview).toBeUndefined();
+  });
+});
+
+describe("명일방주 배너 이름 → 종류", () => {
+  it("한정·콜라보·일반, 같은 이름이 커널에도 쓰이면 직접 고르기(null)", () => {
+    const P = (name, t) => ({ gachaPoolName: name, gachaRuleType: t });
+    expect(arknightsPoolGroups([
+      P("포교의 자유", "LIMITED"), P("테라밥, 아아, 테라밥", "LINKAGE"), P("깊은 심연의 닻", "SINGLE"),
+      P("다양한 전투에서 활약하는 정예 오퍼레이터", "DOUBLE"), P("다양한 전투에서 활약하는 정예 오퍼레이터", "CLASSIC_DOUBLE"),
+      P("<@ga.title>커널</>", "CLASSIC"),
+    ])).toEqual({
+      "포교의 자유": "arknights-limited", "테라밥, 아아, 테라밥": "arknights-collab", "깊은 심연의 닻": "arknights-standard",
+      "다양한 전투에서 활약하는 정예 오퍼레이터": null, "커널": null,
+    });
   });
 });

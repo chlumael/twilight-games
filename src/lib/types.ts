@@ -78,6 +78,10 @@ export interface Exchange {
   group: string;
   banner: string;
   name: string | null;
+  /** 교환에 쓴 재화 (없으면 그 카운터의 기본 가격) */
+  cost?: number;
+  /** 최고 등급이 아닌 교환(명일방주 5성 75장) */
+  low?: boolean;
   /** "free" = 무료 뽑기(엔드필드 긴급 모집)에서 나온 것. 없으면 교환 */
   kind?: "free";
   /** 무료 뽑기에서 나온 것이 픽업인지 */

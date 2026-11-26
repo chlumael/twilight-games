@@ -44,6 +44,12 @@ export interface CounterStatus {
   next?: boolean;
   /** 횟수를 채워 지금 적용 중 (다음 최고 등급이 픽업) */
   active?: boolean;
+  /** 교환 카운터: 지금 가진 교환 재화 */
+  held?: number;
+  /** 교환 카운터: 고를 수 있는 교환 가격 */
+  options?: { cost: number; label: string; low?: boolean }[];
+  /** 교환 카운터: 배너가 끝나면 남은 재화가 바뀌는 것 */
+  leftover?: { to: string; rate: number };
 }
 
 export interface GroupStatus {
@@ -170,8 +176,13 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
     if (c.repeat) return { label: c.label, at: c.at, remaining: c.at - (bannerPulls % c.at), done: false };
     if (c.sinceFeatured) return { label: c.label, at: c.at, remaining: Math.max(0, c.at - sinceFeatured), done: false, untilFeatured: true };
     // 교환 카운터: 이미 교환한 만큼(at × 횟수) 빼고 남은 재화로 본다
-    const used = c.exchange ? c.at * (rec.exchanges ?? []).filter((e) => !e.kind && e.group === groupId && e.banner === banner).length : 0;
+    const used = c.exchange ? (rec.exchanges ?? []).filter((e) => !e.kind && e.group === groupId && e.banner === banner).reduce((n, e) => n + (e.cost ?? c.at), 0) : 0;
     const remaining = Math.max(0, c.at - (bannerPulls - used));
+    if (c.exchange) {
+      // 교환 재화를 지금 몇 개 갖고 있는지(뽑은 만큼 − 교환에 쓴 만큼)와 고를 수 있는 교환 가격
+      const held = Math.max(0, bannerPulls - used);
+      return { label: c.label, at: c.at, remaining, done: remaining === 0, held, ...(c.exchangeOptions ? { options: c.exchangeOptions } : {}), ...(c.leftover ? { leftover: c.leftover } : {}) };
+    }
     // "다음 최고 등급이 픽업" 카운터는 횟수를 채우면 끝난 것이 아니라 그때부터 적용 중이다
     if (c.next) return { label: c.label, at: c.at, remaining, done: false, active: remaining === 0, ...flags };
     return { label: c.label, at: c.at, remaining, done: remaining === 0, ...flags };
@@ -750,10 +761,13 @@ export function carryToNextBanner(records: Records, game: GameId, groupId: strin
 }
 
 /** 교환으로 얻은 최고 등급을 기록한다(뽑기 수·천장에는 영향 없음, 교환 재화만 줄어든다) */
-export function recordExchange(records: Records, game: GameId, groupId: string, name: string | null, now: Date = new Date()): Records {
+export function recordExchange(records: Records, game: GameId, groupId: string, name: string | null, now: Date = new Date(), option?: { cost: number; low?: boolean }): Records {
   const next = structuredClone(records);
   const rec = next.games[game];
-  rec.exchanges = [...(rec.exchanges ?? []), { id: newId(), time: now.toISOString(), group: groupId, banner: rec.currentBanner[groupId] ?? "", name }];
+  rec.exchanges = [...(rec.exchanges ?? []), {
+    id: newId(), time: now.toISOString(), group: groupId, banner: rec.currentBanner[groupId] ?? "", name,
+    ...(option ? { cost: option.cost } : {}), ...(option?.low ? { low: true } : {}),
+  }];
   return next;
 }
 

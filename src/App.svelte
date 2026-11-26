@@ -34,6 +34,8 @@
   import genshinItemsFile from "../data/genshin-items.json";
   import endfieldSixFile from "../data/names/endfield-6star.json";
   import arknightsSixFile from "../data/names/arknights-6star.json";
+  import arknightsPoolsFile from "../data/names/arknights-pools.json";
+  const arknightsPools = arknightsPoolsFile.pools as Record<string, string | null>;
   import { applyLimbusHistory, mergeSequence, parseLimbusHistory, type LimbusRow } from "./lib/limbus-history";
   import {
     importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow,
@@ -314,7 +316,13 @@
   }
 
   /** 명일방주 요스타 기록의 배너 이름 → 종류 처음 값 (커널·상시는 넣지 않음, 사용자가 바꿀 수 있음) */
-  const arknightsDefault = (b: string) => (/커널|상시|기초|초심자/.test(b) ? "" : "arknights-limited");
+  // 명일방주 기록의 배너 이름으로 종류 고르기: 게임 데이터 표(data/names/arknights-pools.json)에 있으면 그 종류,
+  // 같은 이름이 여러 종류라 모르면 직접 고르게 비워 두고, 표에 없는 이름만 예전 방식(한정)으로
+  const arknightsDefault = (b: string) => {
+    const key = b.replace(/\s+/g, " ").trim();
+    if (key in arknightsPools) return arknightsPools[key] ?? "";
+    return /커널|상시|기초|초심자/.test(b) ? "" : "arknights-limited";
+  };
   function applyHistory(game: GameId, choices: Record<string, string>, replaceManual = false) {
     const out = importHistory(records, game, historyRowsOf(game), {
       banners: pack?.games[game] ?? [],
@@ -1051,7 +1059,7 @@
           chooseOptions={group.featuredRule === "fate-point" ? (currentPackBanner?.featured ?? []).map(itemName) : []}
           chosen={rec.chosen?.[groupId]?.banner === status.banner ? rec.chosen[groupId].name : ""} onChoose={setChosen}
           exchanges={(rec.exchanges ?? []).filter((e) => e.group === groupId && e.banner === status.banner)}
-          onExchange={(name) => { update(recordExchange(records, game, groupId, name || null)); notify(`${name || def.topLabel} 교환 기록`); }}
+          onExchange={(name, option) => { update(recordExchange(records, game, groupId, name || null, new Date(), option)); notify(`${name || (option?.low ? "5성" : def.topLabel)} 교환 기록`); }}
           onRemoveExchange={(id) => update(removeExchange(records, game, id))}
           poolOf={(b) => (rotationRules[b.group] || b.pool?.length ? bannerPool(pack?.games[game] ?? [], b, rotationRules) : null)}
           freeLabel={group.freeLabel ?? ""}

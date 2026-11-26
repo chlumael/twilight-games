@@ -3,7 +3,7 @@
 // Upstream files are never executed: JS data modules are parsed as JSON5 text.
 import { readFile, writeFile } from "node:fs/promises";
 import JSON5 from "json5";
-import { arknightsOfficial as arknights } from "./arknights-official.mjs";
+import { arknightsOfficial as arknights, arknightsPoolGroups } from "./arknights-official.mjs";
 import { collectedSixStars, endfieldOfficial, mergeArsenal, skippedNotices } from "./endfield-official.mjs";
 import { collectEvents } from "./events.mjs";
 import { applyKoreanNames, applyWishPools, fetchWishAnnouncements, fetchWishDetails } from "./genshin-official.mjs";
@@ -200,6 +200,19 @@ try {
   }
 } catch (e) {
   console.warn(`명일방주 6성 이름 표를 만들지 못함 (${e.message})`);
+}
+
+// 명일방주 배너 이름 → 앱의 종류 (요스타 가챠 기록 화면의 배너 이름으로 한정·콜라보·일반을 자동으로 고르기 위해)
+// 한국 서버 게임 데이터(ArknightsAssets/ArknightsGamedata kr, 데이터로만 읽음)의 풀 이름과 종류. 이름이 같은데 종류가 다르면(커널 등) null
+try {
+  const table = await get("https://raw.githubusercontent.com/ArknightsAssets/ArknightsGamedata/master/kr/gamedata/excel/gacha_table.json", "json");
+  const pools = arknightsPoolGroups(table.gachaPoolClient ?? []);
+  if (Object.keys(pools).length > 50) {
+    const file = new URL("../../data/names/arknights-pools.json", import.meta.url);
+    await writeFile(file, JSON.stringify({ _comment: "명일방주 배너(풀) 이름 → 종류. null = 같은 이름이 여러 종류라 직접 골라야 함(build.mjs)", pools }, null, 1) + "\n");
+  }
+} catch (e) {
+  console.warn(`명일방주 배너 이름 표를 만들지 못함 (${e.message})`);
 }
 
 try {

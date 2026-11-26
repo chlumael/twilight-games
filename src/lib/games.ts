@@ -18,6 +18,13 @@ export interface BannerCounter {
   repeat?: boolean;
   /** 뽑은 횟수만큼 쌓이는 교환 재화로 최고 등급을 교환하는 카운터(명일방주 헤드헌팅 데이터 계약 300, 림버스 이상 200). 교환하면 at만큼 줄어든다 */
   exchange?: boolean;
+  /**
+   * 교환 가격이 여러 가지일 때 (명일방주: 6성 300장, 오래된 한정 200장, 5성 75장). 첫 번째가 기본.
+   * low = 최고 등급이 아닌 것(5성 교환): 기록에는 남기되 픽업/확천 표시는 하지 않는다.
+   */
+  exchangeOptions?: { cost: number; label: string; low?: boolean }[];
+  /** 배너가 끝나면 남은 교환 재화가 바뀌는 것 (명일방주 계약 1장 → 파라미터 모델 6장, 림버스 이상 → 끈) */
+  leftover?: { to: string; rate: number };
   /** 배너 id에 이 글자가 들어 있는 배너에만 적용 (명일방주: 풀 종류 ":SINGLE_", ":DOUBLE_") */
   bannerMatch?: string;
   /** at회째에 확정이 아니라, at회가 지난 뒤 "다음에 나오는 최고 등급"이 픽업으로 확정 (명일방주 지향·표준 셀렉션) */
@@ -188,7 +195,11 @@ export const GAMES: Record<GameId, GameDef> = {
         // ② 교환과 별개로, 누적 300회에 그 배너의 한정 6성을 1번 더 받는다(한국 서버 2024-10부터, 게임 데이터 freeCount 300)
         // 둘 다 다음 한정으로 이월 안 됨. 6성 중 픽업 70%
         bannerCounters: [
-          { at: 300, label: "교환(데이터 계약)", exchange: true },
+          {
+            at: 300, label: "교환(데이터 계약)", exchange: true,
+            exchangeOptions: [{ cost: 300, label: "6성 300장" }, { cost: 200, label: "오래된 한정 200장" }, { cost: 75, label: "5성 75장", low: true }],
+            leftover: { to: "헤드헌팅 파라미터 모델", rate: 6 },
+          },
           { at: 300, label: "한정 6성 증정" },
         ],
         odds: { base: 0.02, softFrom: 51, step: 0.02 },
@@ -350,7 +361,8 @@ export const GAMES: Record<GameId, GameDef> = {
         carryOver: false,
         featuredRule: "none",
         // 추출 횟수만큼 "이상"을 얻어 200개로 교환(사용자 확인 2026-11-26)
-        bannerCounters: [{ at: 200, label: "교환(이상)", exchange: true }],
+        // 남은 이상은 배너가 끝나면 끈으로 바뀐다(공식). 1:1인지는 이용자 글 하나뿐이라 추정
+        bannerCounters: [{ at: 200, label: "교환(이상)", exchange: true, leftover: { to: "끈", rate: 1 } }],
         // Tickets are always spent before Lunacy.
         odds: { base: 0.029, softFrom: null, step: 0 },
         spend: [

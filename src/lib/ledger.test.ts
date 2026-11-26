@@ -414,6 +414,20 @@ describe("교환(확천)", () => {
     expect(carryToNextBanner(r, "endfield", "endfield-refactor").records).toBe(r);
     expect(carryToNextBanner(r, "genshin", "genshin-char").records).toBe(r);
   });
+  it("명일방주 교환 가격: 오래된 한정 200장, 5성 75장은 그만큼만 줄어든다", async () => {
+    const { recordExchange } = await import("./ledger");
+    let r = emptyRecords();
+    const L = "arknights-limited";
+    r.games.arknights.currentBanner[L] = "B";
+    r = recordSession(r, "arknights", L, 300, new Map(), t(0));
+    const st = () => groupStatus(r.games.arknights, "arknights", L).counters[0];
+    expect(st()).toMatchObject({ held: 300, remaining: 0 });
+    r = recordExchange(r, "arknights", L, null, t(1), { cost: 75, low: true });
+    expect(st()).toMatchObject({ held: 225, remaining: 75 });
+    r = recordExchange(r, "arknights", L, "W", t(2), { cost: 200 });
+    expect(st()).toMatchObject({ held: 25, remaining: 275 });
+    expect(r.games.arknights.exchanges?.[0]).toMatchObject({ low: true, cost: 75 });
+  });
   it("명일방주: 콜라보는 120회 픽업 확정, 51회부터 반천", async () => {
     const { hitLabel } = await import("./ledger");
     let r = emptyRecords();

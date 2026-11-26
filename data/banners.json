@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-26T06:55:22.396Z",
+ "generatedAt": "2026-11-26T23:25:38.442Z",
  "games": {
   "genshin": [
    {
@@ -8921,16 +8921,6 @@
     "source": "엔드필드 한국어 공식 공지"
    },
    {
-    "id": "endfield:news:0752",
-    "kind": "offline",
-    "title": "Arknights: Endfield x Beard Papa's collaboration coming soon",
-    "start": "2026-03-24T23:00:00.000Z",
-    "end": null,
-    "startApprox": true,
-    "source": "엔드필드 공식 소식",
-    "url": "https://endfield.gryphline.com/ko-kr/news/0752"
-   },
-   {
     "id": "endfield:8907:「그림자 이정표」 도전 콘텐츠 업데이트, 「작열의 흉터」 시리즈 스테이지 개방:2026-03-26",
     "kind": "event",
     "title": "「그림자 이정표」 도전 콘텐츠 업데이트, 「작열의 흉터」 시리즈 스테이지 개방",
@@ -8971,6 +8961,15 @@
     "start": "2026-03-29T04:00:00.000Z",
     "end": null,
     "source": "엔드필드 한국어 공식 공지"
+   },
+   {
+    "id": "endfield:news:0752",
+    "kind": "offline",
+    "title": "Arknights: Endfield x Beard Papa's collaboration coming soon",
+    "start": "2026-04-03T03:00:00.000Z",
+    "end": "2026-05-12T03:00:00.000Z",
+    "source": "엔드필드 공식 소식",
+    "url": "https://endfield.gryphline.com/ko-kr/news/0752"
    },
    {
     "id": "endfield:8907:「생존 특훈」 도전 이벤트:2026-04-09",
@@ -9014,6 +9013,15 @@
     "source": "엔드필드 한국어 공식 공지"
    },
    {
+    "id": "endfield:news:1336",
+    "kind": "offline",
+    "title": "Arknights: Endfield × M.RAGE Apparel Collaboration Debuts at LVL UP EXPO 2026",
+    "start": "2026-04-24T03:00:00.000Z",
+    "end": null,
+    "source": "엔드필드 공식 소식",
+    "url": "https://endfield.gryphline.com/ko-kr/news/1336"
+   },
+   {
     "id": "endfield:0751:「우주에 새겨진 우리의 꿈 · 기념사진」 우주 테마 이벤트:2026-04-24",
     "kind": "event",
     "title": "「우주에 새겨진 우리의 꿈 · 기념사진」 우주 테마 이벤트",
@@ -9030,16 +9038,6 @@
     "end": "2026-06-05T04:00:00.000Z",
     "endApprox": true,
     "source": "엔드필드 한국어 공식 공지"
-   },
-   {
-    "id": "endfield:news:1336",
-    "kind": "offline",
-    "title": "Arknights: Endfield × M.RAGE Apparel Collaboration Debuts at LVL UP EXPO 2026",
-    "start": "2026-04-24T21:00:00.000Z",
-    "end": null,
-    "startApprox": true,
-    "source": "엔드필드 공식 소식",
-    "url": "https://endfield.gryphline.com/ko-kr/news/1336"
    },
    {
     "id": "endfield:0751:「통합 지원 · 내 손안의 구세주」 통합 생산 이벤트:2026-04-28",
@@ -9069,9 +9067,8 @@
     "id": "endfield:news:7023",
     "kind": "offline",
     "title": "Arknights: Endfield x Happy Lemon collaboration coming soon",
-    "start": "2026-05-11T03:39:00.000Z",
-    "end": null,
-    "startApprox": true,
+    "start": "2026-05-13T03:00:00.000Z",
+    "end": "2026-06-14T03:00:00.000Z",
     "source": "엔드필드 공식 소식",
     "url": "https://endfield.gryphline.com/ko-kr/news/7023"
    },
@@ -9590,15 +9587,6 @@
   ],
   "limbus": [
    {
-    "id": "limbus:event:669495150925320961",
-    "kind": "event",
-    "title": "2026.07.09 (KST) 제9회 발푸르기스의 밤 신규 인격 & E.G.O 정보 안내",
-    "start": "2026-07-09T03:00:00.000Z",
-    "end": "2026-07-23T01:00:00.000Z",
-    "source": "림버스 스팀 공지",
-    "url": "https://store.steampowered.com/news/app/1973530/view/669495150925320961"
-   },
-   {
     "id": "limbus:event:669495150925320957",
     "kind": "event",
     "title": "제9회 발푸르기스의 밤",
@@ -9606,6 +9594,15 @@
     "end": "2026-07-23T01:00:00.000Z",
     "source": "림버스 스팀 공지",
     "url": "https://store.steampowered.com/news/app/1973530/view/669495150925320957"
+   },
+   {
+    "id": "limbus:event:669495150925320961",
+    "kind": "event",
+    "title": "2026.07.09 (KST) 제9회 발푸르기스의 밤 신규 인격 & E.G.O 정보 안내",
+    "start": "2026-07-09T03:00:00.000Z",
+    "end": "2026-07-23T01:00:00.000Z",
+    "source": "림버스 스팀 공지",
+    "url": "https://store.steampowered.com/news/app/1973530/view/669495150925320961"
    },
    {
     "id": "limbus:event:705527117835667509",
@@ -9636,15 +9633,6 @@
     "url": "https://store.steampowered.com/news/app/1973530/view/706656188498970097"
    },
    {
-    "id": "limbus:event:667255671771627765",
-    "kind": "event",
-    "title": "2026.11.12 (KST) 제10회 발푸르기스의 밤 신규 인격 & E.G.O 정보 안내",
-    "start": "2026-11-12T03:00:00.000Z",
-    "end": "2026-11-26T01:00:00.000Z",
-    "source": "림버스 스팀 공지",
-    "url": "https://store.steampowered.com/news/app/1973530/view/667255671771627765"
-   },
-   {
     "id": "limbus:event:667255671771627757",
     "kind": "event",
     "title": "제10회 발푸르기스의 밤",
@@ -9652,6 +9640,15 @@
     "end": "2026-11-26T01:00:00.000Z",
     "source": "림버스 스팀 공지",
     "url": "https://store.steampowered.com/news/app/1973530/view/667255671771627757"
+   },
+   {
+    "id": "limbus:event:667255671771627765",
+    "kind": "event",
+    "title": "2026.11.12 (KST) 제10회 발푸르기스의 밤 신규 인격 & E.G.O 정보 안내",
+    "start": "2026-11-12T03:00:00.000Z",
+    "end": "2026-11-26T01:00:00.000Z",
+    "source": "림버스 스팀 공지",
+    "url": "https://store.steampowered.com/news/app/1973530/view/667255671771627765"
    },
    {
     "id": "limbus:event:690899935132911478",

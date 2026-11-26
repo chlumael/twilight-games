@@ -27,6 +27,33 @@ export function zoned(s, tz = 8) {
 // 외부 행사·소식으로 볼 제목 (오프라인 행사, 콜라보, 방송 등)
 const OFFLINE = /콜라보|collaboration|오프라인|팝업|pop-?up|카페|페스티벌|콘서트|전시|EXPO|방송|라이브|offline|행사/i;
 
+/**
+ * 외부 행사 공지 글에서 행사 기간을 찾는다: "2026/12/05", "2026.12.05", "2026년 12월 5일", "12월 5일"(연도는 공지 해의 것),
+ * "December 5, 2026"·"Dec 5"(영어 공지). 공지 날짜 앞뒤 1년 안의 날짜만 쓰고, 가장 이른 날 ~ 가장 늦은 날(같으면 하루).
+ * 못 찾으면 null (공지 날짜 하루로 둔다).
+ */
+export function datesIn(text, postedIso) {
+  const posted = Date.parse(postedIso);
+  const year = new Date(posted).getUTCFullYear();
+  const t = String(text ?? "");
+  const found = [];
+  const MONTH = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+  const add = (y, m, d) => {
+    if (!(m >= 1 && m <= 12 && d >= 1 && d <= 31)) return;
+    const ms = Date.UTC(y, m - 1, d, 3); // 한국 정오쯤 (날짜만 쓰므로 시각은 의미 없음)
+    if (Math.abs(ms - posted) <= 366 * 864e5) found.push(ms);
+  };
+  for (const m of t.matchAll(/(20\d{2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{1,2})/g)) add(+m[1], +m[2], +m[3]);
+  for (const m of t.matchAll(/(?:(20\d{2})\s*년\s*)?(\d{1,2})\s*월\s*(\d{1,2})\s*일/g)) add(m[1] ? +m[1] : year, +m[2], +m[3]);
+  for (const m of t.matchAll(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(20\d{2}))?/gi)) {
+    add(m[3] ? +m[3] : year, MONTH[m[1].toLowerCase()], +m[2]);
+  }
+  if (!found.length) return null;
+  const a = Math.min(...found);
+  const b = Math.max(...found);
+  return { start: new Date(a).toISOString(), end: b > a ? new Date(b).toISOString() : null };
+}
+
 // ───────────────────────── 원신: 게임 안 공지 목록 ─────────────────────────
 const GENSHIN_ANN = "https://sg-hk4e-api.hoyoverse.com/common/hk4e_global/announcement/api/getAnnList"
   + "?game=hk4e&game_biz=hk4e_global&lang=ko&bundle_id=hk4e_global&platform=pc&region=os_asia&level=55&uid=100000000";
@@ -179,7 +206,10 @@ export async function endfieldItems() {
   // 외부 행사·소식: 제목으로 고르고 공지 날짜 하루로 둔다(행사 날짜는 공지 글에 제각각이라 추정)
   for (const n of notices.filter((n) => OFFLINE.test(n.title ?? "") && !/헤드헌팅|버전 업데이트 설명/.test(n.title))) {
     const day = new Date(n.displayTime * 1000).toISOString();
-    out.push({ id: `endfield:news:${n.cid}`, kind: "offline", title: n.title.trim(), start: day, end: null, startApprox: true,
+    // 글 안에 행사 날짜가 있으면 그 기간으로(없으면 공지 날짜 하루, 추정)
+    const text = plainText((await getJson(`${EF_API}/${n.cid}?${EF_QUERY}`)).data?.data);
+    const when = datesIn(text, day);
+    out.push({ id: `endfield:news:${n.cid}`, kind: "offline", title: n.title.trim(), ...(when ?? { start: day, end: null, startApprox: true }),
       source: "엔드필드 공식 소식", url: `https://endfield.gryphline.com/ko-kr/news/${n.cid}` });
   }
   return dedupe(out);
@@ -203,7 +233,9 @@ export function limbusItems(data) {
       continue;
     }
     if (OFFLINE.test(name)) {
-      out.push({ id: `limbus:news:${e.gid}`, kind: "offline", title: name, start: s, end: t && t > s ? t : null, ...(t && t > s ? {} : { startApprox: true }), source: "림버스 스팀 공지", url });
+      const when = t && t > s ? null : datesIn(e.announcement_body?.body ?? "", s);
+      out.push({ id: `limbus:news:${e.gid}`, kind: "offline", title: name,
+        ...(t && t > s ? { start: s, end: t } : when ?? { start: s, end: null, startApprox: true }), source: "림버스 스팀 공지", url });
       continue;
     }
     // 기간이 있는 공지(이벤트·보상 기간). 신규 인격 정보는 픽업이라 배너 자료에서 보여 준다

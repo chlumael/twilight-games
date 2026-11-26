@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { arknightsItems, efPeriod, efSections, genshinItems, limbusItems, mergeEvents, zoned } from "./events.mjs";
+import { datesIn, arknightsItems, efPeriod, efSections, genshinItems, limbusItems, mergeEvents, zoned } from "./events.mjs";
 
 describe("달력 일정 수집", () => {
   it("시각: 서버 시간(UTC+8) → ISO", () => {
@@ -58,5 +58,13 @@ describe("달력 일정 수집", () => {
     const cur = [{ id: "a", start: "2026-11-20T00:00:00Z", end: null }];
     const prev = [{ id: "a", start: "x" }, { id: "b", start: "2026-06-01T00:00:00Z", end: "2026-06-10T00:00:00Z" }, { id: "c", start: "2024-01-01T00:00:00Z", end: "2024-01-02T00:00:00Z" }];
     expect(mergeEvents(cur, prev, now).map((e) => e.id)).toEqual(["b", "a"]);
+  });
+  it("외부 행사 날짜: 글 안의 날짜 여러 꼴, 공지 해 기준, 1년 넘게 떨어진 날짜는 버림", () => {
+    const posted = "2026-11-20T00:00:00.000Z";
+    expect(datesIn("팝업 스토어 2026.12.05 ~ 2026.12.20 진행", posted)).toEqual({ start: "2026-12-05T03:00:00.000Z", end: "2026-12-20T03:00:00.000Z" });
+    expect(datesIn("12월 3일부터 12월 7일까지 콜라보 카페", posted)).toMatchObject({ start: "2026-12-03T03:00:00.000Z", end: "2026-12-07T03:00:00.000Z" });
+    expect(datesIn("Collaboration starts December 10, 2026", posted)).toEqual({ start: "2026-12-10T03:00:00.000Z", end: null });
+    expect(datesIn("2019/01/01 설립", posted)).toBeNull();
+    expect(datesIn("날짜 없음", posted)).toBeNull();
   });
 });

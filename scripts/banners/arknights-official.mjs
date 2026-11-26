@@ -149,3 +149,21 @@ export async function arknightsOfficial() {
   if (review.length) console.warn(`명일방주: 사람이 확인해야 하는 배너 → ${review.join(", ")} (data/names/arknights-banners.json)`);
   return merged;
 }
+
+/**
+ * 게임 데이터의 풀 목록 → { 풀 이름: 앱 종류 | null }.
+ * LIMITED → 한정, LINKAGE → 콜라보, SINGLE·DOUBLE·NORMAL·SPECIAL → 일반(표준 헤드헌팅), 그 밖(커널·셀러브레이션 등) → null(추적 안 함).
+ * 같은 이름이 서로 다른 종류에 쓰였으면(예: "다양한 전투에서 활약하는 정예 오퍼레이터"는 일반과 커널 둘 다) null.
+ */
+export function arknightsPoolGroups(pools) {
+  const kind = (t) => (t === "LIMITED" ? "arknights-limited" : t === "LINKAGE" ? "arknights-collab"
+    : ["SINGLE", "DOUBLE", "NORMAL", "SPECIAL"].includes(t) ? "arknights-standard" : null);
+  const out = {};
+  for (const p of pools) {
+    const name = String(p.gachaPoolName ?? "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    if (!name) continue;
+    const g = kind(p.gachaRuleType);
+    out[name] = name in out && out[name] !== g ? null : g;
+  }
+  return out;
+}

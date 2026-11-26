@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { activeBanners, bannerLabel, daysLeft, itemName, type PackBanner, type PoolEntry } from "../lib/banners";
+  import { activeBanners, bannerLabel, bannerState, daysLeft, itemName, type PackBanner, type PoolEntry } from "../lib/banners";
   import { hitLabel, type GroupStatus, type TopHit } from "../lib/ledger";
   import type { Exchange, Pull } from "../lib/types";
   import BannerDetail from "./BannerDetail.svelte";
@@ -27,7 +27,7 @@
     onChoose?: (name: string) => void;
     /** 교환으로 얻은 기록(이 종류·배너). 교환 카운터가 있는 종류에서만 입력을 보여 준다 */
     exchanges?: Exchange[];
-    onExchange?: (name: string) => void;
+    onExchange?: (name: string, option?: { cost: number; low?: boolean }) => void;
     onRemoveExchange?: (id: string) => void;
     /** 최고 등급 없이 "이 배너에서 n번째까지 뽑았다"만 맞추기 */
     onPullsTo?: (n: number) => void;
@@ -43,6 +43,10 @@
   let countOnly = $state(false);
   const canExchange = $derived(!!onExchange && status.counters.some((c) => /교환/.test(c.label)));
   let byExchange = $state(false);
+  /** 교환 가격 고르기 (명일방주 300 / 200 / 5성 75) */
+  const exchangeCounter = $derived(status.counters.find((c) => c.options?.length));
+  let exchangeCost = $state(0);
+  const exchangeOption = $derived(exchangeCounter?.options?.find((o) => o.cost === exchangeCost) ?? exchangeCounter?.options?.[0]);
 
   /** 한 번에 뽑는 단위(엔드필드 무기 신청 = 10) */
   const step = $derived(status.unit);
@@ -60,7 +64,7 @@
   const addFeatured = $derived(addName.trim() && guessFeatured ? guessFeatured(addName.trim()) : null);
   function saveAdd() {
     if (byFree) { onFreeTop?.(addName.trim()); adding = false; byFree = false; addName = ""; return; }
-    if (byExchange) { onExchange?.(addName.trim()); adding = false; byExchange = false; addName = ""; return; }
+    if (byExchange) { onExchange?.(addName.trim(), exchangeOption); adding = false; byExchange = false; addName = ""; exchangeCost = 0; return; }
     if (countOnly) { if (addN && addN > 0) onPullsTo?.(addN); adding = false; countOnly = false; addN = null; return; }
     if (!addN || addN < 1 || !onTopAt) return;
     onTopAt(addN, addName.trim());
@@ -76,6 +80,8 @@
   const active = $derived(activeBanners(banners));
   const others = $derived(banners.filter((b) => !active.includes(b)).slice(-6).reverse());
   const current = $derived(banners.find((b) => b.id === status.banner));
+  /** 지금 배너가 끝났는지 (남은 교환 재화가 다른 것으로 바뀌었음을 보여 준다) */
+  const ended = $derived(!!current && bannerState(current) === "ended");
   let typing = $state(false);
   /** 배너 고르기·입력 칸을 펼쳤는지 (배너 자료에 지금 배너가 없을 때만) */
   let editing = $state(false);
@@ -121,6 +127,7 @@
           <span class:ok={done || c.active}>{done ? "완료" : c.active ? "적용 중" : `${c.remaining}회 남음`}</span>
         </div>
         <div class="mini"><div style:width="{done ? 100 : ((c.at - c.remaining) / c.at) * 100}%"></div></div>
+        {#if c.leftover && c.held && ended}<div class="left">배너 종료 · {c.leftover.to} {(c.held * c.leftover.rate).toLocaleString()}개로</div>{/if}
       </div>
     {/each}
   </section>
@@ -203,6 +210,11 @@
           <span>번째</span>
         {/if}
         {#if canExchange}<label class="exch"><input type="checkbox" bind:checked={byExchange} />교환</label>{/if}
+        {#if byExchange && exchangeCounter?.options}
+          <select bind:value={exchangeCost} aria-label="교환 가격">
+            {#each exchangeCounter.options as o (o.cost)}<option value={o.cost}>{o.label}</option>{/each}
+          </select>
+        {/if}
         {#if freeLabel && onFreeTop && !countOnly}<label class="exch"><input type="checkbox" bind:checked={byFree} />{freeLabel}(무료)</label>{/if}
         {#if onPullsTo && !byExchange && !byFree}<label class="exch"><input type="checkbox" bind:checked={countOnly} />횟수만</label>{/if}
       </div>
@@ -221,7 +233,7 @@
         {/if}
       {/if}
       <div class="aline end">
-        <button type="submit" class="save" disabled={byExchange ? !addName.trim() : byFree ? false : !addN}>저장</button>
+        <button type="submit" class="save" disabled={byExchange ? !addName.trim() && !exchangeOption?.low : byFree ? false : !addN}>저장</button>
         <button type="button" onclick={() => (adding = false)}>취소</button>
       </div>
     </form>
@@ -235,9 +247,11 @@
     {#each exchanges as e (e.id)}
       <div class="hit">
         <span class="count txt">{e.kind === "free" ? freeLabel || "무료" : "교환"}</span>
-        <span class="name">{e.name ?? `${topLabel} (이름 미입력)`}</span>
+        <span class="name">{e.name ?? (e.low ? "5성" : `${topLabel} (이름 미입력)`)}</span>
         {#if e.kind === "free"}
           {#if e.featured != null}<span class="badge" class:win={e.featured}>{e.featured ? "픽업" : "픽뚫"}</span>{/if}
+        {:else if e.low}
+          <span class="badge">교환 {e.cost ?? ""}</span>
         {:else}
           <span class="badge win">픽업/확천(교환)</span>
         {/if}
@@ -287,6 +301,7 @@
   .chip.hot { color: #fff; background: rgba(255, 110, 90, 0.85); border-color: transparent; }
   .hint { font-size: 11px; color: var(--muted); }
 
+  .left { font-size: 10px; color: var(--muted); margin-top: 3px; }
   .counters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .counter { padding: 7px 8px; border-radius: var(--radius); background: var(--panel); }
   .ctop { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
