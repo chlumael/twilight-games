@@ -41,7 +41,7 @@
   const addFeatured = $derived(addName.trim() && guessFeatured ? guessFeatured(addName.trim()) : null);
   function saveAdd() {
     if (byExchange) { onExchange?.(addName.trim()); adding = false; byExchange = false; addName = ""; return; }
-    if (!addN || addN < 1 || !onTopAt || (status.hardPity && addN > status.hardPity)) return;
+    if (!addN || addN < 1 || !onTopAt) return;
     onTopAt(addN, addName.trim());
     adding = false; addN = null; addName = "";
   }
@@ -167,8 +167,9 @@
     <form class="add" onsubmit={(e) => { e.preventDefault(); saveAdd(); }}>
       {#if canExchange}<label class="exch"><input type="checkbox" bind:checked={byExchange} />교환</label>{/if}
       {#if !byExchange}
-        <input class="n" type="number" min="1" max={status.hardPity ?? 999} step={step} placeholder={String(status.pity)} bind:value={addN} aria-label="몇 번째" />
-        <span>뽑</span>
+        <span>배너</span>
+        <input class="n" type="number" min="1" step={step} placeholder={String(status.bannerPulls + step)} bind:value={addN} aria-label="이 배너에서 몇 번째" />
+        <span>번째</span>
       {/if}
       <input class="nm" list="top-names" placeholder="{topLabel} 이름" bind:value={addName} aria-label="이름" />
       <datalist id="top-names">{#each topNames as n (n)}<option value={n}></option>{/each}</datalist>

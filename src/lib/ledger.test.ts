@@ -307,34 +307,6 @@ describe("엔드필드 재구축: 80 천장은 재구축끼리 공유, 120·누�
   });
 });
 
-describe("직접 입력: n뽑에 최고 등급", () => {
-  const G = "endfield-chartered";
-  const st = (r: ReturnType<typeof emptyRecords>) => groupStatus(r.games.endfield, "endfield", G);
-  it("32스택에서 10연을 기록했고 7번째(39뽑)에 나왔다 → 그 자리 표시, 남은 스택 3", async () => {
-    const { recordTopAt } = await import("./ledger");
-    let r = syncPityFromScreen(emptyRecords(), "endfield", G, 48, null); // 32스택
-    r = recordSession(r, "endfield", G, 10, new Map(), t(0));
-    const out = recordTopAt(r, "endfield", G, 39, { name: "케르", featured: true }, t(1));
-    expect(out.mode).toBe("marked");
-    expect(st(out.records).pity).toBe(3);
-    expect(out.records.games.endfield.pulls.find((p) => p.top)).toMatchObject({ name: "케르", featured: true, indexInSession: 6 });
-  });
-  it("아직 기록 안 된 뽑기면 모자란 만큼 더한다", async () => {
-    const { recordTopAt } = await import("./ledger");
-    const r = syncPityFromScreen(emptyRecords(), "endfield", G, 48, null); // 32스택, 기록 0
-    const out = recordTopAt(r, "endfield", G, 39, { name: "케르", featured: false }, t(1));
-    expect(out.mode).toBe("added");
-    expect(out.records.games.endfield.pulls).toHaveLength(7);
-    expect(st(out.records).pity).toBe(0);
-  });
-  it("시작 상태 구간이면 스택만 줄인다", async () => {
-    const { recordTopAt } = await import("./ledger");
-    const r = syncPityFromScreen(emptyRecords(), "endfield", G, 48, null);
-    const out = recordTopAt(r, "endfield", G, 20, { name: null, featured: null }, t(1));
-    expect(out.mode).toBe("baseline");
-    expect(st(out.records).pity).toBe(12);
-  });
-});
 
 describe("원신 무기: 고른 무기(신각의 길)", () => {
   it("픽업 무기라도 고른 무기가 아니면 다음 확정", () => {
@@ -445,30 +417,52 @@ describe("기준값이 음수로 남는 문제 (−64뽑)", () => {
   });
 });
 
-describe("직접 입력 안전장치", () => {
-  it("기준값이 음수여도 n뽑 입력이 뽑기를 부풀리지 않고, 천장보다 큰 숫자는 받지 않는다", async () => {
-    const { recordTopAt } = await import("./ledger");
-    const G = "endfield-chartered";
-    const r = emptyRecords();
-    r.games.endfield.baseline[G] = { ...emptyBaseline(), pity: -74 };
-    const out = recordTopAt(r, "endfield", G, 39, { name: "가", featured: null }, t(0));
-    expect(out.records.games.endfield.pulls).toHaveLength(39);
-    expect(recordTopAt(r, "endfield", G, 200, { name: "가", featured: null }, t(0)).records).toBe(r);
-  });
-});
 
-describe("엔드필드 무기고는 10의 배수로만", () => {
-  it("39뽑 입력 → 40뽑으로 기록, 예전에 37뽑으로 들어간 기록도 40뽑으로 표시", async () => {
-    const { recordTopAt } = await import("./ledger");
-    const G = "endfield-arsenal";
+
+describe("직접 입력: 이 배너에서 n번째에 최고 등급 (배너 누적)", () => {
+  const G = "endfield-chartered";
+  const st = (r: ReturnType<typeof emptyRecords>) => groupStatus(r.games.endfield, "endfield", G);
+  it("16 → 58 → 92 → 120 순서로 넣으면 총 120회, 횟수는 16·42·34·28, 120번째 픽업은 확천", async () => {
+    const { recordTopAt, hitLabel } = await import("./ledger");
     let r = emptyRecords();
-    r.games.endfield.currentBanner[G] = "W";
-    const out = recordTopAt(r, "endfield", G, 39, { name: "무기", featured: true }, t(0));
-    expect(out.records.games.endfield.pulls).toHaveLength(40);
-    expect(topHistory(out.records.games.endfield, G).map((h) => h.count)).toEqual([40]);
-    r = recordSession(r, "endfield", G, 37, new Map([[36, { name: "무기", featured: false }]]), t(1));
-    expect(topHistory(r.games.endfield, G).map((h) => h.count)).toEqual([40]);
-    r = recordSession(r, "endfield", G, 12, new Map(), t(2));
-    expect(groupStatus(r.games.endfield, "endfield", G).pity).toBe(20);
+    r.games.endfield.currentBanner[G] = "B";
+    for (const [n, name, featured] of [[16, "포그라니치니크", false], [58, "사", false], [92, "아델리아", false], [120, "케르", true]] as const) {
+      const out = recordTopAt(r, "endfield", G, n, { name, featured }, t(n));
+      expect(out.mode).toBe("added");
+      r = out.records;
+    }
+    expect(r.games.endfield.pulls).toHaveLength(120);
+    expect(topHistory(r.games.endfield, G).map((h) => [h.count, hitLabel(h)])).toEqual([[16, "픽뚫"], [42, "픽뚫"], [34, "픽뚫"], [28, "픽업/확천"]]);
+    expect(st(r)).toMatchObject({ pity: 0, bannerPulls: 120 });
+  });
+  it("이미 기록된 뽑기 자리면 그 자리를 표시한다", async () => {
+    const { recordTopAt } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.endfield.currentBanner[G] = "B";
+    r = recordSession(r, "endfield", G, 30, new Map(), t(0));
+    const out = recordTopAt(r, "endfield", G, 17, { name: "가", featured: null }, t(1));
+    expect(out.mode).toBe("marked");
+    expect(out.records.games.endfield.pulls).toHaveLength(30);
+    expect(st(out.records).pity).toBe(13);
+  });
+  it("천장을 넘게 건너뛰면 받지 않는다 (그 사이 6성을 먼저 넣어야 함)", async () => {
+    const { recordTopAt } = await import("./ledger");
+    const r = emptyRecords();
+    r.games.endfield.currentBanner[G] = "B";
+    expect(recordTopAt(r, "endfield", G, 120, { name: "케르", featured: true }, t(0))).toMatchObject({ mode: "too-far", records: r });
+  });
+  it("엔드필드 무기고는 10의 배수로: 9 → 10번째, 58 → 60번째", async () => {
+    const { recordTopAt } = await import("./ledger");
+    const A = "endfield-arsenal";
+    let r = emptyRecords();
+    r.games.endfield.currentBanner[A] = "W";
+    r = recordTopAt(r, "endfield", A, 9, { name: "무기1", featured: false }, t(0)).records;
+    expect(r.games.endfield.pulls).toHaveLength(10);
+    const far = recordTopAt(r, "endfield", A, 58, { name: "무기2", featured: true }, t(1));
+    expect(far.mode).toBe("too-far"); // 10 → 60은 50개 = 4번째 신청 천장(40)을 넘음
+    r = recordTopAt(r, "endfield", A, 50, { name: "무기2", featured: true }, t(1)).records;
+    expect(topHistory(r.games.endfield, A).map((h) => h.count)).toEqual([10, 40]);
+    r = recordSession(r, "endfield", A, 12, new Map(), t(2));
+    expect(groupStatus(r.games.endfield, "endfield", A).pity).toBe(20);
   });
 });

@@ -565,11 +565,13 @@ export function resetPity(records: Records, game: GameId, groupId: string): Reco
 }
 
 /**
- * 직접 입력: "n뽑에 최고 등급(이름)이 나왔다". n은 직전 최고 등급 이후 몇 번째인지(예: 32스택에서 10연 7번째 → 39).
- * - n이 지금 스택보다 크면: 모자란 뽑기를 더하고 마지막을 최고 등급으로 (아직 기록 안 된 뽑기)
- * - 이미 기록된 뽑기 안이면: 그 자리를 최고 등급으로 표시
- * - 앱이 기록하기 전(시작 상태) 구간이면: 천장 스택만 n만큼 줄인다
- * 픽업 여부는 배너의 픽업 이름과 같은지로 정해서 넘긴다(모르면 null).
+ * 직접 입력: "이 배너에서 n번째 뽑기에 최고 등급(이름)이 나왔다" — n은 **배너 누적**(사용자 결정 2026-11-26).
+ * 예: 58 → 92 → 120 순서로 넣으면 차이(34, 28)만큼만 뽑기를 더한다.
+ * - n이 지금 배너 누적보다 크면: 모자란 뽑기를 더하고 마지막을 최고 등급으로 (mode "added")
+ * - 이미 기록된 뽑기 자리면: 그 자리를 최고 등급으로 표시 (mode "marked")
+ * - 앱 기록 전 구간(시작 상태의 배너 뽑기 수 안)이면 바꾸지 않는다 (mode "before")
+ * - 더하면 천장을 넘는 경우(그 사이에 다른 최고 등급이 있었을 것)면 바꾸지 않는다 (mode "too-far")
+ * 묶음 단위(엔드필드 무기 신청)는 10의 배수로 올린다. 픽업 여부는 배너의 픽업 이름과 같은지로 정해서 넘긴다.
  */
 export function recordTopAt(
   records: Records,
@@ -578,43 +580,38 @@ export function recordTopAt(
   n: number,
   info: TopInfo,
   now: Date = new Date(),
-): { records: Records; mode: "added" | "marked" | "baseline" } {
+): { records: Records; mode: "added" | "marked" | "before" | "too-far" | "invalid" } {
   const rec = records.games[game];
-  const st = groupStatus(rec, game, groupId);
-  // 천장보다 큰 숫자는 받지 않는다(잘못 넣으면 그만큼 뽑기가 더해지므로)
-  const hard = findGroup(game, groupId).hardPity;
-  // 묶음 단위(엔드필드 무기 신청)는 10의 배수로 올린다: 39 → 40
-  const unit = findGroup(game, groupId).odds?.unit ?? 1;
+  const group = findGroup(game, groupId);
+  const unit = group.odds?.unit ?? 1;
   n = Math.ceil(n / unit) * unit;
-  if (!Number.isInteger(n) || n < 1 || (hard !== null && n > hard)) return { records, mode: "baseline" };
-  const pulls = countedPulls(rec, game, groupId);
-  const lastTop = pulls.map((p) => p.top).lastIndexOf(true);
-  const since = pulls.slice(lastTop + 1);
-  const before = st.pity - since.length; // 시작 상태(앱이 못 본 구간)에서 온 스택
-  if (n > st.pity) {
-    const add = n - st.pity;
+  if (!Number.isInteger(n) || n < 1 || n > 2000) return { records, mode: "invalid" };
+  const st = groupStatus(rec, game, groupId);
+  const banner = st.banner;
+  const base = rec.baseline[groupId];
+  const before = base && base.banner === banner ? base.bannerPulls : 0; // 앱이 못 본 배너 뽑기
+  const onBanner = rec.pulls
+    .filter((p) => p.group === groupId && (p.banner === banner || (group.counterScope === "series" && !!banner && seriesResolver(p.banner) === seriesResolver(banner))))
+    .sort(byTime);
+  if (n > st.bannerPulls) {
+    const add = n - st.bannerPulls;
+    if (group.hardPity !== null && st.pity + add > group.hardPity) return { records, mode: "too-far" };
     const next = recordSession(records, game, groupId, add, new Map([[add - 1, info]]), now);
     const last = next.undo[next.undo.length - 1];
-    if (last) last.label = `${GAMES[game].shortName} ${n}뽑 ${info.name ?? GAMES[game].topLabel} 직접 입력`;
+    if (last) last.label = `${GAMES[game].shortName} 배너 ${n}번째 ${info.name ?? GAMES[game].topLabel} 직접 입력`;
     return { records: next, mode: "added" };
   }
-  if (n > before) {
-    const target = since[n - before - 1];
-    const next = structuredClone(records);
-    const p = next.games[game].pulls.find((x) => x.id === target.id)!;
-    const old = structuredClone(p);
-    p.top = true;
-    p.name = info.name;
-    p.featured = info.featured;
-    pushUndo(next, { game, label: `${GAMES[game].shortName} ${n}뽑 ${info.name ?? GAMES[game].topLabel} 표시`, addedPullIds: [], replacedPulls: [old], prevCurrency: { ...next.games[game].currency } });
-    return { records: next, mode: "marked" };
-  }
-  const base = baseForBanner(rec, game, groupId, st.banner);
-  base.pity -= n;
+  if (n <= before) return { records, mode: "before" };
+  const target = onBanner[n - before - 1];
+  if (!target) return { records, mode: "invalid" };
   const next = structuredClone(records);
-  next.games[game].baseline[groupId] = base;
-  next.games[game].updatedAt = new Date().toISOString();
-  return { records: next, mode: "baseline" };
+  const p = next.games[game].pulls.find((x) => x.id === target.id)!;
+  const old = structuredClone(p);
+  p.top = true;
+  p.name = info.name;
+  p.featured = info.featured;
+  pushUndo(next, { game, label: `${GAMES[game].shortName} 배너 ${n}번째 ${info.name ?? GAMES[game].topLabel} 표시`, addedPullIds: [], replacedPulls: [old], prevCurrency: { ...next.games[game].currency } });
+  return { records: next, mode: "marked" };
 }
 
 /** 기록 묶음(한 번에 기록된 뽑기들) — 기록 정리 화면용. 최근 것부터 */

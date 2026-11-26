@@ -609,11 +609,18 @@
     update(next);
   }
 
-  /** 직접 입력 "n뽑에 이름" (사용자 2026-11-26). 픽업 여부는 배너의 픽업 이름과 같은지로 */
+  /** 직접 입력 "이 배너에서 n번째에 이름" (배너 누적, 사용자 2026-11-26). 픽업 여부는 배너의 픽업 이름과 같은지로 */
   function saveTopAt(n: number, name: string) {
     const out = recordTopAt(records, game, groupId, n, { name: name || null, featured: name ? matchFeatured(currentPackBanner, name) : null });
-    update(out.records);
-    notify(out.mode === "baseline" ? `${n}뽑 ${def.topLabel}: 앱 기록 전 구간이라 천장 스택만 맞췄습니다` : `${n}뽑 ${name || def.topLabel} 기록`);
+    const what = name || def.topLabel;
+    if (out.mode === "added" || out.mode === "marked") {
+      update(out.records);
+      notify(`배너 ${n}번째 ${what} 기록`);
+    } else if (out.mode === "too-far") {
+      notify(`지금 기록(${status.bannerPulls}번째)에서 너무 멉니다. 그 사이에 나온 ${def.topLabel}부터 순서대로 넣어 주세요`);
+    } else if (out.mode === "before") {
+      notify("앱에 기록하기 전 구간입니다. 설정의 시작 상태에서 맞춰 주세요");
+    } else notify("숫자를 다시 확인해 주세요");
   }
   /** 원신 무기·집록에서 고른 무기 (신각의 길) */
   function setChosen(name: string) {
