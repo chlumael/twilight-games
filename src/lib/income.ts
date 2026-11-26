@@ -105,7 +105,7 @@ export interface Forecast {
   toTop: number | null;
   /** 픽업 확정까지 가장 많이 필요한 횟수 (50:50 픽뚫까지 고려). 알 수 없으면 null */
   toFeatured: number | null;
-  /** 아직 못 받은 배너 무료 뽑기 (엔드필드: 30회 채우면 10회). 받았거나 없으면 null */
+  /** 다음에 받을 배너 누적 보상 (엔드필드: 30회 긴급 모집, 60회 정보서 등). 다 받았거나 없으면 null */
   bonus: { label: string; pulls: number; remaining: number } | null;
 }
 
@@ -126,8 +126,8 @@ export function forecast(rec: GameRecord, game: GameId, groupId: string, plan: I
     const counter = idx >= 0 ? st.counters[idx] : undefined;
     if (counter && !counter.done) toFeatured = toFeatured === null ? counter.remaining : Math.min(toFeatured, counter.remaining);
   }
-  const bonus = group.bonus && st.bannerPulls < group.bonus.at
-    ? { label: group.bonus.label, pulls: group.bonus.pulls, remaining: group.bonus.at - st.bannerPulls } : null;
+  const next = (group.bonuses ?? []).find((b) => st.bannerPulls < b.at);
+  const bonus = next ? { label: next.label, pulls: next.pulls, remaining: next.at - st.bannerPulls } : null;
   return {
     bonus,
     nowPulls: availablePulls(rec.currency, group.spend),

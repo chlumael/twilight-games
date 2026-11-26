@@ -149,7 +149,10 @@ export function topPmf(odds: NonNullable<PityGroup["odds"]>, hardPity: number | 
 export function luckPercentile(game: GameId, groupId: string, counts: number[]): number | null {
   const group = GAMES[game].groups.find((g) => g.id === groupId);
   if (!group?.odds || !counts.length) return null;
-  const pmf = topPmf(group.odds, group.hardPity);
+  // 묶음 단위(무기 신청 10개)면 확률·천장·기록 모두 묶음 수로 바꿔서 본다
+  const unit = group.odds.unit ?? 1;
+  const pmf = topPmf(group.odds, group.hardPity === null ? null : Math.round(group.hardPity / unit));
+  counts = counts.map((c) => Math.max(1, Math.ceil(c / unit)));
   let dist = [1]; // 합의 분포: dist[s] = P(합 = s)
   for (let k = 0; k < counts.length; k++) {
     const next = new Array(dist.length + pmf.length).fill(0);

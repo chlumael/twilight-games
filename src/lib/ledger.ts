@@ -109,7 +109,9 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
     }
   }
 
-  const onBanner = rec.pulls.filter((p) => p.group === groupId && p.banner === banner);
+  // 배너 카운터: 보통은 이 배너 것만, 시리즈 범위면 같은 시리즈 배너를 이어서 센다
+  const onBanner = rec.pulls.filter((p) => p.group === groupId && (p.banner === banner ||
+    (group.counterScope === "series" && !!banner && seriesOf(p.banner) === seriesOf(banner))));
   const bannerPulls = (baseOnThisBanner ? base.bannerPulls : 0) + onBanner.length;
   const featuredGot =
     (baseOnThisBanner && base.bannerFeaturedGot) || onBanner.some((p) => p.top && p.featured === true);

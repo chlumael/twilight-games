@@ -344,10 +344,15 @@
   let steady: { game: GameId; counts: SteadyCounts } | null = null;
   let pack = $state.raw<BannerPack | null>(isPack(bundledPack) ? bundledPack : null);
 
-  // 엔드필드 재구축 시리즈별 천장 이월: 배너 데이터의 series (없으면 배너마다 새로)
+  // 엔드필드 재구축: 120 픽업 확정·누적 횟수는 같은 시리즈(같은 이름) 배너끼리 이어서 센다
   $effect(() => {
     const series = new Map<string, string>();
-    for (const list of Object.values(pack?.games ?? {})) for (const b of list) if (b.series) series.set(b.id, b.series);
+    // 시리즈 = 데이터의 series, 없으면 엔드필드 재구축은 배너 이름의 「」 안(공식: 같은 이름 #1, #2…끼리 계승)
+    for (const list of Object.values(pack?.games ?? {})) for (const b of list) {
+      const named = b.group.startsWith("endfield-refactor") ? b.name.match(/「([^」]+)」/)?.[1] : undefined;
+      const sr = b.series ?? named;
+      if (sr) series.set(b.id, sr);
+    }
     setSeriesOf((id) => series.get(id) ?? id);
   });
   const def = $derived(GAMES[game]);

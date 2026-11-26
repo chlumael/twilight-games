@@ -281,16 +281,21 @@ describe("결과 화면 기록·화면 값 맞추기", () => {
   });
 });
 
-describe("엔드필드 재구축: 같은 시리즈끼리만 이월", () => {
-  it("시리즈를 모르면 배너마다 새로, 같은 시리즈면 이어짐", async () => {
+describe("엔드필드 재구축: 80 천장은 재구축끼리 공유, 120·누적은 같은 이름(시리즈)끼리", () => {
+  it("공식 규칙대로 센다", async () => {
     const { setSeriesOf } = await import("./ledger");
     let r = emptyRecords();
-    r.games.endfield.currentBanner["endfield-refactor"] = "A";
+    r.games.endfield.currentBanner["endfield-refactor"] = "A1";
     r = recordSession(r, "endfield", "endfield-refactor", 30, new Map(), t(0));
-    r.games.endfield.currentBanner["endfield-refactor"] = "B";
-    expect(groupStatus(r.games.endfield, "endfield", "endfield-refactor").pity).toBe(0);
-    setSeriesOf((id) => (id === "A" || id === "B" ? "색채" : id));
-    expect(groupStatus(r.games.endfield, "endfield", "endfield-refactor").pity).toBe(30);
+    r.games.endfield.currentBanner["endfield-refactor"] = "B1"; // 다른 이름의 재구축
+    let st = groupStatus(r.games.endfield, "endfield", "endfield-refactor");
+    expect(st.pity).toBe(30); // 80 천장은 이어짐
+    expect(st.bannerPulls).toBe(0); // 120·누적은 새로
+    setSeriesOf((id) => id.replace(/\d+$/, ""));
+    r.games.endfield.currentBanner["endfield-refactor"] = "A2"; // 같은 이름 #2
+    st = groupStatus(r.games.endfield, "endfield", "endfield-refactor");
+    expect(st.bannerPulls).toBe(30);
+    expect(st.counters[0].remaining).toBe(90);
     setSeriesOf((id) => id);
   });
   it("명일방주 일반은 배너가 바뀌면 새로 (이월 안 되는 것으로 계산)", () => {

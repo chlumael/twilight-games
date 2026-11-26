@@ -36,11 +36,14 @@ export interface PityGroup {
   spend: SpendStep[];
   /**
    * 최고 등급 확률(운 등급 계산용, DESIGN.md §6): base = 기본 확률, softFrom번째부터 step씩 오름, 천장에서 확정.
+   * unit = 한 번에 뽑는 묶음(엔드필드 무기 신청 10개) — 확률과 천장을 묶음 단위로 본다.
    * 확률을 모르는 그룹은 비워 두고 운 등급을 표시하지 않는다.
    */
-  odds?: { base: number; softFrom: number | null; step: number };
-  /** 배너에서 처음 at회를 뽑으면 받는 무료 뽑기(재화 안 씀, 천장 스택에 안 들어감) — 엔드필드 긴급 모집 */
-  bonus?: { at: number; pulls: number; label: string };
+  odds?: { base: number; softFrom: number | null; step: number; unit?: number };
+  /** 배너 누적 at회에 받는 무료 뽑기(재화 안 씀, 천장 스택에 안 들어감) — 엔드필드 긴급 모집 등. 각각 1회 */
+  bonuses?: { at: number; pulls: number; label: string }[];
+  /** 배너 카운터(픽업 확정·누적 보상)를 세는 범위. "series" = 같은 시리즈 배너끼리 이어서 셈(엔드필드 재구축) */
+  counterScope?: "series";
 }
 
 export interface CurrencyDef {
@@ -173,22 +176,26 @@ export const GAMES: Record<GameId, GameDef> = {
       { key: "origeometry", label: "파생 오리지늄" },
       { key: "charteredPermit", label: "한정 헤드헌팅 허가증" },
       { key: "limitedPermit", label: "기간 한정 허가증" },
-      { key: "arsenalTicket", label: "무기고 증표" },
+      { key: "arsenalTicket", label: "무기고 징표" },
     ],
+    // 규칙 출처: 엔드필드 한국어 공식 공지 「확률 상세 안내」·배너 공지(2026-11-26 확인). DESIGN.md §6 엔드필드 절.
     groups: [
       {
         id: "endfield-chartered",
         name: "한정",
         hardPity: 80,
         softFrom: 66,
-        carryOver: true,
-        featuredRule: "none",
+        carryOver: true, // 80 천장은 다른 특별 허가 헤드헌팅에 계승
+        featuredRule: "none", // 50:50, 픽뚫 다음 확정 없음
         bannerCounters: [
-          { at: 120, label: "픽업 확정", untilFeatured: true },
-          { at: 240, label: "픽업 토큰", repeat: true },
+          { at: 120, label: "픽업 확정", untilFeatured: true }, // 배너마다 1회, 종료 시 초기화
+          { at: 240, label: "픽업 증표", repeat: true },
         ],
-        // 사용자 확인(2026-11-26): 한정 배너에서 처음 30회를 뽑으면 무료 10회(재화·스택 반영 없음)
-        bonus: { at: 30, pulls: 10, label: "긴급 모집" },
+        // 긴급 모집(무료 10회)은 천장·누적 횟수에 안 들어감. 60회 정보서는 다음 특별 허가 배너 전용 10회 허가증으로 바뀜
+        bonuses: [
+          { at: 30, pulls: 10, label: "긴급 모집" },
+          { at: 60, pulls: 10, label: "헤드헌팅 정보서(다음 한정 10회)" },
+        ],
         odds: { base: 0.008, softFrom: 66, step: 0.05 },
         spend: [
           { key: "limitedPermit", cost: 1, pulls: 1 },
@@ -198,17 +205,31 @@ export const GAMES: Record<GameId, GameDef> = {
       },
       {
         id: "endfield-refactor",
-        name: "RE-Factor",
+        name: "재구축",
         hardPity: 80,
         softFrom: 66,
-        carryOver: "series", // 같은 재구축 시리즈끼리만 이월(사용자 확인 2026-11-26)
+        carryOver: true, // 80 천장은 모든 재구축 헤드헌팅이 공유
+        counterScope: "series", // 120 픽업 확정·누적 횟수·긴급 모집은 같은 재구축 이름(#1, #2…)끼리만 계승
         featuredRule: "none",
-        bannerCounters: [{ at: 120, label: "픽업 확정", untilFeatured: true }],
-        spend: [{ key: "oroberyl", cost: 500, pulls: 1 }],
+        bannerCounters: [
+          { at: 120, label: "픽업 확정", untilFeatured: true }, // 같은 이름 재구축을 통틀어 1회
+          { at: 240, label: "픽업 증표", repeat: true },
+        ],
+        bonuses: [
+          { at: 30, pulls: 10, label: "긴급 모집" },
+          { at: 60, pulls: 10, label: "긴급 모집" },
+          { at: 90, pulls: 10, label: "긴급 모집" },
+        ],
+        odds: { base: 0.008, softFrom: 66, step: 0.05 },
+        spend: [
+          { key: "charteredPermit", cost: 1, pulls: 1 },
+          { key: "oroberyl", cost: 500, pulls: 1 },
+        ],
       },
       {
-        // 무기 배너(무기고). 10회 단위만, 무기고 증표 1980개. 40회 안에 6성 무기, 80회 안에 픽업 무기 확정.
-        // 배너가 바뀌면 이월되지 않는다. 출처: Game8·Mobalytics·Icy Veins 등 공략(2026-11-25 확인, 공식 공지는 미확인)
+        // 무기고 신청: 1회 신청 = 무기 10개. 3회 연속 6성 무기가 없으면 4회째 확정(계승 안 됨),
+        // 첫 7회에 픽업 무기가 없으면 8회째 픽업 확정(배너마다 1회, 계승 안 됨). 6성 무기 4%, 그중 픽업 25%.
+        // 신청 1회 비용(무기고 징표 1980)은 공략 사이트 기준(공식 공지에 없음)
         id: "endfield-arsenal",
         name: "무기고",
         hardPity: 40,
@@ -216,6 +237,20 @@ export const GAMES: Record<GameId, GameDef> = {
         carryOver: false,
         featuredRule: "none",
         bannerCounters: [{ at: 80, label: "픽업 무기 확정", untilFeatured: true }],
+        odds: { base: 0.335167, softFrom: null, step: 0, unit: 10 }, // 신청 1회에 6성 무기 1개 이상: 33.5167%(공식)
+        spend: [{ key: "arsenalTicket", cost: 1980, pulls: 10 }],
+      },
+      {
+        // 재구축 신청: 4회째 6성 무기 확정은 계승 안 됨, 8회째 픽업 무기 확정은 같은 이름 재구축 신청끼리 1회·계승
+        id: "endfield-refactor-arsenal",
+        name: "재구축 신청",
+        hardPity: 40,
+        softFrom: null,
+        carryOver: false,
+        counterScope: "series",
+        featuredRule: "none",
+        bannerCounters: [{ at: 80, label: "픽업 무기 확정", untilFeatured: true }],
+        odds: { base: 0.335167, softFrom: null, step: 0, unit: 10 },
         spend: [{ key: "arsenalTicket", cost: 1980, pulls: 10 }],
       },
     ],

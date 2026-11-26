@@ -58,7 +58,7 @@
         {#if result.toTop !== null}
           <span class:good={ok(result.toTop)} class:bad={!ok(result.toTop)}>천장 {result.toTop}회 {need(result.toTop)}</span>
         {/if}
-        {#if result.bonus}<span>{result.bonus.remaining}회 더 뽑으면 무료 {result.bonus.pulls}회</span>{/if}
+        {#if result.bonus}<span>{result.bonus.remaining}회 더 뽑으면 {result.bonus.label}</span>{/if}
         {#if result.toFeatured !== null && result.toFeatured !== result.toTop}
           <span class:good={ok(result.toFeatured)} class:bad={!ok(result.toFeatured)}>픽업 확정 {result.toFeatured}회 {need(result.toFeatured)}</span>
         {/if}

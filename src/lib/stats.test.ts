@@ -73,7 +73,9 @@ describe("통계", () => {
     expect(mid).toBeGreaterThan(20);
     expect(mid).toBeLessThan(50);
     expect(luckLabel(groupStats(sample().games.genshin, "genshin", "genshin-char"), "genshin")).toMatch(/^상위 /);
-    expect(luckPercentile("endfield", "endfield-refactor", [10])).toBeNull(); // 확률 모름
+    // 무기 신청은 10개 묶음 단위: 첫 신청(10개)에 6성 무기 = 33.5% 안
+    expect(luckPercentile("endfield", "endfield-arsenal", [10])!).toBeCloseTo(33.5167, 1);
+    expect(luckPercentile("endfield", "endfield-arsenal", [40])!).toBeCloseTo(100, 5);
   });
 
   it("4성 기록: 화면 읽기로 이름이 남은 것만, 최근부터", () => {
