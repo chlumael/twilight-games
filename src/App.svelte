@@ -11,6 +11,8 @@
   import StatsPanel from "./components/StatsPanel.svelte";
   import TopForm from "./components/TopForm.svelte";
   import PromptBar from "./components/PromptBar.svelte";
+  import ForecastPanel from "./components/ForecastPanel.svelte";
+  import type { IncomePlan } from "./lib/income";
   import { emptyEngineState, engineStep, type EngineAction, type EngineStatus, type RegionFrame } from "./lib/engine";
   import { PROFILES, resultCountingReady } from "./lib/screen-profile";
   import { dropPrompt, pushPrompt, type Prompt } from "./lib/prompts";
@@ -589,6 +591,12 @@
     onBannerChanged(game, groupId, from, name, records);
   }
 
+  function setIncomePlan(plan: IncomePlan) {
+    const next = structuredClone(records);
+    next.games[game].income = plan;
+    update(next);
+  }
+
   function setBaseline(gid: string, b: Baseline) {
     const next = structuredClone(records);
     next.games[game].baseline[gid] = b;
@@ -916,6 +924,7 @@
         {/if}
 
         <GroupPanel {status} groupLabel={group.name} topLabel={def.topLabel} {recent} {hits} gauge={skin.gauge} {banners} onBanner={setBanner} />
+        <ForecastPanel {game} record={rec} {groupId} bannerEnd={currentPackBanner?.end ?? null} onPlan={setIncomePlan} />
 
 
         {#if view === "top"}

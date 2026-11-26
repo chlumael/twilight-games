@@ -47,6 +47,8 @@ export interface GameRecord {
   currentBanner: Record<string, string>;
   /** Last local change (ISO). Used to pick the newer copy when syncing devices. */
   updatedAt?: string | null;
+  /** 재화 예측 설정 (월정액 끝나는 날 등, src/lib/income.ts) */
+  income?: import("./income").IncomePlan;
 }
 
 export interface UndoEntry {
