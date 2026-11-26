@@ -116,7 +116,7 @@
       <div class="counter card">
         <div class="ctop">
           <span>{c.label}</span>
-          <span class:ok={done}>{done ? "완료" : `${c.remaining}회 남음`}</span>
+          <span class:ok={done || c.active}>{done ? "완료" : c.active ? "적용 중" : `${c.remaining}회 남음`}</span>
         </div>
         <div class="mini"><div style:width="{done ? 100 : ((c.at - c.remaining) / c.at) * 100}%"></div></div>
       </div>

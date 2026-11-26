@@ -1,4 +1,4 @@
-import { GAMES, GAME_IDS, findGroup, type SpendStep } from "./games";
+import { GAMES, GAME_IDS, countersOf, findGroup, type SpendStep } from "./games";
 import type { Baseline, GameId, GameRecord, Pull, Records } from "./types";
 
 const UNDO_LIMIT = 50;
@@ -38,6 +38,12 @@ export interface CounterStatus {
   at: number;
   remaining: number;
   done: boolean;
+  /** 픽업 확정 카운터인지 (예측·화면 맞추기에서 찾을 때 씀) */
+  untilFeatured?: boolean;
+  /** at회째가 아니라 그 뒤 "다음 최고 등급"이 확정인 카운터 */
+  next?: boolean;
+  /** 횟수를 채워 지금 적용 중 (다음 최고 등급이 픽업) */
+  active?: boolean;
 }
 
 export interface GroupStatus {
@@ -155,13 +161,20 @@ export function groupStatus(rec: GameRecord, game: GameId, groupId: string, seri
   const featuredGot =
     (baseOnThisBanner && base.bannerFeaturedGot) || onBanner.some((p) => p.top && p.featured === true);
 
-  const counters = group.bannerCounters.map((c): CounterStatus => {
-    if (c.untilFeatured && featuredGot) return { label: c.label, at: c.at, remaining: 0, done: true };
+  // 픽업을 마지막으로 얻은 뒤 이 배너에서 뽑은 횟수 (얻은 적이 없으면 배너 누적)
+  const lastFeatured = onBanner.map((p) => p.top && p.featured === true).lastIndexOf(true);
+  const sinceFeatured = lastFeatured >= 0 ? onBanner.length - 1 - lastFeatured : bannerPulls;
+  const counters = countersOf(group, banner).map((c): CounterStatus => {
+    const flags = { untilFeatured: c.untilFeatured, next: c.next };
+    if (c.untilFeatured && featuredGot) return { label: c.label, at: c.at, remaining: 0, done: true, ...flags };
     if (c.repeat) return { label: c.label, at: c.at, remaining: c.at - (bannerPulls % c.at), done: false };
+    if (c.sinceFeatured) return { label: c.label, at: c.at, remaining: Math.max(0, c.at - sinceFeatured), done: false, untilFeatured: true };
     // 교환 카운터: 이미 교환한 만큼(at × 횟수) 빼고 남은 재화로 본다
     const used = c.exchange ? c.at * (rec.exchanges ?? []).filter((e) => !e.kind && e.group === groupId && e.banner === banner).length : 0;
     const remaining = Math.max(0, c.at - (bannerPulls - used));
-    return { label: c.label, at: c.at, remaining, done: remaining === 0 };
+    // "다음 최고 등급이 픽업" 카운터는 횟수를 채우면 끝난 것이 아니라 그때부터 적용 중이다
+    if (c.next) return { label: c.label, at: c.at, remaining, done: false, active: remaining === 0, ...flags };
+    return { label: c.label, at: c.at, remaining, done: remaining === 0, ...flags };
   });
 
   return {
@@ -205,7 +218,10 @@ export function hitLabel(h: TopHit): string {
 export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
   const base = rec.baseline[groupId] ?? emptyBaseline();
   const group = GAME_IDS.flatMap((g) => GAMES[g].groups).find((g) => g.id === groupId);
-  const featuredAt = group?.bannerCounters.find((c) => c.untilFeatured)?.at ?? null;
+  /** 배너별 픽업 확정 카운터 */
+  const featuredCounter = (bannerId: string) => (group ? countersOf(group, bannerId).find((c) => c.untilFeatured || c.sinceFeatured) : undefined);
+  const gotFeatured = new Set<string>(base.banner && base.bannerFeaturedGot ? [base.banner] : []);
+  const sinceFeatured = new Map<string, number>(); // 배너별: 픽업을 마지막으로 얻은 뒤 뽑은 횟수
   // 이월 안 되는 종류(명일방주, 무기고 등)는 배너마다 따로 센다
   const perBanner = group?.carryOver === false;
   let since = perBanner ? 0 : base.pity;
@@ -223,6 +239,7 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
     seen++;
     const n = (onBanner.get(p.banner) ?? 0) + 1;
     onBanner.set(p.banner, n);
+    sinceFeatured.set(p.banner, (sinceFeatured.get(p.banner) ?? n - 1) + 1);
     if (p.top) {
       // 묶음 단위(엔드필드 무기 신청 10개)는 묶음 끝으로 올려서 본다
       const unit = group?.odds?.unit ?? 1;
@@ -231,13 +248,24 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       const from = group?.softFrom ?? group?.hardPity ?? null;
       const atHard = from !== null && up(since) >= from;
       let ceiling: TopHit["ceiling"] = null;
-      if (featuredAt !== null && up(n) === featuredAt && p.featured === true) ceiling = "full";
+      // 픽업 확정 카운터로 얻은 픽업 = 확천. 종류에 따라: at회째 / at회가 지난 뒤 첫 픽업 / 픽업 뒤 다시 센 at회째
+      const fc = featuredCounter(p.banner);
+      const sf = sinceFeatured.get(p.banner) ?? n;
+      const byCounter = !!fc && p.featured === true && (
+        fc.sinceFeatured ? up(sf) === fc.at
+        : fc.next ? n > fc.at && !gotFeatured.has(p.banner)
+        : up(n) === fc.at);
+      if (byCounter) ceiling = "full";
       else if (atHard) ceiling = group?.featuredRule !== "none" && state.guaranteed ? "full" : "half";
       // 기준값이 음수라(화면 값에 맞추느라 뺀 뒤 기록을 지운 경우) 횟수가 0 이하로 나오면, 기록된 뽑기 수로 센다
       hits.push({ pull: p, count: up(since > 0 ? since : seen), at: up(n), ceiling });
       since = 0;
       seen = 0;
       if (group && group.featuredRule !== "none") state = afterTop(state, p.featured, group.lossStreakGuarantee);
+      if (p.featured === true) {
+        gotFeatured.add(p.banner);
+        sinceFeatured.set(p.banner, 0);
+      }
     }
   }
   return hits;
@@ -510,7 +538,7 @@ export function syncPityFromScreen(
       changed = true;
     }
   }
-  const counter = group.bannerCounters.find((c) => c.untilFeatured);
+  const counter = countersOf(group, status.banner).find((c) => c.untilFeatured && !c.next);
   if (toFeatured !== null && counter && toFeatured >= 1 && toFeatured <= counter.at) {
     const target = counter.at - toFeatured;
     if (status.bannerPulls !== target || base.bannerFeaturedGot) {

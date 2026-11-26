@@ -18,6 +18,17 @@ export interface BannerCounter {
   repeat?: boolean;
   /** 뽑은 횟수만큼 쌓이는 교환 재화로 최고 등급을 교환하는 카운터(명일방주 헤드헌팅 데이터 계약 300, 림버스 이상 200). 교환하면 at만큼 줄어든다 */
   exchange?: boolean;
+  /** 배너 id에 이 글자가 들어 있는 배너에만 적용 (명일방주: 풀 종류 ":SINGLE_", ":DOUBLE_") */
+  bannerMatch?: string;
+  /** at회째에 확정이 아니라, at회가 지난 뒤 "다음에 나오는 최고 등급"이 픽업으로 확정 (명일방주 지향·표준 셀렉션) */
+  next?: boolean;
+  /** 픽업을 얻을 때마다 처음부터 다시 센다 (명일방주 새 콜라보: 120회마다 확정) */
+  sinceFeatured?: boolean;
+}
+
+/** 이 배너에 적용되는 카운터만 */
+export function countersOf(group: PityGroup, bannerId: string): BannerCounter[] {
+  return group.bannerCounters.filter((c) => !c.bannerMatch || bannerId.includes(c.bannerMatch));
 }
 
 export interface PityGroup {
@@ -173,20 +184,26 @@ export const GAMES: Record<GameId, GameDef> = {
         softFrom: 51,
         carryOver: false,
         featuredRule: "none",
-        // 한정: 뽑은 횟수만큼 헤드헌팅 데이터 계약 → 300개로 6성 교환(오래된 한정은 200개), 다음 한정으로 이월 안 됨(나무위키)
-        bannerCounters: [{ at: 300, label: "교환(데이터 계약)", exchange: true }],
+        // 한정: ① 뽑은 횟수만큼 헤드헌팅 데이터 계약(1회 1장) → 300장으로 6성 교환(오래된 한정은 200장, 5성 75장)
+        // ② 교환과 별개로, 누적 300회에 그 배너의 한정 6성을 1번 더 받는다(한국 서버 2024-10부터, 게임 데이터 freeCount 300)
+        // 둘 다 다음 한정으로 이월 안 됨. 6성 중 픽업 70%
+        bannerCounters: [
+          { at: 300, label: "교환(데이터 계약)", exchange: true },
+          { at: 300, label: "한정 6성 증정" },
+        ],
         odds: { base: 0.02, softFrom: 51, step: 0.02 },
         spend: arknightsSpend,
       },
       {
-        // 콜라보: 120회 안에 픽업 6성 확정(나무위키). 배너 풀 ID가 LINKAGE로 시작하는 것(추정)
+        // 콜라보: 120회마다 픽업 6성 확정, 픽업을 얻을 때마다 처음부터 다시 센다(한국 공식 공지 2026-11, 새 규칙).
+        // 예전 콜라보는 "처음 120회 안에 1번"이었다. 배너 풀 ID가 LINKAGE로 시작하는 것
         id: "arknights-collab",
         name: "콜라보",
         hardPity: 99,
         softFrom: 51,
         carryOver: false,
         featuredRule: "none",
-        bannerCounters: [{ at: 120, label: "픽업 확정", untilFeatured: true }],
+        bannerCounters: [{ at: 120, label: "픽업 확정", sinceFeatured: true }],
         odds: { base: 0.02, softFrom: 51, step: 0.02 },
         spend: arknightsSpend,
       },
@@ -195,10 +212,17 @@ export const GAMES: Record<GameId, GameDef> = {
         name: "일반",
         hardPity: 99,
         softFrom: 51,
-        // Unconfirmed (DESIGN.md §6): editable per user later.
-        carryOver: false, // 이월 여부 미확정 → 이월 안 되는 것으로 계산(사용자 결정 2026-11-26)
+        // 표준 헤드헌팅(단일·더블 픽업 등)끼리는 50회 확률 상승 횟수를 함께 세고 배너가 끝나도 이어진다
+        // (중국 서버 게임 안 규칙 글 + 일본 공략 일치, 한국 서버 글은 공개 자료에 없음. DESIGN.md §6)
+        carryOver: true,
         featuredRule: "none",
-        bannerCounters: [],
+        // 지향 셀렉션(단일 픽업): 픽업 없이 150회가 지나면 다음 6성은 픽업, 배너마다 1번(중국 공식 공지)
+        // 표준 셀렉션(더블 픽업): 150회 뒤 다음 6성은 픽업 둘 중 하나, 300회 뒤 다음 6성은 나머지(중국 위키가 옮긴 게임 글 — 추정)
+        bannerCounters: [
+          { at: 150, label: "다음 6성 픽업 확정", untilFeatured: true, next: true, bannerMatch: ":SINGLE_" },
+          { at: 150, label: "다음 6성 픽업(둘 중 하나)", untilFeatured: true, next: true, bannerMatch: ":DOUBLE_" },
+          { at: 300, label: "다음 6성 남은 픽업", next: true, bannerMatch: ":DOUBLE_" },
+        ],
         odds: { base: 0.02, softFrom: 51, step: 0.02 },
         spend: arknightsSpend,
       },

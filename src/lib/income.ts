@@ -122,8 +122,7 @@ export function forecast(rec: GameRecord, game: GameId, groupId: string, plan: I
       toFeatured = st.guaranteed ? toTop : toTop! + group.hardPity;
     }
     // 픽업 확정 카운터(엔드필드 120 등): 배너 카운터와 같은 순서
-    const idx = group.bannerCounters.findIndex((b) => b.untilFeatured);
-    const counter = idx >= 0 ? st.counters[idx] : undefined;
+    const counter = st.counters.find((c) => c.untilFeatured && !c.next);
     if (counter && !counter.done) toFeatured = toFeatured === null ? counter.remaining : Math.min(toFeatured, counter.remaining);
   }
   const next = (group.bonuses ?? []).find((b) => st.bannerPulls < b.at);

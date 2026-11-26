@@ -298,12 +298,15 @@ describe("엔드필드 재구축: 80 천장은 재구축끼리 공유, 120·누�
     expect(st.counters[0].remaining).toBe(90);
     setSeriesOf((id) => id);
   });
-  it("명일방주 일반은 배너가 바뀌면 새로 (이월 안 되는 것으로 계산)", () => {
+  it("명일방주 일반(표준 헤드헌팅)은 배너가 바뀌어도 확률 상승 횟수가 이어지고, 한정·콜라보는 배너마다 새로", () => {
     let r = emptyRecords();
-    r.games.arknights.currentBanner["arknights-standard"] = "A";
-    r = recordSession(r, "arknights", "arknights-standard", 20, new Map(), t(0));
-    r.games.arknights.currentBanner["arknights-standard"] = "B";
-    expect(groupStatus(r.games.arknights, "arknights", "arknights-standard").pity).toBe(0);
+    for (const g of ["arknights-standard", "arknights-limited", "arknights-collab"]) {
+      r.games.arknights.currentBanner[g] = "A";
+      r = recordSession(r, "arknights", g, 20, new Map(), t(0));
+      r.games.arknights.currentBanner[g] = "B";
+    }
+    const pity = (g: string) => groupStatus(r.games.arknights, "arknights", g).pity;
+    expect([pity("arknights-standard"), pity("arknights-limited"), pity("arknights-collab")]).toEqual([20, 0, 0]);
   });
 });
 
@@ -636,5 +639,60 @@ describe("원신 공식 기원 규칙", () => {
     expect(groupStatus(r.games.genshin, "genshin", W).guaranteed).toBe(false);
     r = recordSession(r, "genshin", W, 1, new Map([[0, { name: "상시 무기", featured: false }]]), t(1));
     expect(groupStatus(r.games.genshin, "genshin", W).guaranteed).toBe(true);
+  });
+});
+
+describe("명일방주 헤드헌팅 규칙", () => {
+  const S = "arknights-standard";
+  const setup = (banner: string, group = S) => {
+    const r = emptyRecords();
+    r.games.arknights.currentBanner[group] = banner;
+    return r;
+  };
+  const st = (r: ReturnType<typeof emptyRecords>, group = S) => groupStatus(r.games.arknights, "arknights", group);
+  it("단일 픽업(SINGLE): 150회가 지나면 다음 6성은 픽업 — 픽업을 얻으면 사라진다", async () => {
+    const { hitLabel } = await import("./ledger");
+    let r = setup("arknights:official:SINGLE_KR_1");
+    r = recordSession(r, "arknights", S, 60, new Map([[59, { name: "가", featured: false }]]), t(0));
+    expect(st(r).counters).toMatchObject([{ label: "다음 6성 픽업 확정", remaining: 90, done: false }]);
+    r = recordSession(r, "arknights", S, 95, new Map([[94, { name: "픽업", featured: true }]]), t(1)); // 155번째
+    expect(st(r).counters[0]).toMatchObject({ done: true });
+    expect(topHistory(r.games.arknights, S).map(hitLabel)).toEqual(["픽뚫/반천", "픽업/확천"]);
+  });
+  it("단일 픽업: 150회 전에 나온 픽업은 확천이 아니다", async () => {
+    const { hitLabel } = await import("./ledger");
+    let r = setup("arknights:official:SINGLE_KR_1");
+    r = recordSession(r, "arknights", S, 30, new Map([[29, { name: "픽업", featured: true }]]), t(0));
+    expect(topHistory(r.games.arknights, S).map(hitLabel)).toEqual(["픽업"]);
+  });
+  it("더블 픽업(DOUBLE): 150회 뒤 둘 중 하나, 300회 뒤 나머지. 예전 풀(NORM)에는 카운터가 없다", () => {
+    let r = setup("arknights:official:DOUBLE_KR_1");
+    r = recordSession(r, "arknights", S, 40, new Map([[39, { name: "픽업1", featured: true }]]), t(0));
+    expect(st(r).counters).toMatchObject([
+      { label: "다음 6성 픽업(둘 중 하나)", done: true },
+      { label: "다음 6성 남은 픽업", remaining: 260, done: false },
+    ]);
+    expect(st(setup("arknights:official:NORM_KR_1")).counters).toEqual([]);
+  });
+  it("한정: 300회에 교환과 별개로 한정 6성 증정", () => {
+    const L = "arknights-limited";
+    let r = setup("arknights:official:LIMITED_KR_1", L);
+    r = recordSession(r, "arknights", L, 100, new Map(), t(0));
+    expect(st(r, L).counters).toMatchObject([
+      { label: "교환(데이터 계약)", remaining: 200 },
+      { label: "한정 6성 증정", remaining: 200 },
+    ]);
+  });
+  it("콜라보(새 규칙): 120회마다 픽업 확정, 픽업을 얻으면 처음부터 다시 센다", async () => {
+    const { hitLabel } = await import("./ledger");
+    const C = "arknights-collab";
+    let r = setup("arknights:official:LINKAGE_KR_1", C);
+    r = recordSession(r, "arknights", C, 30, new Map([[29, { name: "픽업", featured: true }]]), t(0));
+    expect(st(r, C).counters[0]).toMatchObject({ label: "픽업 확정", remaining: 120, done: false });
+    r = recordSession(r, "arknights", C, 50, new Map(), t(1));
+    expect(st(r, C).counters[0]).toMatchObject({ remaining: 70 });
+    r = recordSession(r, "arknights", C, 70, new Map([[69, { name: "픽업", featured: true }]]), t(2)); // 다시 센 120번째
+    expect(topHistory(r.games.arknights, C).map(hitLabel)).toEqual(["픽업", "픽업/확천"]);
+    expect(st(r, C).counters[0]).toMatchObject({ remaining: 120 });
   });
 });
