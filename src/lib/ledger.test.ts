@@ -497,3 +497,18 @@ describe("종류 초기화", () => {
     expect(undo(r).records.games.endfield.pulls).toHaveLength(322);
   });
 });
+
+describe("바꿔서 쓰는 재화도 가능 횟수에 포함", () => {
+  it("엔드필드: 오로베릴 7765 + 파생 오리지늄 140(×75) → 36회, 그중 21회가 파생 오리지늄", () => {
+    const spend = GAMES.endfield.groups[0].spend;
+    const cur = { oroberyl: 7765, origeometry: 140, charteredPermit: 0, limitedPermit: 0 };
+    expect(availablePulls(cur, spend)).toBe(36);
+    expect(pullsFrom(cur, spend, "origeometry")).toBe(21);
+    // 10회 뽑으면 오로베릴부터 쓰고 모자란 만큼만 바꾼다
+    expect(deduct(cur, spend, 20).currency).toMatchObject({ oroberyl: 15, origeometry: 110 });
+  });
+  it("명일방주: 합성옥 600 + 오리지늄 10(×180) → 4회", () => {
+    const spend = GAMES.arknights.groups[0].spend;
+    expect(availablePulls({ orundum: 600, originite: 10 }, spend)).toBe(4);
+  });
+});

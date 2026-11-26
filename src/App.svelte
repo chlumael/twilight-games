@@ -404,7 +404,9 @@
   const status = $derived(groupStatus(rec, game, groupId));
   const canPull = $derived(availablePulls(rec.currency, group.spend));
   const included = $derived(
-    def.currencies.filter((c) => c.manualOnly).map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
+    // 직접 입력 재화와, 바꿔서 쓰는 재화(창세의 결정·파생 오리지늄·오리지늄)가 몇 회분인지 따로 보여 준다
+    def.currencies.filter((c) => c.manualOnly || group.spend.some((st) => st.topUp?.key === c.key))
+      .map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
   );
   const pending = $derived(
     detections.length + (lastApply ? 1 : 0) + autoLog.filter((e) => e.uncertain).length + (limbusRows.length ? 1 : 0) + HISTORY_GAMES.filter((g) => Object.keys(historyStore[g] ?? {}).length).length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),

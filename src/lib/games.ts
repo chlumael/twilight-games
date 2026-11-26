@@ -5,7 +5,7 @@ export interface SpendStep {
   key: string;
   cost: number;
   pulls: number;
-  /** When `key` runs short, convert from this currency first (원신: 창세의 결정 → 원석). */
+  /** When `key` runs short, convert from this currency first (원신: 창세의 결정 → 원석, 엔드필드: 파생 오리지늄 → 오로베릴 ×75, 명일방주: 오리지늄 → 합성옥 ×180). */
   topUp?: { key: string; rate: number };
 }
 
@@ -78,7 +78,7 @@ const genshinEventSpend: SpendStep[] = [
 const arknightsSpend: SpendStep[] = [
   { key: "tenPermit", cost: 1, pulls: 10 },
   { key: "permit", cost: 1, pulls: 1 },
-  { key: "orundum", cost: 600, pulls: 1 },
+  { key: "orundum", cost: 600, pulls: 1, topUp: { key: "originite", rate: 180 } }, // 오리지늄 1개 = 합성옥 180
 ];
 
 export const GAMES: Record<GameId, GameDef> = {
@@ -189,8 +189,8 @@ export const GAMES: Record<GameId, GameDef> = {
     currencies: [
       { key: "oroberyl", label: "오로베릴" },
       { key: "origeometry", label: "파생 오리지늄" },
-      { key: "charteredPermit", label: "한정 헤드헌팅 허가증" },
-      { key: "limitedPermit", label: "기간 한정 허가증" },
+      { key: "charteredPermit", label: "특별 허가 헤드헌팅 허가증" },
+      { key: "limitedPermit", label: "배너 전용 헤드헌팅 허가증" }, // 배너마다 이름이 바뀌어 이렇게 부른다(사용자 2026-11-26)
       { key: "arsenalTicket", label: "무기고 징표" },
     ],
     // 규칙 출처: 엔드필드 한국어 공식 공지 「확률 상세 안내」·배너 공지(2026-11-26 확인). DESIGN.md §6 엔드필드 절.
@@ -215,7 +215,7 @@ export const GAMES: Record<GameId, GameDef> = {
         spend: [
           { key: "limitedPermit", cost: 1, pulls: 1 },
           { key: "charteredPermit", cost: 1, pulls: 1 },
-          { key: "oroberyl", cost: 500, pulls: 1 },
+          { key: "oroberyl", cost: 500, pulls: 1, topUp: { key: "origeometry", rate: 75 } },
         ],
       },
       {
@@ -238,7 +238,7 @@ export const GAMES: Record<GameId, GameDef> = {
         odds: { base: 0.008, softFrom: 66, step: 0.05 },
         spend: [
           { key: "charteredPermit", cost: 1, pulls: 1 },
-          { key: "oroberyl", cost: 500, pulls: 1 },
+          { key: "oroberyl", cost: 500, pulls: 1, topUp: { key: "origeometry", rate: 75 } },
         ],
       },
       {
