@@ -4,7 +4,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import JSON5 from "json5";
 import { arknightsOfficial as arknights } from "./arknights-official.mjs";
-import { collectedSixStars, endfieldOfficial as endfield } from "./endfield-official.mjs";
+import { collectedSixStars, endfieldOfficial, mergeArsenal, skippedNotices } from "./endfield-official.mjs";
 import { applyKoreanNames, fetchWishAnnouncements } from "./genshin-official.mjs";
 import { limbusOfficial as limbus } from "./limbus-official.mjs";
 
@@ -144,6 +144,16 @@ async function genshin() {
   return applyKoreanNames(list, announcements, previous);
 }
 
+/** 엔드필드: 헤드헌팅 배너는 공지에서 매번 다시 만들고, 무기 배너는 이전 팩과 합친다 */
+async function endfield() {
+  const list = await endfieldOfficial();
+  const previous = await readFile(new URL("../../data/banners.json", import.meta.url), "utf8")
+    .then((t) => JSON.parse(t).games?.endfield ?? []).catch(() => []);
+  const isArsenal = (b) => b.group === "endfield-arsenal" || b.group === "endfield-refactor-arsenal";
+  const arsenal = mergeArsenal(list.filter(isArsenal), previous.filter(isArsenal), new Date().toISOString());
+  return [...list.filter((b) => !isArsenal(b)), ...arsenal];
+}
+
 const games = {};
 const errors = {};
 for (const [key, fn] of Object.entries({ genshin, endfield, limbus, arknights })) {
@@ -195,7 +205,9 @@ try {
   console.warn(`원신 이름·등급 표를 만들지 못함 (${e.message})`);
 }
 
-const pack = { schemaVersion: 1, generatedAt: new Date().toISOString(), games, errors };
+// 해석하지 못한 공지(형식이 바뀌었을 수 있음) — 주간 PR에서 눈에 띄게 팩에 남긴다
+const warnings = skippedNotices.length ? { endfield: [...skippedNotices] } : {};
+const pack = { schemaVersion: 1, generatedAt: new Date().toISOString(), games, errors, ...(Object.keys(warnings).length ? { warnings } : {}) };
 const outFile = process.argv[2] ?? new URL("../../data/banners.json", import.meta.url);
 await writeFile(outFile, JSON.stringify(pack, null, 1) + "\n");
-console.log(Object.entries(games).map(([k, v]) => `${k}: ${v.length}`).join(", "), errors);
+console.log(Object.entries(games).map(([k, v]) => `${k}: ${v.length}`).join(", "), errors, warnings);

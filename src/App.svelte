@@ -289,9 +289,24 @@
       minNamedRarity: game === "genshin" ? 4 : undefined,
       newId: () => `off-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     });
+    // 반영으로 최고 등급 기록이 어떻게 바뀌는지 요약한다(잘못 읽혔으면 "확인"에서 바로 되돌릴 수 있게)
+    const tops = (r: Records) => r.games[game].pulls.filter((p) => p.top).map((p) => `${p.name ?? "?"}@${p.time}`);
+    const before = new Set(tops(records));
+    const after = tops(out.records);
+    const gained = after.filter((k) => !before.has(k)).map((k) => k.split("@")[0]);
+    const lost = [...before].filter((k) => !after.includes(k)).map((k) => k.split("@")[0]);
     if (out.added) update(out.records);
     saveHistory(game, {});
-    notify(`${GAMES[game].shortName} 공식 기록 ${out.added}개 반영${out.replaced ? `, 기존 ${out.replaced}개 교체` : ""}${out.skipped ? `, ${out.skipped}개 제외` : ""}`);
+    const change = `${gained.length ? `, ${GAMES[game].topLabel} 추가: ${gained.join("·")}` : ""}${lost.length ? `, 빠짐: ${lost.join("·")}` : ""}`;
+    lastApply = out.added ? `${GAMES[game].shortName} 공식 기록 ${out.added}개 반영${change}` : null;
+    notify(`${GAMES[game].shortName} 공식 기록 ${out.added}개 반영${out.replaced ? `, 기존 ${out.replaced}개 교체` : ""}${out.skipped ? `, ${out.skipped}개 제외` : ""}${change}`);
+  }
+
+  /** 방금 반영한 공식 기록 요약 ("확인" 화면에서 되돌릴 수 있게 보여 준다) */
+  let lastApply = $state<string | null>(null);
+  function undoLastApply() {
+    doUndo();
+    lastApply = null;
   }
 
   // ---- 자동 기록 목록 (취소·확인용) ----
@@ -366,7 +381,7 @@
     def.currencies.filter((c) => c.manualOnly).map((c) => ({ label: c.label, pulls: pullsFrom(rec.currency, group.spend, c.key) })),
   );
   const pending = $derived(
-    detections.length + autoLog.filter((e) => e.uncertain).length + (limbusRows.length ? 1 : 0) + HISTORY_GAMES.filter((g) => Object.keys(historyStore[g] ?? {}).length).length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
+    detections.length + (lastApply ? 1 : 0) + autoLog.filter((e) => e.uncertain).length + (limbusRows.length ? 1 : 0) + HISTORY_GAMES.filter((g) => Object.keys(historyStore[g] ?? {}).length).length + GAME_IDS.reduce((n, id) => n + records.games[id].pulls.filter((p) => p.status === "pending").length, 0),
   );
   const recent = $derived(recentPulls(rec, groupId, 40));
   const hits = $derived(topHistory(rec, groupId));
@@ -885,6 +900,11 @@
       {:else if view === "review"}
         <section class="review">
           <strong>확인 대기</strong>
+          {#if lastApply}
+            <div class="card autolog">
+              <div class="arow"><span>{lastApply}</span><span class="abtn"><button onclick={undoLastApply}>되돌리기</button><button onclick={() => (lastApply = null)}>확인</button></span></div>
+            </div>
+          {/if}
           {#if pending === 0}
             <p class="muted">확인할 기록이 없습니다.</p>
           {/if}

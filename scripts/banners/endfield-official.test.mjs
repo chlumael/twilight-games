@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseNotice, plainText, resolveSchedule, sixStarNames } from "./endfield-official.mjs";
+import { mergeArsenal, parseArsenal } from "./endfield-official.mjs";
 
 const notice = (cid, title, displayTime, lines) => ({
   cid, title, displayTime, data: lines.map((l) => `<p>${l}</p>`).join(""),
@@ -75,5 +76,25 @@ describe("엔드필드 공식 공지 해석", () => {
   it("공지에서 6성 이름 모으기", () => {
     expect(sixStarNames("<p>6성 오퍼레이터 [케르]의 획득 확률이 증가합니다!</p><p>· 획득 가능 6성 오퍼레이터 목록: 케르/명하/라스트 라이트</p>").sort())
       .toEqual(["라스트 라이트", "명하", "케르"]);
+  });
+
+  it("확률 상세 안내에서 무기 배너: (UP) 무기, 재구축 신청 구분, 날짜가 있으면 기간", () => {
+    const text = [
+      "무기고 신청", "「유영 신청」이 개방되었습니다.", "유영 신청 확률 상세 안내",
+      "개방 시간: 버전 업데이트 후 개방되며, 3회의 「특별 허가 헤드헌팅」 이후 종료", "6성 무기", "달콤한 거래 (UP)", "다른 무기",
+      "재구축 신청", "「표류 신청」 재구축 신청#1이(가) 개방되었습니다.", "표류 신청 확률 상세 안내",
+      "개방 시간: 버전 업데이트 후 ~ 2026/12/16 11:59(서버 시간)", "「표류 신청」 재구축 신청에서 무기 1개를", "사명의 길 (UP)",
+    ].join("\n");
+    const list = parseArsenal(text);
+    expect(list.map((b) => [b.id, b.group, b.featured[0].ko, b.end])).toEqual([
+      ["endfield:arsenal:유영 신청", "endfield-arsenal", "달콤한 거래", null],
+      ["endfield:arsenal:표류 신청", "endfield-refactor-arsenal", "사명의 길", "2026-12-16T03:59:00.000Z"],
+    ]);
+    const now = "2026-11-26T00:00:00.000Z";
+    const first = mergeArsenal(list, [], now);
+    expect(first[0]).toMatchObject({ start: now, startApprox: true });
+    // 다음 주에 유영 신청이 안 보이면 끝난 것으로
+    const later = mergeArsenal([list[1]], first, "2026-12-03T00:00:00.000Z");
+    expect(later.find((b) => b.id.endsWith("유영 신청"))).toMatchObject({ start: now, end: "2026-12-03T00:00:00.000Z", endApprox: true });
   });
 });

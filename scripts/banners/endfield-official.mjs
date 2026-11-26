@@ -108,6 +108,59 @@ export function sixStarNames(html) {
 /** 마지막으로 모은 6성 이름 (build.mjs가 파일로 저장) */
 export const collectedSixStars = new Set();
 
+/**
+ * 「확률 상세 안내」 공지에서 지금 열려 있는 무기 배너(무기고 신청·재구축 신청)를 뽑는다.
+ * 구간 제목 "X 신청 확률 상세 안내" 아래에서 "(UP)"이 붙은 6성 무기가 픽업이다.
+ * 날짜가 적힌 구간만 기간을 채우고("A ~ B"), 아니면 시작·종료를 비워 둔다(이전 팩과 합칠 때 채움).
+ */
+export function parseArsenal(text) {
+  const lines = String(text).split("\n");
+  const heads = lines.map((l, i) => ({ m: l.match(/^(\S+ 신청) 확률 상세 안내$/), i })).filter((h) => h.m);
+  const out = [];
+  for (const [k, h] of heads.entries()) {
+    const body = lines.slice(h.i + 1, heads[k + 1]?.i ?? lines.length);
+    const up = body.find((l) => / \(UP\)$/.test(l));
+    if (!up) continue;
+    const name = h.m[1];
+    const refactor = body.slice(0, 40).some((l) => l.includes(`「${name}」 재구축 신청`)) || lines.slice(Math.max(0, h.i - 3), h.i).some((l) => l.includes(`「${name}」 재구축 신청`));
+    const period = body.slice(0, 3).find((l) => l.startsWith("개방 시간") && l.includes("~")) ?? "";
+    const [from = "", to = ""] = period.split("~");
+    const weapon = up.replace(/ \(UP\)$/, "").trim();
+    out.push({
+      id: `endfield:arsenal:${name}`,
+      group: refactor ? "endfield-refactor-arsenal" : "endfield-arsenal",
+      name: `「${name}」${refactor ? " 재구축 신청" : ""}`,
+      start: serverTime(from),
+      end: serverTime(to),
+      version: null,
+      source: "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+      featured: [{ id: `ko:${weapon}`, ko: weapon }],
+      featuredRare: [],
+    });
+  }
+  return out;
+}
+
+/**
+ * 이번에 읽은 무기 배너와 이전 팩의 무기 배너를 합친다(확률 상세 안내에는 지금 열린 것만 나오므로).
+ * - 새로 보인 배너에 시작일이 없으면 처음 본 시각을 쓴다(startApprox).
+ * - 이전에 있었는데 이번에 안 보이면 끝난 것: 종료일이 없으면 지금 시각으로(endApprox).
+ */
+export function mergeArsenal(current, previous, nowIso) {
+  const prev = new Map(previous.map((b) => [b.id, b]));
+  const out = current.map((b) => {
+    const old = prev.get(b.id);
+    prev.delete(b.id);
+    if (b.start) return b;
+    return old?.start ? { ...b, start: old.start, ...(old.startApprox ? { startApprox: true } : {}) } : { ...b, start: nowIso, startApprox: true };
+  });
+  for (const old of prev.values()) out.push(old.end ? old : { ...old, end: nowIso, endApprox: true });
+  return out.sort((a, b) => a.start.localeCompare(b.start));
+}
+
+/** 해석하지 못한 헤드헌팅 공지 제목 (빌드 결과에 경고로 남긴다) */
+export const skippedNotices = [];
+
 export async function endfieldOfficial() {
   const notices = [];
   for (let page = 1; page <= 20; page++) {
@@ -125,5 +178,11 @@ export async function endfieldOfficial() {
     else skipped.push(n.title);
   }
   if (skipped.length) console.warn("엔드필드: 해석하지 못한 헤드헌팅 공지 →", skipped.join(" | "));
-  return resolveSchedule(parsed);
+  skippedNotices.push(...skipped);
+  // 무기 배너: 「확률 상세 안내」 공지 한 건에서
+  let arsenal = [];
+  const odds = notices.find((n) => n.title?.trim() === "확률 상세 안내");
+  if (odds) arsenal = parseArsenal(plainText((await get(`${API}/${odds.cid}?${QUERY}`)).data));
+  else skippedNotices.push("확률 상세 안내(무기 배너) 공지를 찾지 못함");
+  return [...resolveSchedule(parsed), ...arsenal];
 }

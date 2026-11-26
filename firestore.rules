@@ -1,0 +1,11 @@
+// 황혼 게임즈 서버(Firestore) 보안 규칙 — Firebase 콘솔 → Firestore Database → 규칙에 있는 내용과 같아야 한다.
+// 뜻: 로그인한 본인만 자기 기록(users/{본인 uid}/…)을 읽고 쓸 수 있다. 그 밖의 모든 접근은 막는다.
+// 친구 공유(DESIGN.md §8.5)를 만들 때 공유용 경로 규칙을 여기에 먼저 추가한다.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

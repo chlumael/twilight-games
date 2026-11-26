@@ -47,6 +47,8 @@ export interface GameRecord {
   currentBanner: Record<string, string>;
   /** Last local change (ISO). Used to pick the newer copy when syncing devices. */
   updatedAt?: string | null;
+  /** 지운 뽑기 id → 지운 시각. 기기끼리 합칠 때 지운 기록이 되살아나지 않게 한다 (merge.ts) */
+  removed?: Record<string, string>;
   /** 원신 무기·집록: 배너별로 고른 무기(신각의 길). 확정 포인트 계산에 쓴다 */
   chosen?: Record<string, { banner: string; name: string }>;
   /** 재화 예측 설정 (월정액 끝나는 날 등, src/lib/income.ts) */

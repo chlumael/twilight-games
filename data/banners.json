@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-25T03:55:05.853Z",
+ "generatedAt": "2026-11-26T03:47:39.074Z",
  "games": {
   "genshin": [
    {
@@ -6165,6 +6165,125 @@
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
     "startApprox": true
+   },
+   {
+    "id": "endfield:arsenal:유영 신청",
+    "group": "endfield-arsenal",
+    "name": "「유영 신청」",
+    "start": "2026-11-26T03:47:07.718Z",
+    "end": null,
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+    "featured": [
+     {
+      "id": "ko:달콤한 거래",
+      "ko": "달콤한 거래"
+     }
+    ],
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:arsenal:표류 신청",
+    "group": "endfield-refactor-arsenal",
+    "name": "「표류 신청」 재구축 신청",
+    "start": "2026-11-26T03:47:07.718Z",
+    "end": "2026-12-16T03:59:00.000Z",
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+    "featured": [
+     {
+      "id": "ko:사명의 길",
+      "ko": "사명의 길"
+     }
+    ],
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:arsenal:성음 신청",
+    "group": "endfield-arsenal",
+    "name": "「성음 신청」",
+    "start": "2026-11-26T03:47:07.718Z",
+    "end": null,
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+    "featured": [
+     {
+      "id": "ko:바다와 별의 꿈",
+      "ko": "바다와 별의 꿈"
+     }
+    ],
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:arsenal:결빙 신청",
+    "group": "endfield-arsenal",
+    "name": "「결빙 신청」",
+    "start": "2026-11-26T03:47:07.718Z",
+    "end": null,
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+    "featured": [
+     {
+      "id": "ko:헤라펜거",
+      "ko": "헤라펜거"
+     }
+    ],
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:arsenal:원정 신청",
+    "group": "endfield-arsenal",
+    "name": "「원정 신청」",
+    "start": "2026-11-26T03:47:07.718Z",
+    "end": null,
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+    "featured": [
+     {
+      "id": "ko:끝없는 방랑",
+      "ko": "끝없는 방랑"
+     }
+    ],
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:arsenal:숭산 신청",
+    "group": "endfield-arsenal",
+    "name": "「숭산 신청」",
+    "start": "2026-11-26T03:47:07.718Z",
+    "end": null,
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+    "featured": [
+     {
+      "id": "ko:산의 지배자",
+      "ko": "산의 지배자"
+     }
+    ],
+    "featuredRare": [],
+    "startApprox": true
+   },
+   {
+    "id": "endfield:arsenal:뇌명 신청",
+    "group": "endfield-arsenal",
+    "name": "「뇌명 신청」",
+    "start": "2026-11-26T03:47:07.718Z",
+    "end": null,
+    "version": null,
+    "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
+    "featured": [
+     {
+      "id": "ko:천둥의 흔적",
+      "ko": "천둥의 흔적"
+     }
+    ],
+    "featuredRare": [],
+    "startApprox": true
    }
   ],
   "limbus": [
@@ -6927,5 +7046,10 @@
    }
   ]
  },
- "errors": {}
+ "errors": {},
+ "warnings": {
+  "endfield": [
+   "「찬란한 빛의 축제」 특수 헤드헌팅 설명"
+  ]
+ }
 }
