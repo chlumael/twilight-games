@@ -60,13 +60,15 @@
   const web = !api.inTauri;
   const overlay = api.androidMode === "overlay";
   let collapsed = $state(!web);
-  let view = $state<"main" | "settings" | "review" | "top" | "stats" | "calendar">("main");
+  let view = $state<"main" | "settings" | "review" | "top" | "stats" | "calendar" | "friends">("main");
+  /** 모든 게임을 한꺼번에 보는 화면: 위쪽 게임 줄을 숨긴다(사용자 2026-11-27) */
+  const WHOLE_VIEWS: string[] = ["calendar", "stats", "friends"];
   /** 아래 탭 (선 아이콘: 24칸 기준 경로) */
   const TABS = [
     { id: "main", label: "홈", icon: "M3 11 12 4l9 7M5 10v10h5v-6h4v6h5V10" },
     { id: "calendar", label: "달력", icon: "M4 6h16v14H4zM4 10h16M8 3v5M16 3v5" },
-    { id: "stats", label: "통계", icon: "M5 20V11M12 20V5M19 20v-6" },
-    { id: "review", label: "확인", icon: "M5 12.5 10 17l9-10" },
+    { id: "stats", label: "내 통계", icon: "M5 20V11M12 20V5M19 20v-6" },
+    { id: "friends", label: "친구", icon: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.5-3.5 3.2-6 6.5-6s6 2.5 6.5 6M16 4.3a3.5 3.5 0 0 1 0 6.4M18.5 14.4c1.7.9 2.8 2.9 3 5.6" },
     { id: "settings", label: "설정", icon: "M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4" },
   ] as const;
   let clickThrough = $state(false);
@@ -137,11 +139,11 @@
       const d = out.detection;
       // 엔드필드는 화면의 픽업 이름으로 한정/재구축을 알 수 있으면 그 칸에, 아니면 골라 둔 칸에 기록한다
       const gid = (d.game === "endfield" ? endfieldGroupOnScreen(f) : null) ?? settings.activeGroup[d.game] ?? GAMES[d.game].groups[0].id;
-      // 한 번에 20회를 넘거나, 확실하지 않은데 10회를 넘으면 잘못 읽은 것일 수 있다 → 기록하지 않고 "확인"에서 묻는다
+      // 한 번에 20회를 넘거나, 확실하지 않은데 10회를 넘으면 잘못 읽은 것일 수 있다 → 기록하지 않고 "확인할 것"에서 묻는다
       // (실제 기록이 부풀었던 문제, 2026-11-26)
       if (d.count > 20 || (d.uncertain && d.count > 10)) {
         saveDetections([...loadDetections(), d]);
-        notify(`${GAMES[d.game].shortName} ${d.count}회로 읽혔습니다. 맞는지 "확인"에서 골라 주세요`);
+        notify(`${GAMES[d.game].shortName} ${d.count}회로 읽혔습니다. 맞는지 "확인할 것"에서 골라 주세요`);
       } else saveDetection(d, gid, d.count, true);
     }
   }
@@ -281,9 +283,9 @@
       const rows = historyRowsOf(g);
       if (!rows.length) continue;
       // 중간 쪽을 건너뛰었으면 반영하지 않는다(사이 기록이 빠지지 않게). 읽어 둔 쪽은 남겨 두니 빠진 쪽만 보여 주면 된다
-      // 직접 입력한 기록이 있으면 같은 뽑기를 두 번 셀 수 있다 → 자동 반영하지 않고 "확인"에서 고르게 한다
+      // 직접 입력한 기록이 있으면 같은 뽑기를 두 번 셀 수 있다 → 자동 반영하지 않고 "확인할 것"에서 고르게 한다
       if (manualPulls(g) > 0) {
-        if (askedManual !== g) { askedManual = g; notify(`${GAMES[g].shortName} 공식 기록을 읽었습니다. 직접 입력 기록과 겹칠 수 있어 "확인"에서 반영해 주세요`); }
+        if (askedManual !== g) { askedManual = g; notify(`${GAMES[g].shortName} 공식 기록을 읽었습니다. 직접 입력 기록과 겹칠 수 있어 "확인할 것"에서 반영해 주세요`); }
         continue;
       }
       const gap = missingPages(historyStore[g] ?? {});
@@ -336,7 +338,7 @@
       replaceManual,
       newId: () => `off-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     });
-    // 반영으로 최고 등급 기록이 어떻게 바뀌는지 요약한다(잘못 읽혔으면 "확인"에서 바로 되돌릴 수 있게)
+    // 반영으로 최고 등급 기록이 어떻게 바뀌는지 요약한다(잘못 읽혔으면 "확인할 것"에서 바로 되돌릴 수 있게)
     const tops = (r: Records) => r.games[game].pulls.filter((p) => p.top).map((p) => `${p.name ?? "?"}@${p.time}`);
     const before = new Set(tops(records));
     const after = tops(out.records);
@@ -572,7 +574,6 @@
   // ───── 친구 공유 (DESIGN.md §8.5) ─────
   const share = $derived(settings.share ?? { on: false, nickname: account?.name?.split(" ")[0] ?? "", groups: [] });
   let shareBusy = $state(false);
-  let statsMode = $state<"mine" | "friends">("mine");
   function setShare(patch: Partial<NonNullable<Settings["share"]>>) {
     changeSettings({ ...settings, share: { ...share, ...patch } });
   }
@@ -1018,7 +1019,7 @@
         <button class="icon launch" onclick={() => api.android?.startOverlay()} title="게임 위에 띄우기">⧉ 띄우기</button>
       {/if}
     </header>
-    {#if web}
+    {#if web && !WHOLE_VIEWS.includes(view)}
       <nav class="games" aria-label="게임 선택" style:grid-template-columns="repeat({myGames.length}, 1fr)">
         {#each myGames as id (id)}
           {@const ic = currencyIcon(id, GAME_ICON[id])}
@@ -1040,6 +1041,9 @@
           shareSection={shareSettingsSnippet}
           onGenshinWishes={api.inTauri ? loadGenshinWishes : undefined} genshinWishBusy={wishBusy} genshinWishMsg={wishMsg}
         />
+        <!-- 화면 읽기 상태·읽은 재화 (예전 "확인" 탭에 있던 것) -->
+        <ScreenPanel {game} currency={rec.currency} reading={screenOn} message={screenMessage} frame={screenFrame} result={screenResult}
+          onCurrency={(values) => update(setCurrency(records, game, values))} />
       {:else if view === "calendar"}
         <CalendarPanel {pack} {game} gameList={myGames} mine={settings.calendar ?? []} onClose={() => (view = "main")}
           onMine={(list) => {
@@ -1047,22 +1051,22 @@
             changeSettings({ ...settings, calendar: list, calendarRemoved: [...new Set([...(settings.calendarRemoved ?? []), ...gone])].slice(-500) });
             if (account) setTimeout(() => void syncNow(), 800);
           }} />
-      {:else if view === "stats"}
+      {:else if view === "friends"}
         {#if account}
-          <nav class="seg" aria-label="통계 보기">
-            <button class:on={statsMode === "mine"} onclick={() => (statsMode = "mine")}>내 기록</button>
-            <button class:on={statsMode === "friends"} onclick={() => (statsMode = "friends")}>친구</button>
-          </nav>
-        {/if}
-        {#if account && statsMode === "friends"}
           <FriendsPanel groups={share.groups} me={account.uid} games={myGames}
             load={async (code) => { await pushShareNow().catch(() => {}); return (await sync.pullGroup(code))?.members ?? null; }} />
         {:else}
+          <section class="review">
+            <strong>친구</strong>
+            <p class="muted">설정에서 구글 로그인을 하고, 친구 공유에서 그룹을 만들거나 초대 코드로 참가하면 여기서 서로의 기록과 운 순위를 봅니다.</p>
+            <button onclick={() => (view = "settings")}>설정으로</button>
+          </section>
+        {/if}
+      {:else if view === "stats"}
         <StatsPanel {records} games={myGames} {game}
           bannerName={(g, id) => { const b = (pack?.games[g] ?? []).find((x) => x.id === id); return b ? `${bannerLabel(b)} · ${b.name}` : id; }}
-          onReset={(g, gid) => { update(resetGroup(records, g, gid)); lastApply = `${findGroup(g, gid).name} 기록 전부 지우기`; notify(`${findGroup(g, gid).name} 기록을 지웠습니다. 뽑기는 "확인"에서 되돌릴 수 있습니다`); }}
-          onRemove={(g, keys, label) => { update(removeBatches(records, g, keys, label)); lastApply = label; notify(`${label} — "확인"에서 되돌릴 수 있습니다`); }} />
-        {/if}
+          onReset={(g, gid) => { update(resetGroup(records, g, gid)); lastApply = `${findGroup(g, gid).name} 기록 전부 지우기`; notify(`${findGroup(g, gid).name} 기록을 지웠습니다. 뽑기는 "확인할 것"에서 되돌릴 수 있습니다`); }}
+          onRemove={(g, keys, label) => { update(removeBatches(records, g, keys, label)); lastApply = label; notify(`${label} — "확인할 것"에서 되돌릴 수 있습니다`); }} />
       {:else if view === "review"}
         <section class="review">
           <strong>확인 대기</strong>
@@ -1109,11 +1113,13 @@
               onSave={(gid, count) => saveDetection(d, gid, count)}
               onDiscard={() => saveDetections(loadDetections().filter((x) => x.id !== d.id))} />
           {/each}
-          <ScreenPanel {game} currency={rec.currency} reading={screenOn} message={screenMessage} frame={screenFrame} result={screenResult}
-            onCurrency={(values) => update(setCurrency(records, game, values))} />
           <button onclick={() => (view = "main")}>닫기</button>
         </section>
       {:else}
+        {#if pending > 0}
+          <!-- 확인할 것이 있을 때만 보이는 줄 (예전 "확인" 탭 대신, 사용자 2026-11-27) -->
+          <button class="pendbar" onclick={() => (view = "review")}>확인할 것 {pending}개 <span>보기 ›</span></button>
+        {/if}
         <CurrencyBar {game} currencies={def.currencies} values={rec.currency} {canPull} {included} onEdit={editCurrency} />
 
         {#if def.groups.length > 1}
@@ -1156,10 +1162,10 @@
     <!-- 화면 이동은 아래 탭 다섯 개로만 한다(새 기능은 탭을 늘리지 않고 이 안에 넣는다, DESIGN.md §8 화면 규칙) -->
     <nav class="tabbar" aria-label="화면">
       {#each TABS as t (t.id)}
-        {@const on = t.id === "main" ? view === "main" || view === "top" : view === t.id}
+        {@const on = t.id === "main" ? view === "main" || view === "top" || view === "review" : view === t.id}
         <button class:on onclick={() => (view = on && t.id !== "main" ? "main" : t.id)} title={t.label} aria-label={t.label}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d={t.icon} /></svg>
-          {#if t.id === "review" && pending > 0}<b class="badge">{pending}</b>{/if}
+          {#if t.id === "main" && pending > 0}<b class="badge">{pending}</b>{/if}
           <span>{t.label}</span>
         </button>
       {/each}
@@ -1241,9 +1247,8 @@
     padding: 5px 12px; border-radius: 999px; font-size: 12px; white-space: nowrap;
   }
   main.collapsed .toast { display: none; }
-  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.25); border-radius: var(--radius); }
-  .seg button { border: 0; background: none; color: var(--muted); padding: 5px; font-size: 12px; border-radius: calc(var(--radius) * 0.7); }
-  .seg button.on { background: var(--tab-active-bg); color: var(--tab-active-fg); font-weight: 700; }
+  .pendbar { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 8px 12px; font-size: 13px; font-weight: 700; color: #1a1408; background: var(--warn, #f5b041); border: 0; border-radius: var(--radius); }
+  .pendbar span { font-weight: 600; }
   .tabbar { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); background: rgba(0, 0, 0, 0.22); padding-bottom: env(safe-area-inset-bottom); }
   .tabbar button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0 6px; border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 10px; }
   .tabbar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }

@@ -69,7 +69,7 @@ node .claude/skills/twilight-ui-screens/scripts/flow.cjs <scratchpad>/flow.json 
 | 저장 | `form.add button.save` |
 | 기록 줄 / 카운터 | `section.hits` / `section.counters` |
 | 예측 펼치기 | `section.forecast button.head` |
-| 설정 / 통계 | `[aria-label=설정]` / `button[title=통계]` |
+| 설정 / 내 통계 / 친구 / 달력 | `[aria-label=설정]` / `button[title="내 통계"]` / `button[title=친구]` / `button[title=달력]` |
 
 선택자가 안 맞으면 컴포넌트(`src/components/*.svelte`)에서 클래스 이름을 확인한다.
 
@@ -77,7 +77,7 @@ node .claude/skills/twilight-ui-screens/scripts/flow.cjs <scratchpad>/flow.json 
 
 사용자가 원하는 것: 깔끔하고 정갈하게, 필요한 정보가 한눈에(2026-11-26, 참고로 보여 준 것은 "픽업지지" 달력). 규칙 전문은 DESIGN.md §8.0. 찍은 화면을 보며 확인한다:
 
-- [ ] 새 기능이 아래 탭을 늘리지 않았다(홈·달력·통계·확인·설정 다섯 개 고정)
+- [ ] 새 기능이 아래 탭을 늘리지 않았다(홈·달력·내 통계·친구·설정 다섯 개 고정)
 - [ ] 홈 첫 화면에 새 숫자·버튼을 올렸다면, 대신 내려간 것이 있다
 - [ ] 화면에 설명 문장이 없다(이름과 값만)
 - [ ] 글이 두세 줄로 깨지거나 가로로 넘치는 곳이 없다(390px 휴대폰, 340px 띄운 창)

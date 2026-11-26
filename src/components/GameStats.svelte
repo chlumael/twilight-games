@@ -93,7 +93,7 @@
               <button onclick={() => onRemove([b.sessionId], `${groupName(b.group)} ${b.count}회 지우기`)}>지우기</button>
             </div>
           {/each}
-          <p class="muted small">지운 것은 "확인"에서 되돌리기</p>
+          <p class="muted small">지운 것은 "확인할 것"에서 되돌리기</p>
         {/if}
       </div>
     {/if}

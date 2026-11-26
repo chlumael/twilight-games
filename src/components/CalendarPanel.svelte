@@ -30,7 +30,7 @@
     { k: "offline", label: "행사" }, { k: "mine", label: "내 일정" },
   ];
 
-  let games = $state<Set<GameId>>(new Set([untrack(() => game)])); // 처음에는 지금 보던 게임만
+  let games = $state<Set<GameId>>(new Set(untrack(() => gameList))); // 처음에는 내 게임 전부(사용자 2026-11-27: 통합해서 보기)
   let kinds = $state<Set<CalKind>>(new Set(["pickup", "version", "offline", "mine"])); // 이벤트는 많아서 처음에는 끔
   const now = Date.now();
   let month = $state({ y: new Date(now).getFullYear(), m: new Date(now).getMonth() });
@@ -85,8 +85,7 @@
 <section class="cal">
   <div class="top">
     <strong>달력</strong>
-    <span class="sp"></span>
-    <button class="ghost" onclick={onClose} aria-label="닫기">✕</button>
+
   </div>
 
   <div class="bar">

@@ -31,7 +31,7 @@
 </script>
 
 <section class="stats">
-  <strong class="title">통계</strong>
+  <strong class="title">내 통계</strong>
 
   {#if !used.length}
     <p class="muted">아직 기록된 뽑기가 없습니다.</p>
