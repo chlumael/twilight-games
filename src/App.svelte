@@ -981,9 +981,10 @@
             if (account) setTimeout(() => void syncNow(), 800);
           }} />
       {:else if view === "stats"}
-        <StatsPanel {game} record={rec} bannerName={packBannerName} onClose={() => (view = "main")}
-          onReset={(gid) => { update(resetGroup(records, game, gid)); lastApply = `${findGroup(game, gid).name} 기록 전부 지우기`; notify(`${findGroup(game, gid).name} 기록을 지웠습니다. 뽑기는 "확인"에서 되돌릴 수 있습니다`); }}
-          onRemove={(keys, label) => { update(removeBatches(records, game, keys, label)); lastApply = label; notify(`${label} — "확인"에서 되돌릴 수 있습니다`); }} />
+        <StatsPanel {records} games={myGames} {game}
+          bannerName={(g, id) => { const b = (pack?.games[g] ?? []).find((x) => x.id === id); return b ? `${bannerLabel(b)} · ${b.name}` : id; }}
+          onReset={(g, gid) => { update(resetGroup(records, g, gid)); lastApply = `${findGroup(g, gid).name} 기록 전부 지우기`; notify(`${findGroup(g, gid).name} 기록을 지웠습니다. 뽑기는 "확인"에서 되돌릴 수 있습니다`); }}
+          onRemove={(g, keys, label) => { update(removeBatches(records, g, keys, label)); lastApply = label; notify(`${label} — "확인"에서 되돌릴 수 있습니다`); }} />
       {:else if view === "review"}
         <section class="review">
           <strong>확인 대기</strong>
