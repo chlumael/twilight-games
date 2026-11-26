@@ -7,7 +7,7 @@
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo, poolOf, freeLabel = "", onFreeTop }: {
+  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo, poolOf, freeLabel = "", onFreeTop, share = 0.5 }: {
     groupLabel?: string;
     status: GroupStatus;
     /** Known banners for this group from the data pack. */
@@ -36,6 +36,8 @@
     /** 무료 뽑기(엔드필드 긴급 모집) 이름. 있으면 "천장·횟수에 안 들어가는 기록"을 넣을 수 있다 */
     freeLabel?: string;
     onFreeTop?: (name: string) => void;
+    /** 확정이 아닐 때 최고 등급 중 픽업이 나올 확률 (원신 무기 0.75) */
+    share?: number;
   } = $props();
   let byFree = $state(false);
   let countOnly = $state(false);
@@ -91,7 +93,7 @@
   <div class="side">
     {#if status.guaranteed !== null}
       <span class="chip" class:on={status.guaranteed}>
-        {status.guaranteed ? (status.radiant ? "다음 픽업 확정(별빛 포착)" : "다음 픽업 확정") : "다음 50:50"}{status.guaranteeUncertain ? " ?" : ""}
+        {status.guaranteed ? (status.radiant ? "다음 픽업 확정(별빛 포착)" : "다음 픽업 확정") : share === 0.5 ? "다음 50:50" : `다음 픽업 ${Math.round(share * 100)}%`}{status.guaranteeUncertain ? " ?" : ""}
       </span>
     {/if}
     {#if onChoose && chooseOptions.length}

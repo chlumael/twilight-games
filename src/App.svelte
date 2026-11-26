@@ -1032,6 +1032,7 @@
           onRemoveExchange={(id) => update(removeExchange(records, game, id))}
           poolOf={(b) => (rotationRules[b.group] || b.pool?.length ? bannerPool(pack?.games[game] ?? [], b, rotationRules) : null)}
           freeLabel={group.freeLabel ?? ""}
+          share={group.featuredShare ?? 0.5}
           onFreeTop={(name) => {
             update(recordFreeTop(records, game, groupId, { name: name || null, featured: name ? matchFeatured(currentPackBanner, name) : null }));
             notify(`${group.freeLabel} ${name || def.topLabel} 기록 (천장·횟수는 그대로)`);

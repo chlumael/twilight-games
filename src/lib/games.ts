@@ -57,6 +57,8 @@ export interface PityGroup {
    * (공식 기원 상세: "3회 연속으로 두 번째에 확률 UP ★5 캐릭터를 획득한 경우 … 확정적으로 별빛 포착이 발동")
    */
   lossStreakGuarantee?: number;
+  /** 최고 등급 중 픽업이 나올 확률(확정이 아닐 때). 없으면 0.5로 보고 "50:50"이라고 쓴다. 원신 무기 = 0.75(공식) */
+  featuredShare?: number;
   /** 이 종류는 배너에 적힌 것만 나온다(원신 묶음 기원). 이름 후보에 다른 이름을 섞지 않는다 */
   onlyListed?: boolean;
   /** 긴급 모집처럼 무료 뽑기에서 나온 최고 등급을 따로 적을 때 쓰는 이름. 천장·누적 횟수에 안 들어간다 */
@@ -131,6 +133,7 @@ export const GAMES: Record<GameId, GameDef> = {
         softFrom: 63,
         carryOver: true,
         featuredRule: "fate-point",
+        featuredShare: 0.75,
         bannerCounters: [],
         odds: { base: 0.007, softFrom: 63, step: 0.07 },
         spend: genshinEventSpend,
