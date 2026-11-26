@@ -76,3 +76,12 @@ describe("달력 칸 (시작일 기준)", () => {
     expect(startsOn(items, ymdStart("2026-11-10"))).toEqual([]);
   });
 });
+
+describe("내 게임 고르기", () => {
+  it("고른 게임만 원래 순서로, 하나도 없으면 전부", async () => {
+    const { shownGames } = await import("./settings");
+    expect(shownGames({ myGames: ["limbus", "genshin"] })).toEqual(["genshin", "limbus"]);
+    expect(shownGames({ myGames: [] })).toEqual(["genshin", "arknights", "endfield", "limbus"]);
+    expect(shownGames({})).toHaveLength(4);
+  });
+});

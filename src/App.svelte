@@ -38,7 +38,7 @@
   import {
     importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow,
   } from "./lib/history";
-  import { defaultSettings, normalizeSettings, pickDetectedGame, type Settings } from "./lib/settings";
+  import { defaultSettings, normalizeSettings, pickDetectedGame, shownGames, type Settings } from "./lib/settings";
   import type { Baseline, GameId, Records } from "./lib/types";
 
   const COLLAPSED = { w: 360, h: 44 };
@@ -558,7 +558,11 @@
 
   function changeSettings(next: Settings) {
     settings = next;
+    // 보고 있던 게임을 목록에서 뺐으면 남은 첫 게임으로
+    const list = shownGames(next);
+    if (!list.includes(game)) switchGame(list[0]);
   }
+  const myGames = $derived(shownGames(settings));
 
   // Persist on change (debounced).
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -936,7 +940,7 @@
           {:else}
             <select class="game-select" value={manualGame ? game : "auto"} onchange={(e) => selectGame((e.currentTarget as HTMLSelectElement).value)}>
               <option value="auto">{def.name} (자동)</option>
-              {#each GAME_IDS as id}<option value={id}>{GAMES[id].name}</option>{/each}
+              {#each myGames as id}<option value={id}>{GAMES[id].name}</option>{/each}
             </select>
           {/if}
         </span>
@@ -949,8 +953,8 @@
       {/if}
     </header>
     {#if web}
-      <nav class="games" aria-label="게임 선택">
-        {#each GAME_IDS as id (id)}
+      <nav class="games" aria-label="게임 선택" style:grid-template-columns="repeat({myGames.length}, 1fr)">
+        {#each myGames as id (id)}
           {@const ic = currencyIcon(id, GAME_ICON[id])}
           <button class:active={id === game} onclick={() => switchGame(id)}>
             {#if ic}<img src={ic} alt="" />{/if}<span>{GAMES[id].shortName}</span>
@@ -970,7 +974,7 @@
           onGenshinWishes={api.inTauri ? loadGenshinWishes : undefined} genshinWishBusy={wishBusy} genshinWishMsg={wishMsg}
         />
       {:else if view === "calendar"}
-        <CalendarPanel {pack} {game} mine={settings.calendar ?? []} onClose={() => (view = "main")}
+        <CalendarPanel {pack} {game} gameList={myGames} mine={settings.calendar ?? []} onClose={() => (view = "main")}
           onMine={(list) => {
             const gone = (settings.calendar ?? []).filter((m) => !list.some((x) => x.id === m.id)).map((m) => m.id);
             changeSettings({ ...settings, calendar: list, calendarRemoved: [...new Set([...(settings.calendarRemoved ?? []), ...gone])].slice(-500) });

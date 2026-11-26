@@ -71,3 +71,4 @@ npm run tauri dev      # PC 오버레이 (윈도우)
 | 업데이트 모아 두기·버전 올려 게시·게시 확인 | twilight-release |
 | 진행 문서 읽기·갱신 | twilight-progress-doc |
 | 뽑기 규칙을 원문(공식 공지·기원 상세)과 대조해 맞추기 | twilight-rule-sources |
+| 새 게임 추가 (공개 배포 뒤로 미룸) | twilight-add-game |

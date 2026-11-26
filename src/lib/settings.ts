@@ -14,6 +14,8 @@ export interface Settings {
   calendar?: MyEvent[];
   /** 지운 내 일정 id (다른 기기와 합칠 때 다시 살아나지 않게) */
   calendarRemoved?: string[];
+  /** 내가 하는 게임만 보이게 (사용자 2026-11-26: 게임이 늘어도 위쪽 게임 줄이 넘치지 않게). 없으면 전부 */
+  myGames?: GameId[];
 }
 
 export function defaultSettings(): Settings {
@@ -48,4 +50,10 @@ export function pickDetectedGame(running: GameId[], foreground: GameId | null, c
   if (foreground) return foreground;
   if (running.includes(current)) return current;
   return running[0] ?? current;
+}
+
+/** 화면에 보일 게임: 고른 게임(알 수 있는 것만, 순서는 GAME_IDS). 하나도 없으면 전부 */
+export function shownGames(s: Pick<Settings, "myGames">): GameId[] {
+  const picked = GAME_IDS.filter((id) => s.myGames?.includes(id));
+  return picked.length ? picked : [...GAME_IDS];
 }

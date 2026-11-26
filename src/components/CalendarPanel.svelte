@@ -11,7 +11,9 @@
   import { currencyIcon } from "../lib/icons";
   import type { GameId } from "../lib/types";
 
-  let { pack, mine = [], game, onMine, onClose }: {
+  let { pack, mine = [], game, gameList = GAME_IDS, onMine, onClose }: {
+    /** 고를 수 있는 게임 (설정의 "내 게임") */
+    gameList?: GameId[];
     pack: BannerPack | null;
     mine?: MyEvent[];
     /** 지금 보고 있는 게임 (게임 고르기의 처음 값) */
@@ -89,7 +91,7 @@
 
   <div class="bar">
     <div class="games">
-      {#each GAME_IDS as id (id)}
+      {#each gameList as id (id)}
         <button class="g" class:on={games.has(id)} onclick={() => (games = toggle(games, id))}>
           {#if icon(id)}<img src={icon(id)} alt="" />{/if}<span>{GAMES[id].shortName}</span>
         </button>
@@ -147,7 +149,7 @@
         <div class="arow">
           <select bind:value={draft.game} aria-label="게임">
             <option value="">게임 없음</option>
-            {#each GAME_IDS as id (id)}<option value={id}>{GAMES[id].shortName}</option>{/each}
+            {#each gameList as id (id)}<option value={id}>{GAMES[id].shortName}</option>{/each}
           </select>
           <span class="sp"></span>
           <button type="submit" class="primary" disabled={!draft.title.trim() || !draft.start}>저장</button>

@@ -4,7 +4,7 @@
   import { android, androidMode, inTauri, installPcUpdate, listProcesses, openPcDownload, pcVersion } from "../lib/api";
   import { isNewer, latestRelease } from "../lib/version";
   import { profileOf, screenReady } from "../lib/screen-profile";
-  import type { Settings } from "../lib/settings";
+  import { shownGames, type Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
 
   let {
@@ -88,6 +88,21 @@
   <header>
     <strong>설정</strong>
   </header>
+
+  <section>
+    <h4>내 게임</h4>
+    <div class="mygames">
+      {#each GAME_IDS as id (id)}
+        {@const on = shownGames(settings).includes(id)}
+        <button class="chip" class:on onclick={() => {
+          const cur = shownGames(settings);
+          const next = on ? cur.filter((g) => g !== id) : [...cur, id];
+          if (next.length) onSettings({ ...settings, myGames: next });
+        }} aria-pressed={on}>{GAMES[id].shortName}</button>
+      {/each}
+    </div>
+    <p class="muted hint">고른 게임만 위쪽 줄과 달력에 보입니다</p>
+  </section>
 
   {#if !web}
   <section>
@@ -248,6 +263,9 @@
   section { display: flex; flex-direction: column; gap: 5px; }
   .row { display: flex; gap: 6px; align-items: center; }
   .hint { margin: 0; font-size: 11px; }
+  .mygames { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12px; padding: 4px 12px; border-radius: 999px; opacity: 0.5; }
+  .chip.on { opacity: 1; font-weight: 700; border-color: var(--top); }
   .small { font-size: 11px; }
   .base { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; padding: 6px; background: var(--panel); border-radius: 6px; }
   .base .gname { grid-column: 1 / -1; font-weight: 600; }
