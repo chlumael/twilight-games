@@ -110,7 +110,7 @@ export const collectedSixStars = new Set();
 
 /**
  * 「확률 상세 안내」 공지에서 지금 열려 있는 무기 배너(무기고 신청·재구축 신청)를 뽑는다.
- * 구간 제목 "X 신청 확률 상세 안내" 아래에서 "(UP)"이 붙은 6성 무기가 픽업이다.
+ * 구간 제목 "X 신청 확률 상세 안내" 아래에서 "(UP)"이 붙은 6성 무기가 픽업이다. 상시 무기 배너("개방 시간" 줄 없음)는 뺀다.
  * 날짜가 적힌 구간만 기간을 채우고("A ~ B"), 아니면 시작·종료를 비워 둔다(이전 팩과 합칠 때 채움).
  */
 export function parseArsenal(text) {
@@ -121,6 +121,9 @@ export function parseArsenal(text) {
     const body = lines.slice(h.i + 1, heads[k + 1]?.i ?? lines.length);
     const up = body.find((l) => / \(UP\)$/.test(l));
     if (!up) continue;
+    // 기간이 적힌 것만 넣는다: 한정 캐릭터와 함께 열리는 무기고 신청·재구축 신청.
+    // "개방 시간" 줄이 없는 것은 늘 열려 있는 상시 무기 배너라 추적하지 않는다(사용자 2026-11-26).
+    if (!body.slice(0, 3).some((l) => l.startsWith("개방 시간"))) continue;
     const name = h.m[1];
     const refactor = body.slice(0, 40).some((l) => l.includes(`「${name}」 재구축 신청`)) || lines.slice(Math.max(0, h.i - 3), h.i).some((l) => l.includes(`「${name}」 재구축 신청`));
     const period = body.slice(0, 3).find((l) => l.startsWith("개방 시간") && l.includes("~")) ?? "";
