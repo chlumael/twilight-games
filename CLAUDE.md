@@ -61,10 +61,13 @@ npm run tauri dev      # PC 오버레이 (윈도우)
 | 작업 | 스킬 |
 |---|---|
 | APK 빌드·검증·전달, 버전 배포 | twilight-android-build |
-| 화면 스크린샷 확인·전달 | twilight-ui-screens |
+| 화면 스크린샷 확인·전달 (눌러야 나오는 화면은 `flow.cjs`) | twilight-ui-screens |
 | 재화 아이콘 추가 | twilight-game-icons |
 | 재화·차감 순서·천장 규칙 변경 | twilight-gacha-rules |
 | 배너 데이터 팩 갱신·엔드필드 이름 | twilight-banner-pack |
 | 게임 자료·레퍼런스 찾기 | twilight-game-reference |
 | 화면 인식·게임 감지 구현 | twilight-screen-recognition |
 | 커밋·CI 확인·보고 | twilight-ship |
+| 업데이트 모아 두기·버전 올려 게시·게시 확인 | twilight-release |
+| 진행 문서 읽기·갱신 | twilight-progress-doc |
+| 뽑기 규칙을 원문(공식 공지·기원 상세)과 대조해 맞추기 | twilight-rule-sources |

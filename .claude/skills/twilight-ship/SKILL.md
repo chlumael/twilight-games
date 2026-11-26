@@ -22,20 +22,21 @@ cargo check --manifest-path src-tauri/Cargo.toml   # Rust를 고쳤을 때 (리�
 - 커밋 메시지는 **한국어**로: 제목 한 줄 + 무엇이 왜 바뀌었는지 본문, 끝에 세션이 지정한 attribution 줄.
 - `git -c push.negotiate=true push`
 
-## CI 확인 (gh CLI는 토큰이 없어서 못 씀)
+## CI 확인
 
-공개 저장소라 GitHub API를 인증 없이 읽을 수 있다. 오래 걸리므로 백그라운드로 기다린다.
+`gh api`가 된다(`gh run list`·`gh release list` 같은 명령은 GraphQL이 막혀 안 된다). 푸시한 커밋의 작업이 모두 끝날 때까지 기다렸다가 결과를 본다. 보통 3~6분.
 
 ```bash
-sha=$(git rev-parse --short=7 HEAD)
-u="https://api.github.com/repos/chlumael/twilight-games/actions/runs?branch=$(git branch --show-current)&per_page=3"
-for i in $(seq 1 45); do
-  s=$(curl -s "$u" | python3 -I -c "import json,sys;[print(r['head_sha'][:7],r['name'],r['status'],r['conclusion']) for r in json.load(sys.stdin)['workflow_runs']]")
-  echo "$s" | grep -q "^$sha .* completed" && { echo "$s"; break; }; sleep 30
-done
+for i in 1 2 3 4 5 6 7; do
+  out=$(gh api "repos/chlumael/twilight-games/actions/runs?head_sha=$(git rev-parse HEAD)&per_page=20" --jq '.workflow_runs[] | "\(.name) \(.status) \(.conclusion)"' 2>&1)
+  if [ -n "$out" ] && ! echo "$out" | grep -q -E "in_progress|queued|pending|waiting"; then break; fi
+  timeout 60 tail -f /dev/null
+done; echo "$out"
 ```
 
-실패하면 `/actions/runs/<id>/jobs`에서 실패한 단계를 찾아 고치고 다시 올린다. 실패를 숨기지 않고 보고한다.
+`pages`, `build`, `android-release`, `auto-merge` 네 개가 `completed success`여야 한다. 실패하면 `gh api repos/chlumael/twilight-games/actions/runs/<id>/jobs`에서 실패한 단계를 찾아 고치고 다시 올린다. 실패를 숨기지 않고 보고한다.
+
+배너 데이터를 고쳤으면 main에 실제로 올라갔는지도 본다: `curl -s https://raw.githubusercontent.com/chlumael/twilight-games/main/data/banners.json | python3 -I -c "import json,sys; d=json.load(sys.stdin); print(d['generatedAt'])"`.
 
 ## 사용자가 직접 해야 하는 것 (휴대폰으로 가능)
 
@@ -56,3 +57,4 @@ done
 5. 결정이 필요한 질문 (있을 때만)
 
 - **버전 올리기는 사용자가 업데이트를 하라고 했을 때만**(2026-11-26). 평소에는 버전을 그대로 두고 올린다. 보고할 때 "다음 업데이트에 포함"이라고 적는다.
+- 고친 내용을 쌓아 두는 법과 게시 순서는 `twilight-release`, 진행 문서 갱신은 `twilight-progress-doc`.

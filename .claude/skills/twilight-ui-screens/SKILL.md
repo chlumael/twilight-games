@@ -35,6 +35,44 @@ python3 -I $S/sheet.py <scratchpad>/shots/sheet.png <scratchpad>/shots/mobile-*.
 - 보내기 전에 Read로 직접 본다. 확인할 것: 글자 잘림·줄바꿈, 겹침, 스크롤해야만 보이는 버튼, 숫자가 계산상 맞는지(예: 원석 12480 + 창세 980 → 115회 가능).
 - 시드 데이터는 `scripts/sample-data.json`. 새 재화·그룹을 추가했으면 여기에도 넣어야 화면에 나온다.
 
+## 눌러야 나오는 화면 찍기 (`flow.cjs`)
+
+입력 폼, 배너 "자세히", 특정 탭, 저장한 뒤 모습처럼 **몇 번 눌러야 나오는 화면**은 스크립트를 새로 쓰지 말고 `flow.cjs`에 순서를 적어 준다(예전에는 그때마다 스크립트를 새로 썼다).
+
+```bash
+cat > <scratchpad>/flow.json <<'JSON'
+{ "game": "endfield",
+  "games": { "endfield": { "currency": { "oroberyl": 7765 },
+    "sessions": [{ "group": "endfield-chartered", "count": 52, "minsAgo": 60, "tops": { "51": ["포그라니치니크", false] } }] } },
+  "steps": [
+    { "tab": "한정" },
+    { "click": "button.binfo" }, { "shot": "detail", "at": "section.detail" }, { "click": "section.detail .close" },
+    { "click": "button.addbtn" }, { "fill": ["form.add input.n", "58"] }, { "fill": ["form.add input.nm", "사"] },
+    { "shot": "form", "at": "form.add" } ],
+  "sheet": "result" }
+JSON
+node .claude/skills/twilight-ui-screens/scripts/flow.cjs <scratchpad>/flow.json <scratchpad>/shots
+```
+
+- `games`는 `sample-data.json`과 같은 형식이다(없는 게임은 빈 기록). `tops`의 키는 그 묶음 안에서 몇 번째인지(0부터), 값은 `[이름, 픽업 여부]`. `banner`를 비우면 앱이 지금 진행 중인 배너로 맞춘다. 특정 배너 규칙을 보려면 `currentBanner`와 `banner`에 배너 id(`data/banners.json`)를 적는다.
+- 단계: `tab`(글자가 들어간 첫 버튼), `click`·`check`·`fill`(선택자), `shot`(`at` = 그 부분이 보이게 한 뒤 화면 전체, `only` = 그 부분만), `wait`.
+- 단계가 실패하면 어느 단계인지 알리고 그때 화면을 `failed-step-N.png`로 남긴다.
+- 자주 쓰는 선택자:
+
+| 화면 | 선택자 |
+|---|---|
+| 배너 자세히 열기 / 닫기 | `button.binfo` / `section.detail .close` |
+| 최고 등급 기록 폼 열기 | `button.addbtn` → `form.add` |
+| 폼의 번째 칸 / 이름 칸 | `form.add input.n` / `form.add input.nm` |
+| 이름 후보 단추 | `button.pick:has-text('이름')` |
+| 체크 (교환·횟수만·긴급 모집) | `label.exch:has-text('글자') input` |
+| 저장 | `form.add button.save` |
+| 기록 줄 / 카운터 | `section.hits` / `section.counters` |
+| 예측 펼치기 | `section.forecast button.head` |
+| 설정 / 통계 | `[aria-label=설정]` / `button[title=통계]` |
+
+선택자가 안 맞으면 컴포넌트(`src/components/*.svelte`)에서 클래스 이름을 확인한다.
+
 ## 사용자에게 보낼 때
 
 - 여러 장은 `sheet.py`로 1~2장으로 묶어서 보낸다(휴대폰에서 넘기기 편하게).
