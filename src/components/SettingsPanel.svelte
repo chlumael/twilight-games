@@ -6,7 +6,7 @@
   import { android, androidMode, inTauri, installPcUpdate, listProcesses, openPcDownload, pcVersion } from "../lib/api";
   import { isNewer, latestRelease } from "../lib/version";
   import { profileOf, screenReady } from "../lib/screen-profile";
-  import { shownGames, type Settings } from "../lib/settings";
+  import { moveGame, shownGames, type Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
 
   let {
@@ -109,7 +109,22 @@
         }} aria-pressed={on}>{#if gameIcon(id)}<img class="gi" src={gameIcon(id)} alt="" />{/if}{GAMES[id].shortName}</button>
       {/each}
     </div>
-    <p class="muted hint">고른 게임만 위쪽 줄과 달력에 보입니다</p>
+    {#if shownGames(settings).length > 1}
+      <!-- 순서 바꾸기: 위쪽 게임 줄·달력·통계·친구에 이 순서로 보인다(사용자 2026-11-27) -->
+      <ol class="order">
+        {#each shownGames(settings) as id, i (id)}
+          {@const list = shownGames(settings)}
+          <li>
+            <span class="num">{i + 1}</span>
+            {#if gameIcon(id)}<img class="gi" src={gameIcon(id)} alt="" />{/if}
+            <span class="oname">{GAMES[id].name}</span>
+            <button class="mv" disabled={i === 0} onclick={() => onSettings({ ...settings, myGames: moveGame(list, i, -1) })} aria-label="{GAMES[id].shortName} 위로">▲</button>
+            <button class="mv" disabled={i === list.length - 1} onclick={() => onSettings({ ...settings, myGames: moveGame(list, i, 1) })} aria-label="{GAMES[id].shortName} 아래로">▼</button>
+          </li>
+        {/each}
+      </ol>
+    {/if}
+    <p class="muted hint">고른 게임만 이 순서로 위쪽 줄·달력·통계·친구에 보입니다</p>
   </section>
 
   <section>
@@ -310,6 +325,12 @@
   .mygames { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip { font-size: 12px; padding: 4px 12px; border-radius: 999px; opacity: 0.5; display: inline-flex; align-items: center; gap: 5px; }
   .chip .gi { width: 18px; height: 18px; border-radius: 5px; margin-left: -6px; }
+  .order { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+  .order li { display: flex; align-items: center; gap: 8px; padding: 4px 6px; border-radius: var(--btn-radius); background: var(--panel); }
+  .order .num { width: 1.2em; text-align: center; color: var(--muted); font-size: 12px; }
+  .order .gi { width: 24px; height: 24px; border-radius: 6px; }
+  .order .oname { flex: 1; font-size: 13px; }
+  .order .mv { padding: 4px 10px; font-size: 12px; }
   .chip.on { opacity: 1; font-weight: 700; border-color: var(--top); }
   .small { font-size: 11px; }
   .base { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; padding: 6px; background: var(--panel); border-radius: 6px; }

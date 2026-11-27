@@ -14,7 +14,7 @@ export interface Settings {
   calendar?: MyEvent[];
   /** 지운 내 일정 id (다른 기기와 합칠 때 다시 살아나지 않게) */
   calendarRemoved?: string[];
-  /** 내가 하는 게임만 보이게 (사용자 2026-11-26: 게임이 늘어도 위쪽 게임 줄이 넘치지 않게). 없으면 전부 */
+  /** 내가 하는 게임만 보이게 (사용자 2026-11-26: 게임이 늘어도 위쪽 게임 줄이 넘치지 않게). 넣은 순서 = 보이는 순서(2026-11-27). 없으면 전부 */
   myGames?: GameId[];
   /** 친구 공유 (DESIGN.md §8.5): 켜면 내 요약을 친구 탭(shares/{uid})에 올린다. groups는 예전 그룹 방식의 흔적(쓰지 않음) */
   share?: { on: boolean; nickname: string; groups?: { code: string; name: string }[] };
@@ -57,7 +57,17 @@ export function pickDetectedGame(running: GameId[], foreground: GameId | null, c
 }
 
 /** 화면에 보일 게임: 고른 게임(알 수 있는 것만, 순서는 GAME_IDS). 하나도 없으면 전부 */
+/** 보여 줄 게임과 순서: 설정의 "내 게임"에 넣은 순서 그대로(사용자 2026-11-27: 사람마다 우선순위가 달라서). 없으면 전부 기본 순서 */
 export function shownGames(s: Pick<Settings, "myGames">): GameId[] {
-  const picked = GAME_IDS.filter((id) => s.myGames?.includes(id));
+  const picked = [...new Set((s.myGames ?? []).filter((id) => GAME_IDS.includes(id)))];
   return picked.length ? picked : [...GAME_IDS];
+}
+
+/** 내 게임에서 i번째를 한 칸 위(-1)·아래(+1)로 옮긴 목록 */
+export function moveGame(list: GameId[], i: number, by: -1 | 1): GameId[] {
+  const j = i + by;
+  if (i < 0 || j < 0 || i >= list.length || j >= list.length) return list;
+  const next = [...list];
+  [next[i], next[j]] = [next[j], next[i]];
+  return next;
 }

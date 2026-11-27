@@ -79,9 +79,11 @@ describe("달력 칸 (시작일 기준)", () => {
 
 describe("내 게임 고르기", () => {
   it("고른 게임만 원래 순서로, 하나도 없으면 전부", async () => {
-    const { shownGames } = await import("./settings");
-    expect(shownGames({ myGames: ["limbus", "genshin"] })).toEqual(["genshin", "limbus"]);
+    const { shownGames, moveGame } = await import("./settings");
+    expect(shownGames({ myGames: ["limbus", "genshin"] })).toEqual(["limbus", "genshin"]); // 넣은 순서 그대로(2026-11-27)
     expect(shownGames({ myGames: [] })).toEqual(["genshin", "arknights", "endfield", "limbus"]);
+    expect(moveGame(["genshin", "arknights", "endfield"], 2, -1)).toEqual(["genshin", "endfield", "arknights"]);
+    expect(moveGame(["genshin", "arknights"], 0, -1)).toEqual(["genshin", "arknights"]); // 맨 위는 그대로
     expect(shownGames({})).toHaveLength(4);
   });
 });
