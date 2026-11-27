@@ -143,6 +143,64 @@ fn main() {
     }
 
     let profiles = load_profiles();
+
+    // --bench : 앱의 반복을 흉내 내 10초 동안 칸 읽기가 몇 번 되는지 잰다
+    //   예전(한 줄): 칸 읽기 → (0.6초마다) 화면 전체 읽기 → 0.25초 쉼
+    //   지금(따로): 칸 읽기 → 0.1초 쉼 / 다른 스레드에서 0.6초마다 화면 전체 읽기
+    if flag("--bench").is_some() {
+        let rgba: Vec<u8> = px.chunks(4).flat_map(|p| [p[2], p[1], p[0], 255]).collect();
+        let big = image::imageops::resize(&image::RgbaImage::from_raw(w as u32, h as u32, rgba).expect("그림"), (w * 3 / 2) as u32, (h * 3 / 2) as u32, image::imageops::FilterType::Triangle);
+        let full: Vec<u8> = big.as_raw().chunks(4).flat_map(|p| [p[2], p[1], p[0], 255]).collect();
+        let (fw, fh) = (w * 3 / 2, h * 3 / 2);
+        let read_regions = |img: &Image| {
+            if let Some((_, s, content)) = match_screen(img, &profiles) {
+                for f in &s.fields {
+                    if let Some(area) = f.rect.and_then(|r| rect_px(img.w, img.h, content, r)) {
+                        let _ = ocr::read_def(img, area, f);
+                    }
+                }
+            }
+        };
+        let dur = std::time::Duration::from_secs(10);
+        // 예전
+        let t0 = std::time::Instant::now();
+        let (mut n, mut last_full) = (0, t0 - std::time::Duration::from_secs(1));
+        while t0.elapsed() < dur {
+            read_regions(&img);
+            n += 1;
+            if last_full.elapsed() >= std::time::Duration::from_millis(600) {
+                last_full = std::time::Instant::now();
+                let _ = ocr::ocr(&full, fw as i32, fh as i32);
+            }
+            std::thread::sleep(std::time::Duration::from_millis(250));
+        }
+        println!("예전(한 줄): 10초에 칸 읽기 {n}번 → 한 번에 {}ms", 10_000 / n.max(1));
+        // 지금
+        let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let full_count = std::sync::Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let th = {
+            let (stop, full_count, full) = (stop.clone(), full_count.clone(), full.clone());
+            std::thread::spawn(move || {
+                while !stop.load(std::sync::atomic::Ordering::SeqCst) {
+                    let s = std::time::Instant::now();
+                    let _ = ocr::ocr(&full, fw as i32, fh as i32);
+                    full_count.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                    std::thread::sleep(std::time::Duration::from_millis(600).saturating_sub(s.elapsed()).max(std::time::Duration::from_millis(250)));
+                }
+            })
+        };
+        let t0 = std::time::Instant::now();
+        let mut n = 0;
+        while t0.elapsed() < dur {
+            read_regions(&img);
+            n += 1;
+            std::thread::sleep(std::time::Duration::from_millis(100));
+        }
+        stop.store(true, std::sync::atomic::Ordering::SeqCst);
+        let _ = th.join();
+        println!("지금(따로): 10초에 칸 읽기 {n}번 → 한 번에 {}ms, 화면 전체 읽기 {}번", 10_000 / n.max(1), full_count.load(std::sync::atomic::Ordering::SeqCst));
+        return;
+    }
     // 화면 판단 부분마다 거리(모양 지문 차이 / 색 차이) — 맞지 않을 때 어디가 다른지 보려고
     println!("\n== 화면 판단 ==");
     for p in &profiles {
