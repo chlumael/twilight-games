@@ -22,19 +22,23 @@ export interface CounterStep {
   first: number | null;
   /** 직전 값 → 지금 값 (알림용) */
   from: number | null;
+  /** 이상이 줄었음 = 200개로 교환함(그 사이 뽑은 것은 add에 들어 있다) */
+  exchanged: boolean;
 }
 
-/** 이상 값 한 번 읽음 → 두 번 연속 같으면 확정, 오른 만큼 뽑기. 줄었으면(200 교환) 기준만 바꾼다 */
+/** 이상 값 한 번 읽음 → 두 번 연속 같으면 확정, 오른 만큼 뽑기. 줄었으면 200 교환 + 그 사이 뽑기 */
 export function counterStep(state: CounterState, banner: string | null, value: number | null): CounterStep {
-  const none = { add: 0, first: null, from: null };
+  const none = { add: 0, first: null, from: null, exchanged: false };
   if (!banner || value === null) return { state: { ...state, pending: null }, ...none };
   if (!state.pending || state.pending.banner !== banner || state.pending.value !== value) {
     return { state: { ...state, pending: { banner, value } }, ...none };
   }
   const before = state.last[banner];
   const next: CounterState = { pending: state.pending, last: { ...state.last, [banner]: value } };
-  if (before === undefined) return { state: next, add: 0, first: value, from: null };
-  return { state: next, add: Math.max(0, value - before), first: null, from: before };
+  if (before === undefined) return { state: next, add: 0, first: value, from: null, exchanged: false };
+  if (value >= before) return { state: next, add: value - before, first: null, from: before, exchanged: false };
+  // 줄었으면 200개 교환(사용자 지적 2026-11-27): 그 사이 뽑은 것 = 지금 + 200 − 직전 (예: 190 → 10뽑 → 200 → 교환 → 0 = 10회)
+  return { state: next, add: value + 200 - before, first: null, from: before, exchanged: true };
 }
 
 /** "2026.12.10 10:00 [KST] 까지" → "2026-12-10" */

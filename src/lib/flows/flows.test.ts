@@ -182,3 +182,40 @@ describe("림버스: 추출 화면의 이상 N/200으로 기록 (flows/screen, �
     expect(app.toast).toContain("30회 자동 기록 (이상 10→40)");
   });
 });
+
+describe("림버스 이상: 교환과 20회 넘는 경우 (flows/screen)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { parseFrameText } = await import("../recognize");
+  const { ScreenFlow } = await import("./screen.svelte");
+  const text = readFileSync(new URL("../fixtures/limbus-main-phone2.txt", import.meta.url), "utf8");
+  const frameWith = (n: number) => JSON.stringify(parseFrameText(text.replace("10/200", `${n}/200`)));
+  const setup = () => {
+    app.game = "limbus";
+    app.pack = { schemaVersion: 1, games: { genshin: [], arknights: [], endfield: [], limbus: [{
+      id: "lb-pick", group: "limbus-extraction", name: "pick", start: "2026-11-26T03:00:00.000Z", end: "2026-12-10T01:00:00.000Z", version: null,
+      featured: [{ id: "a", ko: "오트쿠튀르::르루주 B2F 타래둥지 그레고르" }], featuredRare: [],
+    }] } } as never;
+    app.records.games.limbus.currentBanner["limbus-extraction"] = "lb-pick";
+    return new ScreenFlow(() => {});
+  };
+  it("190 → (10뽑 후 교환) → 0: 10회 + 교환 1건", () => {
+    const flow = setup();
+    for (const n of [190, 190, 0, 0]) flow.onScreenText(frameWith(n));
+    expect(app.records.games.limbus.pulls).toHaveLength(10);
+    expect(app.records.games.limbus.exchanges ?? []).toHaveLength(1);
+  });
+  it("40 → \"4\"(잘못 읽힘): 교환 + 164회로 보이지만 기록하지 않고 알림", () => {
+    const flow = setup();
+    for (const n of [40, 40, 4, 4]) flow.onScreenText(frameWith(n));
+    expect(app.records.games.limbus.pulls).toHaveLength(0);
+    expect(app.records.games.limbus.exchanges ?? []).toHaveLength(0);
+    expect(app.toast).toContain("40→4로 줄었습니다");
+  });
+  it("20회 넘게 몰아 뽑으면 기록하되 이력에 안 남는다고 알리고 확인할 것에 표시", () => {
+    const flow = setup();
+    for (const n of [10, 10, 60, 60]) flow.onScreenText(frameWith(n));
+    expect(app.records.games.limbus.pulls).toHaveLength(50);
+    expect(app.toast).toContain("앞의 30회는 추출 이력에 안 남습니다");
+    expect(flow.autoLog.at(-1)?.uncertain).toBe(true);
+  });
+});

@@ -9,7 +9,7 @@ import { app } from "../store.svelte";
 import { itemNames } from "../images.svelte";
 import { GAMES, GAME_IDS, findGroup } from "../games";
 import { groupBanners, itemName, matchFeatured } from "../banners";
-import { groupStatus, inferTopFromScreen, recordDetected, recordResult, setCurrency, syncBannerPulls, syncPityFromScreen } from "../ledger";
+import { groupStatus, inferTopFromScreen, recordDetected, recordExchange, recordResult, setCurrency, syncBannerPulls, syncPityFromScreen } from "../ledger";
 import { emptyEngineState, engineStep, type EngineAction, type EngineStatus, type RegionFrame } from "../engine";
 import { PROFILES, resultCountingReady } from "../screen-profile";
 import { newestIds, wishFeatured, wishRows } from "../genshin-wish";
@@ -176,7 +176,7 @@ export class ScreenFlow {
     const banner = onScreen && current && onScreen.id === current.id ? current.id : null;
     const step = counterStep(this.limbusCounter, banner, r.counter ?? null);
     this.limbusCounter = step.state;
-    if (step.first === null && !step.add) return;
+    if (step.first === null && !step.add && !step.exchanged) return;
     writeLocal(LIMBUS_COUNTER_KEY, step.state.last);
     if (step.first !== null) {
       // 앱이 모르던 뽑기가 있으면 누적 횟수만 맞춘다(이상 = 뽑은 수 − 200 × 교환 수)
@@ -186,13 +186,30 @@ export class ScreenFlow {
       if (groupStatus(rec, "limbus", gid).bannerPulls < target) app.update(syncBannerPulls(app.records, "limbus", gid, target));
       return;
     }
-    const next = recordResult(app.records, "limbus", gid, step.add, [], new Date());
-    // 광기·티켓 중 무엇으로 뽑았는지 모르므로 재화는 깎지 않는다(광기는 화면에서 읽은 값으로 따로 맞춰진다)
-    next.games.limbus.currency = { ...app.records.games.limbus.currency };
-    app.update(next);
-    const label = `림버스 픽업 추출 ${step.add}회`;
-    this.addAuto({ id: `lb-${Date.now()}`, game: "limbus", label, pullIds: next.undo.at(-1)?.addedPullIds ?? [], uncertain: false, time: Date.now() });
-    app.notify(`${label} 자동 기록 (이상 ${step.from}→${r.counter}). 이름은 추출 이력에서 채워집니다`);
+    const notes: string[] = [];
+    // 줄었는데 그 사이 뽑기가 20회를 넘으면 숫자를 잘못 읽었을 수 있다(예: 40 → "4") → 기록하지 않고 알리기만
+    if (step.exchanged && step.add > 20) {
+      app.notify(`림버스 이상이 ${step.from}→${r.counter}로 줄었습니다. 교환했다면 홈의 "＋ 000 기록 → 교환"으로, 뽑은 횟수는 "횟수만"으로 맞춰 주세요`);
+      return;
+    }
+    if (step.add > 0) {
+      const next = recordResult(app.records, "limbus", gid, step.add, [], new Date());
+      // 광기·티켓 중 무엇으로 뽑았는지 모르므로 재화는 깎지 않는다(광기는 화면에서 읽은 값으로 따로 맞춰진다)
+      next.games.limbus.currency = { ...app.records.games.limbus.currency };
+      app.update(next);
+      const label = `림버스 픽업 추출 ${step.add}회`;
+      // 20회 넘게 한꺼번에 늘었으면 "확인할 것"에서 취소할 수 있게 표시
+      this.addAuto({ id: `lb-${Date.now()}`, game: "limbus", label, pullIds: next.undo.at(-1)?.addedPullIds ?? [], uncertain: step.add > 20, time: Date.now() });
+      notes.push(`${label} 자동 기록 (이상 ${step.from}→${r.counter})`);
+      // 추출 이력은 최근 20개만 보인다 → 그보다 많이 몰아 뽑으면 앞쪽은 이름·000을 못 채운다(사용자 지적 2026-11-27)
+      notes.push(step.add > 20 ? `앞의 ${step.add - 20}회는 추출 이력에 안 남습니다. 000이 나왔다면 직접 기록해 주세요` : "이름은 추출 이력에서 채워집니다");
+    }
+    if (step.exchanged) {
+      // 이상 200개 교환(받은 인격 이름은 화면에서 알 수 없다)
+      app.update(recordExchange(app.records, "limbus", gid, null, new Date()));
+      notes.push("이상 200개 교환도 기록했습니다(인격 이름은 홈의 교환 기록에서 지우고 다시 넣어 고칠 수 있어요)");
+    }
+    app.notify(notes.join(". "));
   }
 
   /**
