@@ -98,7 +98,10 @@ const contexts = {
     // 통계 화면: 내용 전체를 찍는다
     if (await page.locator('button[title="내 통계"]').count()) {
       await page.click('button[title="내 통계"]'); await page.waitForTimeout(200);
-      await page.locator("section.stats").screenshot({ path: path.join(outDir, `${mode}-stats.png`) });
+      // 통계 화면 모양이 바뀌어도 멈추지 않게: 통계 칸이 있으면 그것만, 없으면 화면 전체
+      const st = page.locator("section.stats").first();
+      if (await st.count()) await st.screenshot({ path: path.join(outDir, `${mode}-stats.png`) });
+      else await shot("stats");
       await page.click('button[title="내 통계"]');
     }
   }

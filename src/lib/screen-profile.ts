@@ -40,6 +40,8 @@ export interface FieldDef {
   max: number;
   /** 몇 번 연속 같아야 인정하는지 */
   confirm: number;
+  /** 화면에 없을 때도 있는 칸(예: 픽업을 이미 받으면 사라지는 '확정 획득' 줄). 못 읽어도 "인식 못 함"으로 치지 않는다 */
+  optional?: boolean;
   note?: string;
 }
 
@@ -150,8 +152,9 @@ export function readDigits(text: string): number | null {
   // (글자를 버리고 "8414"로 읽으면 틀린 값이 들어간다, PC 실기 2026-11-27 림버스 광기)
   const m = text.match(/[0-9][0-9,.\s]*[0-9]|[0-9]/);
   if (!m) return null;
-  const before = text.slice(0, m.index).trimEnd().slice(-1);
-  const after = text.slice(m.index! + m[0].length).trimStart().slice(0, 1);
+  // 띄어 쓴 글자는 괜찮다: 칸 옆 구분선이 "l"·"I"로 읽혀 "l 8390"이 되는 일이 있다(그때 숫자는 맞다)
+  const before = text.slice(0, m.index).slice(-1);
+  const after = text.slice(m.index! + m[0].length).slice(0, 1);
   if (/[A-Za-z가-힣]/.test(before) || /[A-Za-z가-힣]/.test(after)) return null;
   const d = m[0].replace(/[^0-9]/g, "");
   if (!d || d.length > 9) return null;

@@ -89,7 +89,8 @@ export function engineStep(state: EngineState, frame: RegionFrame, profiles: Gam
 
   // 뽑기 화면: 칸 해석 → 검증
   const results: FieldResult[] = screen.fields.map((f) => parseField(f, frame.fields[f.id], profile.fixes));
-  const failed = results.filter((r) => !r.ok && r.reason !== "빈칸");
+  // 없을 때도 있는 칸(optional)은 못 읽어도 실패로 치지 않는다 — 한정 화면에서 픽업을 받은 뒤 늘 "인식 못 함"이 뜨지 않게(2026-11-27 검수)
+  const failed = results.filter((r) => !r.ok && r.reason !== "빈칸" && !screen.fields.find((f) => f.id === r.id)?.optional);
   const suspects: string[] = [];
   const currency: Record<string, number> = {};
   let pityChanged = false;

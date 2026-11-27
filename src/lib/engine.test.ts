@@ -55,3 +55,12 @@ describe("새 인식 엔진", () => {
     expect(s.status.message).toContain("toTop");
   });
 });
+
+describe("없을 때도 있는 칸 (2026-11-27 검수)", () => {
+  it("optional 칸은 못 읽어도 '인식 못 함'이 아니다(픽업을 받으면 사라지는 확정 줄)", () => {
+    const p: GameProfile = { ...profile, screens: [{ ...profile.screens[0], fields: profile.screens[0].fields.map((f) => (f.id === "toTop" ? { ...f, optional: true } : f)) }] };
+    let s = emptyEngineState();
+    for (let t = 1; t <= 5; t++) s = engineStep(s, main("55025", "증표의 선물", t), [p]).state;
+    expect(s.status.kind).not.toBe("fail");
+  });
+});

@@ -53,6 +53,7 @@ describe("틀로만 해석", () => {
     expect(readDigits("S8414")).toBeNull();
     expect(readDigits("5841l")).toBeNull();
     expect(readDigits(" 58414 ")).toBe(58414);
+    expect(readDigits("l 8390")).toBe(8390);
   });
   it("문구 틀: 공백은 무시, 글자는 정확히 같아야", () => {
     expect(matchTemplate("53 회의 헤드헌팅 내 6성 오퍼레이터 확정 획득./", "{n}회의 헤드헌팅 내 6성")).toBe(53);
