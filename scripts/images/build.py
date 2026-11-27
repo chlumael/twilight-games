@@ -20,7 +20,14 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from PIL import Image
+try:
+    from PIL import Image
+except ModuleNotFoundError:
+    # -I(격리 실행)로 돌리면 사용자 영역에 설치한 Pillow를 못 본다(GitHub Actions의 pip install은 그쪽에 깐다).
+    # 그 경로만 덧붙인다(작업 폴더·스크립트 폴더는 여전히 경로에 넣지 않는다).
+    import site
+    sys.path.append(site.getusersitepackages())
+    from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "data" / "images"
