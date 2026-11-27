@@ -860,3 +860,92 @@ export function resetGroup(records: Records, game: GameId, groupId: string): Rec
   pushUndo(next, { game, label: `${GAMES[game].shortName} ${findGroup(game, groupId).name} 기록 전부 지우기`, addedPullIds: [], replacedPulls: gone, prevCurrency: { ...rec.currency } });
   return next;
 }
+
+/** 두 상태의 차이를 되돌리기 한 번으로 묶는다 (중간에 쌓인 되돌리기는 버린다) */
+function squashUndo(orig: Records, out: Records, game: GameId, label: string): Records {
+  const before = new Map(orig.games[game].pulls.map((p) => [p.id, p]));
+  const after = new Map(out.games[game].pulls.map((p) => [p.id, p]));
+  const next = structuredClone(out);
+  next.undo = structuredClone(orig.undo);
+  pushUndo(next, {
+    game,
+    label,
+    addedPullIds: [...after.keys()].filter((id) => !before.has(id)),
+    replacedPulls: structuredClone([...before.values()].filter((p) => !after.has(p.id) || JSON.stringify(after.get(p.id)) !== JSON.stringify(p))),
+    prevCurrency: { ...orig.games[game].currency },
+  });
+  return next;
+}
+
+/**
+ * 직접 입력으로 "n번째에 최고 등급"을 넣으며 함께 만든 뽑기 묶음인지: 직접 입력이고, 최고 등급이 그 묶음의 마지막 자리이며,
+ * 그 종류에서 가장 최근 묶음이다. 이런 묶음은 고치거나 지울 때 통째로 다시 만든다(뒤에 남는 빈 뽑기가 생기지 않게).
+ */
+function isLastTopEntry(rec: GameRecord, p: Pull): boolean {
+  if (p.source !== "manual") return false;
+  const group = rec.pulls.filter((x) => x.group === p.group).sort(byTime);
+  const session = group.filter((x) => x.sessionId === p.sessionId);
+  return group.at(-1)?.sessionId === p.sessionId && session.every((x) => x.indexInSession <= p.indexInSession) && session.filter((x) => x.top).length === 1;
+}
+
+/** 최고 등급을 보통 뽑기로 되돌린다 (자리는 그대로 — 뒤의 기록 번째가 바뀌지 않게) */
+function unmark(rec: GameRecord, id: string): void {
+  const p = rec.pulls.find((x) => x.id === id);
+  if (!p) return;
+  p.top = false;
+  p.name = null;
+  p.featured = null;
+  if (p.rarity != null) p.rarity = null;
+}
+
+/**
+ * 최고 등급 기록 고치기 (사용자 2026-11-27: 잘못 넣은 것 하나 때문에 다 지우고 다시 넣지 않게).
+ * 이름·픽업 여부는 언제나, 몇 번째(n, 배너 누적)는 지금 배너의 기록만 바꾼다. 다른 기록의 번째는 그대로 둔다.
+ */
+export function editTop(
+  records: Records,
+  game: GameId,
+  pullId: string,
+  change: { name: string | null; featured: boolean | null; n?: number },
+  now: Date = new Date(),
+): { records: Records; mode: "ok" | "taken" | "before" | "too-far" | "invalid" } {
+  const rec = records.games[game];
+  const p = rec.pulls.find((x) => x.id === pullId);
+  if (!p || !p.top) return { records, mode: "invalid" };
+  const label = `${GAMES[game].shortName} ${change.name ?? p.name ?? GAMES[game].topLabel} 기록 고침`;
+  const oldN = topHistory(rec, p.group).find((h) => h.pull.id === pullId)?.at;
+  const moving = change.n !== undefined && change.n !== oldN;
+  if (!moving) {
+    const next = structuredClone(records);
+    const q = next.games[game].pulls.find((x) => x.id === pullId)!;
+    q.name = change.name;
+    q.featured = change.featured;
+    return { records: squashUndo(records, next, game, label), mode: "ok" };
+  }
+  if (p.banner !== groupStatus(rec, game, p.group).banner) return { records, mode: "invalid" };
+  // 옮길 자리에 다른 최고 등급이 이미 있으면 막는다
+  const unit = findGroup(game, p.group).odds?.unit ?? 1;
+  const n = Math.ceil(change.n! / unit) * unit;
+  if (topHistory(rec, p.group).some((h) => h.pull.id !== pullId && h.pull.banner === p.banner && h.at === n)) return { records, mode: "taken" };
+  let work = structuredClone(records);
+  const wrec = work.games[game];
+  if (isLastTopEntry(rec, p)) wrec.pulls = wrec.pulls.filter((x) => x.sessionId !== p.sessionId);
+  else unmark(wrec, pullId);
+  const out = recordTopAt(work, game, p.group, n, { name: change.name, featured: change.featured }, now);
+  if (out.mode !== "added" && out.mode !== "marked") return { records, mode: out.mode };
+  work = out.records;
+  work.games[game].currency = { ...rec.currency };
+  return { records: repairBaselines(squashUndo(records, work, game, label)), mode: "ok" };
+}
+
+/** 최고 등급 기록 하나 지우기: 마지막에 직접 넣은 것이면 함께 넣은 뽑기까지, 아니면 그 자리만 보통 뽑기로 (뒤 기록은 그대로) */
+export function removeTop(records: Records, game: GameId, pullId: string): Records {
+  const rec = records.games[game];
+  const p = rec.pulls.find((x) => x.id === pullId);
+  if (!p || !p.top) return records;
+  const next = structuredClone(records);
+  const nrec = next.games[game];
+  if (isLastTopEntry(rec, p)) nrec.pulls = nrec.pulls.filter((x) => x.sessionId !== p.sessionId);
+  else unmark(nrec, pullId);
+  return repairBaselines(squashUndo(records, next, game, `${GAMES[game].shortName} ${p.name ?? GAMES[game].topLabel} 기록 지우기`));
+}

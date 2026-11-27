@@ -25,7 +25,7 @@
   import { GAMES, GAME_IDS, findGroup } from "./lib/games";
   import {
     availablePulls, emptyRecords, pullsFrom, groupStatus, lastSessionSize, markTopInLastSession,
-    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, recordFreeTop, carryToNextBanner, removeExchange, recordPullsTo, resetGroup } from "./lib/ledger";
+    normalizeRecords, recentPulls, recordDetected, recordSession, setCurrency, spendPreview, topHistory, undo, type TopInfo, inferTopFromScreen, syncPityFromScreen, recordResult, syncBannerPulls, setSeriesOf, recordTopAt, removeBatches, recordExchange, recordFreeTop, carryToNextBanner, removeExchange, recordPullsTo, resetGroup, editTop, removeTop } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
@@ -742,6 +742,15 @@
       notify("앱에 기록하기 전 구간입니다. 설정의 시작 상태에서 맞춰 주세요");
     } else notify("숫자를 다시 확인해 주세요");
   }
+  /** 최고 등급 기록 고치기 (사용자 2026-11-27) */
+  function editTopRecord(id: string, change: { name: string | null; featured: boolean | null; n?: number }) {
+    const out = editTop(records, game, id, change);
+    if (out.mode === "ok") { update(out.records); notify("기록을 고쳤습니다"); }
+    else if (out.mode === "taken") notify(`그 번째에는 이미 다른 ${def.topLabel} 기록이 있습니다`);
+    else if (out.mode === "too-far") notify(`앞 기록과 너무 멉니다. 그 사이에 나온 ${def.topLabel}부터 넣어 주세요`);
+    else if (out.mode === "before") notify("앱에 기록하기 전 구간입니다. 설정의 시작 상태에서 맞춰 주세요");
+    else notify("숫자를 다시 확인해 주세요");
+  }
   /** 원신 무기·묶음 기원에서 고른 무기 (신의 궤도·묶음 궤도) */
   function setChosen(name: string) {
     const next = structuredClone(records);
@@ -1135,6 +1144,8 @@
 
         <GroupPanel {status} groupLabel={group.name} topLabel={def.topLabel} {recent} {hits} gauge={SKINS[game].gauge} {banners} onBanner={setBanner}
           {topNames} guessFeatured={(n) => matchFeatured(currentPackBanner, n)} onTopAt={saveTopAt}
+          onEditTop={editTopRecord}
+          onRemoveTop={(id) => { update(removeTop(records, game, id)); notify("기록을 지웠습니다 — \"확인할 것\"에서 되돌릴 수 있습니다"); }}
           chooseOptions={group.featuredRule === "fate-point" ? (currentPackBanner?.featured ?? []).map(itemName) : []}
           chosen={rec.chosen?.[groupId]?.banner === status.banner ? rec.chosen[groupId].name : ""} onChoose={setChosen}
           exchanges={(rec.exchanges ?? []).filter((e) => e.group === groupId && e.banner === status.banner)}

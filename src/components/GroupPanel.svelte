@@ -7,7 +7,7 @@
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo, poolOf, freeLabel = "", onFreeTop, share = 0.5 }: {
+  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo, poolOf, freeLabel = "", onFreeTop, share = 0.5, onEditTop, onRemoveTop }: {
     groupLabel?: string;
     status: GroupStatus;
     /** Known banners for this group from the data pack. */
@@ -38,6 +38,9 @@
     onFreeTop?: (name: string) => void;
     /** 확정이 아닐 때 최고 등급 중 픽업이 나올 확률 (원신 무기 0.75) */
     share?: number;
+    /** 최고 등급 기록 고치기·지우기 (n은 지금 배너 기록만) */
+    onEditTop?: (id: string, change: { name: string | null; featured: boolean | null; n?: number }) => void;
+    onRemoveTop?: (id: string) => void;
   } = $props();
   let byFree = $state(false);
   let countOnly = $state(false);
@@ -54,13 +57,14 @@
   let addN = $state<number | null>(null);
   let addName = $state("");
   /** 이름 후보: 적은 글자를 포함하는 것(앞에서부터 맞는 것 먼저). 아무것도 안 적었으면 목록이 짧을 때만 전부 */
-  const picks = $derived.by(() => {
-    const q = addName.trim().replace(/\s+/g, "");
+  const picks = $derived(picksFor(addName));
+  function picksFor(text: string): string[] {
+    const q = text.trim().replace(/\s+/g, "");
     if (topNames.length <= 12) return topNames; // 후보가 적으면(배너에 정해진 목록) 늘 전부 보여 준다
     if (!q) return topNames.slice(0, 6);
     const hit = topNames.filter((n) => n.replace(/\s+/g, "").includes(q));
     return [...hit.filter((n) => n.replace(/\s+/g, "").startsWith(q)), ...hit.filter((n) => !n.replace(/\s+/g, "").startsWith(q))].slice(0, 10);
-  });
+  }
   const addFeatured = $derived(addName.trim() && guessFeatured ? guessFeatured(addName.trim()) : null);
   function saveAdd() {
     if (byFree) { onFreeTop?.(addName.trim()); adding = false; byFree = false; addName = ""; return; }
@@ -73,7 +77,30 @@
 
   const inSoft = $derived(status.softFrom !== null && status.pity + 1 >= status.softFrom);
   const toSoft = $derived(status.softFrom !== null ? Math.max(0, status.softFrom - 1 - status.pity) : null);
-  const lastHits = $derived(hits.slice(-4).reverse());
+  let allHits = $state(false);
+  const lastHits = $derived((allHits ? hits : hits.slice(-4)).slice().reverse());
+  // 기록 고치기 (사용자 2026-11-27): 줄을 누르면 그 자리에서 이름·픽업·번째를 고친다
+  let editId = $state<string | null>(null);
+  let editName = $state("");
+  let editN = $state<number | null>(null);
+  let editFeat = $state<boolean | null>(null);
+  let confirmDel = $state(false);
+  const editPicks = $derived(picksFor(editName));
+  function openEdit(h: TopHit) {
+    if (!onEditTop) return;
+    if (editId === h.pull.id) { editId = null; return; }
+    editId = h.pull.id; editName = h.pull.name ?? ""; editN = h.at; editFeat = h.pull.featured; confirmDel = false;
+  }
+  function saveEdit(h: TopHit) {
+    const onBannerNow = h.pull.banner === status.banner;
+    onEditTop?.(h.pull.id, { name: editName.trim() || null, featured: editFeat, ...(onBannerNow && editN && editN !== h.at ? { n: editN } : {}) });
+    editId = null;
+  }
+  function pickEdit(n: string) {
+    editName = n;
+    const g = guessFeatured?.(n);
+    if (g !== undefined && g !== null) editFeat = g;
+  }
   // Without hard pity (Limbus) the ring tracks the first banner counter (200 exchange).
   const ringCounter = $derived(status.hardPity === null ? status.counters[0] : undefined);
   const counters = $derived(status.counters.filter((c) => c !== ringCounter));
@@ -264,13 +291,46 @@
 {#if lastHits.length}
   <section class="hits">
     {#each lastHits as h (h.pull.id)}
-      <div class="hit" class:lost={h.pull.featured === false}>
+      <button type="button" class="hit tap" class:lost={h.pull.featured === false} class:open={editId === h.pull.id} onclick={() => openEdit(h)} disabled={!onEditTop}>
         <span class="count">{h.at}<small>번째</small></span>
         <span class="name">{h.pull.name ?? `${topLabel} (이름 미입력)`}</span>
         <span class="took">{h.count}뽑</span>
         {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
-      </div>
+      </button>
+      {#if editId === h.pull.id}
+        <form class="add edit" onsubmit={(e) => { e.preventDefault(); saveEdit(h); }}>
+          <div class="aline">
+            {#if h.pull.banner === status.banner}
+              <span>배너</span>
+              <input class="n" type="number" inputmode="numeric" min="1" step={step} bind:value={editN} aria-label="몇 번째" />
+              <span>번째</span>
+            {/if}
+            <span class="seg3">
+              <button type="button" class:on={editFeat === true} onclick={() => (editFeat = true)}>픽업</button>
+              <button type="button" class:on={editFeat === false} onclick={() => (editFeat = false)}>픽뚫</button>
+              <button type="button" class:on={editFeat === null} onclick={() => (editFeat = null)}>모름</button>
+            </span>
+          </div>
+          <div class="aline"><input class="nm" placeholder="{topLabel} 이름" bind:value={editName} aria-label="이름" autocomplete="off" /></div>
+          {#if editPicks.length}
+            <div class="picks">
+              {#each editPicks as n (n)}
+                <button type="button" class="pick" class:on={n === editName.trim()} class:feat={guessFeatured?.(n) === true} onclick={() => pickEdit(n)}>{n}</button>
+              {/each}
+            </div>
+          {/if}
+          <div class="aline end">
+            {#if onRemoveTop}
+              <button type="button" class="del" onclick={() => { if (confirmDel) { onRemoveTop(h.pull.id); editId = null; } else confirmDel = true; }}>{confirmDel ? "한 번 더 누르면 지움" : "지우기"}</button>
+            {/if}
+            <span class="sp"></span>
+            <button type="submit" class="save">저장</button>
+            <button type="button" onclick={() => (editId = null)}>취소</button>
+          </div>
+        </form>
+      {/if}
     {/each}
+    {#if hits.length > 4}<button type="button" class="morehits" onclick={() => (allHits = !allHits)}>{allHits ? "최근 4개만" : `전체 ${hits.length}개 보기`}</button>{/if}
   </section>
 {/if}
 
@@ -330,6 +390,16 @@
     border-left: 3px solid var(--top);
   }
   .hit.lost { border-left-style: dashed; }
+  button.hit.tap { width: 100%; text-align: left; border-top: 0; border-right: 0; border-bottom: 0; box-shadow: none; font: inherit; color: inherit; cursor: pointer; }
+  button.hit.tap:disabled { cursor: default; opacity: 1; }
+  button.hit.open { background: color-mix(in srgb, var(--top) 14%, var(--panel)); }
+  .edit { margin: -2px 0 4px; }
+  .seg3 { display: inline-flex; gap: 2px; margin-left: auto; }
+  .seg3 button { padding: 4px 9px; font-size: 12px; }
+  .seg3 button.on { background: var(--top); color: #1a1408; font-weight: 700; }
+  .del { color: var(--warn); font-size: 12px; }
+  .sp { flex: 1; }
+  .morehits { align-self: center; font-size: 11px; padding: 2px 10px; background: none; border: 0; color: var(--accent); box-shadow: none; }
   .count { font-family: var(--num-font); font-size: 19px; font-weight: 700; color: var(--top); font-variant-numeric: tabular-nums; }
   .count { white-space: nowrap; }
   .count.txt { font-family: inherit; font-size: 13px; }

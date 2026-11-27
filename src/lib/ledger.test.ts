@@ -710,3 +710,67 @@ describe("명일방주 헤드헌팅 규칙", () => {
     expect(st(r, C).counters[0]).toMatchObject({ remaining: 120 });
   });
 });
+
+describe("최고 등급 기록 고치기·지우기 (사용자 2026-11-27)", () => {
+  const G = "endfield-chartered";
+  const build = async () => {
+    const { recordTopAt } = await import("./ledger");
+    let r = emptyRecords();
+    r.games.endfield.currentBanner[G] = "B";
+    for (const [n, name] of [[16, "가"], [58, "나"], [92, "다"], [120, "라"]] as const) r = recordTopAt(r, "endfield", G, n, { name, featured: false }, t(n)).records;
+    return r;
+  };
+  const ats = (r: ReturnType<typeof emptyRecords>) => topHistory(r.games.endfield, G).map((h) => [h.at, h.pull.name]);
+  const idOf = (r: ReturnType<typeof emptyRecords>, name: string) => r.games.endfield.pulls.find((p) => p.name === name)!.id;
+
+  it("이름·픽업만 고치면 번째는 그대로", async () => {
+    const { editTop } = await import("./ledger");
+    const r = await build();
+    const out = editTop(r, "endfield", idOf(r, "나"), { name: "나2", featured: true });
+    expect(out.mode).toBe("ok");
+    expect(ats(out.records)).toEqual([[16, "가"], [58, "나2"], [92, "다"], [120, "라"]]);
+    expect(out.records.games.endfield.pulls.find((p) => p.name === "나2")!.featured).toBe(true);
+  });
+  it("가운데 기록의 번째를 고쳐도 뒤 기록의 번째와 총 횟수는 그대로", async () => {
+    const { editTop } = await import("./ledger");
+    const r = await build();
+    const out = editTop(r, "endfield", idOf(r, "다"), { name: "다", featured: false, n: 82 });
+    expect(out.mode).toBe("ok");
+    expect(ats(out.records)).toEqual([[16, "가"], [58, "나"], [82, "다"], [120, "라"]]);
+    expect(out.records.games.endfield.pulls).toHaveLength(120);
+  });
+  it("마지막 기록의 번째를 줄이거나 늘리면 총 횟수도 따라간다", async () => {
+    const { editTop } = await import("./ledger");
+    const r = await build();
+    const down = editTop(r, "endfield", idOf(r, "라"), { name: "라", featured: false, n: 110 });
+    expect(ats(down.records).at(-1)).toEqual([110, "라"]);
+    expect(down.records.games.endfield.pulls).toHaveLength(110);
+    expect(groupStatus(down.records.games.endfield, "endfield", G).pity).toBe(0);
+    const up = editTop(r, "endfield", idOf(r, "라"), { name: "라", featured: false, n: 125 });
+    expect(up.records.games.endfield.pulls).toHaveLength(125);
+  });
+  it("다른 기록이 있는 자리로는 옮기지 않는다", async () => {
+    const { editTop } = await import("./ledger");
+    const r = await build();
+    expect(editTop(r, "endfield", idOf(r, "다"), { name: "다", featured: false, n: 58 }).mode).toBe("taken");
+  });
+  it("가운데 기록을 지우면 뒤 기록의 번째는 그대로, 마지막을 지우면 함께 넣은 뽑기까지", async () => {
+    const { removeTop } = await import("./ledger");
+    const r = await build();
+    const mid = removeTop(r, "endfield", idOf(r, "나"));
+    expect(ats(mid)).toEqual([[16, "가"], [92, "다"], [120, "라"]]);
+    expect(mid.games.endfield.pulls).toHaveLength(120);
+    const last = removeTop(r, "endfield", idOf(r, "라"));
+    expect(ats(last)).toEqual([[16, "가"], [58, "나"], [92, "다"]]);
+    expect(last.games.endfield.pulls).toHaveLength(92);
+  });
+  it("고친 것은 한 번에 되돌린다", async () => {
+    const { editTop } = await import("./ledger");
+    const r = await build();
+    const out = editTop(r, "endfield", idOf(r, "라"), { name: "라", featured: false, n: 110 }).records;
+    expect(out.undo).toHaveLength(r.undo.length + 1);
+    const back = undo(out).records;
+    expect(ats(back)).toEqual(ats(r));
+    expect(back.games.endfield.pulls).toHaveLength(120);
+  });
+});
