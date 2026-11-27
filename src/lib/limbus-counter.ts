@@ -77,16 +77,19 @@ export interface LimbusConfirm {
  * 추출 확인 창 읽기 (실제 화면 문구, 2026-11-27): "광기 1300을(를) 소비하여 특정 추출 / 히스클리프을(를) 진행합니다."
  * 결과 화면의 "재추출"에서도 같은 창이 뜬다 → 연속 뽑기도 매번 센다.
  * 광기 1300 = 10회, 130(할인 13) = 1회. 티켓은 장수만큼(10회 추출 티켓은 장당 10회).
- * 화면 글자가 조금 틀려도("을(롤)", 띄어쓰기) 알아보게 넉넉하게 맞춘다 — 휴대폰 실기 글자 확인 대기.
+ * 화면 글자가 조금 틀려도("을(롤)", 띄어쓰기) 알아보게 넉넉하게 맞춘다. 휴대폰 실기: fixtures/limbus-confirm-phone.txt
  */
 export function parseLimbusConfirm(lines: { t: string; x: number; y: number }[]): LimbusConfirm | null {
   const text = [...lines].sort((a, b) => a.y - b.y || a.x - b.x).map((l) => l.t).join(" ").replace(/\s+/g, " ");
-  const m = text.match(/(광기|10회\s*추출\s*티켓|추출\s*티켓|티켓)\s*(\d{1,5})\s*을.{0,4}?소비\s*하여\s*(?:특정\s*추출|일반\s*추출)?\s*(.{1,40}?)\s*을.{0,4}?진행/);
+  // 무엇을 얼마나: "광기 1300", "추출 10회 티켓 1"(휴대폰 실기 어순, 2026-11-27), "추출 티켓 1"
+  // 어느 배너: "소비하여" 뒤 ~ "을(를) 진행" 앞. 신규 배너는 "신규 인격 특정 추출 (인격 둘)"처럼 세 줄로 길다
+  const m = text.match(/(광기|(?:추출\s*)?(?:10회\s*)?(?:추출\s*)?티켓)\s*(\d{1,5})\s*을.{0,4}?소비\s*하여(.{1,200}?)을.{0,4}?진행/);
   if (!m) return null;
-  const item = m[1].replace(/\s+/g, " ");
+  const item = m[1].replace(/\s+/g, " ").trim();
   const amount = Number(m[2]);
   if (!amount) return null;
   const pulls = item === "광기" ? Math.max(1, Math.round(amount / 130)) : /10회/.test(item) ? amount * 10 : amount;
   if (pulls > 10) return null; // 한 번에 10회까지
-  return { pulls, item, amount, target: m[3].trim() };
+  const target = (m[3].split(/(?:특정|일반)\s*추출/).pop() ?? m[3]).trim();
+  return { pulls, item, amount, target };
 }

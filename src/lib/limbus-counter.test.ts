@@ -68,6 +68,20 @@ describe("추출 확인 창 읽기", async () => {
     expect(parseLimbusConfirm([L("광기 13을(를) 소비하여 특정 추출", 0.3), L("그레고르을(를) 진행합니다", 0.33)])?.pulls).toBe(1);
     expect(parseLimbusConfirm([L("추출 티켓 1을(를) 소비하여 특정 추출", 0.3), L("그레고르을(를) 진행합니다", 0.33)])).toMatchObject({ pulls: 1, item: "추출 티켓" });
     expect(parseLimbusConfirm([L("10회 추출 티켓 1을(를) 소비하여 특정 추출 그레고르을(를) 진행합니다", 0.3)])?.pulls).toBe(10);
+    expect(parseLimbusConfirm([L("추출 10회 티켓 1을(를) 소비하여 특정 추출 그레고르을(를) 진행합니다", 0.3)])?.pulls).toBe(10);
     expect(parseLimbusConfirm([L("추출 이력", 0.1), L("LCB 수감자", 0.3)])).toBeNull();
+  });
+});
+
+describe("추출 확인 창 — 휴대폰 실기 글자(2026-11-27)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { parseFrameText } = await import("./recognize");
+  const { parseLimbusConfirm } = await import("./limbus-counter");
+  it("\"추출 10회 티켓 1\" = 10회, 세 줄짜리 신규 배너 이름에서 인격 둘", () => {
+    const f = parseFrameText(readFileSync(new URL("./fixtures/limbus-confirm-phone.txt", import.meta.url), "utf8"));
+    const c = parseLimbusConfirm(f.lines);
+    expect(c).toMatchObject({ pulls: 10, amount: 1 });
+    expect(c?.item).toContain("10회");
+    expect(c?.target).toContain("그레고르");
   });
 });

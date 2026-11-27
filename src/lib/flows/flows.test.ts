@@ -263,3 +263,28 @@ describe("림버스 추출 확인 창 + 이상 숫자로 맞춰 보기 (flows/sc
     expect(app.records.games.limbus.pulls).toHaveLength(20);
   });
 });
+
+describe("림버스 확인 창 — 휴대폰 실기 글자 (flows/screen)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { parseFrameText } = await import("../recognize");
+  const { ScreenFlow } = await import("./screen.svelte");
+  const confirm = JSON.stringify(parseFrameText(readFileSync(new URL("../fixtures/limbus-confirm-phone.txt", import.meta.url), "utf8")));
+  const mainText = readFileSync(new URL("../fixtures/limbus-main-phone2.txt", import.meta.url), "utf8");
+  const main = (n: number) => JSON.stringify(parseFrameText(mainText.replace("10/200", `${n}/200`)));
+  it("\"추출 10회 티켓 1\" 창 → 10회 기록, 10회 티켓 1장 줄임, 취소하면 다음 이상 숫자로 지움", () => {
+    app.game = "limbus";
+    app.pack = { schemaVersion: 1, games: { genshin: [], arknights: [], endfield: [], limbus: [{
+      id: "lb-pick", group: "limbus-extraction", name: "pick", start: "2026-11-26T03:00:00.000Z", end: "2026-12-10T01:00:00.000Z", version: null,
+      featured: [{ id: "a", ko: "오트쿠튀르::르루주 B2F 타래둥지 그레고르" }, { id: "b", ko: "오트쿠튀르::르누아르 B3F 건조장 이상" }], featuredRare: [],
+    }] } } as never;
+    app.records.games.limbus.currentBanner["limbus-extraction"] = "lb-pick";
+    app.records.games.limbus.currency = { tenTicket: 3 };
+    const flow = new ScreenFlow(() => {});
+    for (const f of [main(10), main(10), confirm, confirm]) flow.onScreenText(f);
+    expect(app.records.games.limbus.pulls).toHaveLength(10);
+    expect(app.records.games.limbus.currency.tenTicket).toBe(2);
+    for (const f of [main(10), main(10)]) flow.onScreenText(f);
+    expect(app.records.games.limbus.pulls).toHaveLength(0);
+    expect(app.records.games.limbus.currency.tenTicket).toBe(3); // 취소였으니 티켓도 되돌림
+  });
+});

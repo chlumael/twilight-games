@@ -21,7 +21,7 @@
 
 ## 구조
 - `src/` Svelte 화면 (웹앱·PC·안드로이드 공용). 규칙 데이터 `src/lib/games.ts`, 계산 `src/lib/ledger.ts`(→ `ledger-core`·`ledger-screen`·`ledger-edit`), 배너 `src/lib/banners.ts`, 스킨 `src/lib/themes.ts` + `src/skins.css`, 동기화 `src/lib/sync.ts` + `src/lib/merge.ts`, 게임 이미지 `src/lib/images.svelte.ts`
-  - **앱 구조(정리 2026-11-27)**: 공용 상태(기록·설정·배너 자료·보고 있는 게임·알림)는 `src/lib/store.svelte.ts`의 `app` 하나. 하는 일은 `src/lib/flows/`: 화면 읽기·공식 기록 `screen.svelte.ts`, 계정·친구 공유 `account.svelte.ts`, 저장·자료 받기·배너 따라가기 `data.svelte.ts`, 홈 기록 조작 `records.ts`. `App.svelte`는 화면을 잇기만 한다 — **새 기능의 일은 App.svelte가 아니라 flows/나 lib/에 넣는다.**
+  - **앱 구조(정리 2026-11-27)**: 공용 상태(기록·설정·배너 자료·보고 있는 게임·알림)는 `src/lib/store.svelte.ts`의 `app` 하나. 하는 일은 `src/lib/flows/`: 화면 읽기·공식 기록 `screen.svelte.ts`(림버스 뽑기 세기는 `limbus.svelte.ts`), 계정·친구 공유 `account.svelte.ts`, 저장·자료 받기·배너 따라가기 `data.svelte.ts`, 홈 기록 조작 `records.ts`. `App.svelte`는 화면을 잇기만 한다 — **새 기능의 일은 App.svelte가 아니라 flows/나 lib/에 넣는다.**
 - `android/` Kotlin 앱: WebView로 화면을 띄우고 게임 위 막대/창(오버레이), 자동 업데이트, 구글 로그인
 - `src-tauri/` PC 오버레이 (Tauri 2)
 - `data/banners.json` 배너 데이터 팩, `scripts/banners/` 생성·검증
