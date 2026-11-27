@@ -11,7 +11,7 @@ import { GAMES, GAME_IDS, findGroup } from "../games";
 import { groupBanners, itemName, matchFeatured } from "../banners";
 import { inferTopFromScreen, recordDetected, recordResult, setCurrency, syncBannerPulls, syncPityFromScreen } from "../ledger";
 import { emptyEngineState, engineStep, type EngineAction, type EngineStatus, type RegionFrame } from "../engine";
-import { PROFILES, resultCountingReady } from "../screen-profile";
+import { findScreen, PROFILES, resultCountingReady } from "../screen-profile";
 import { newestIds, wishFeatured, wishRows } from "../genshin-wish";
 import { looksLikeGacha, normalizeFrame, readScreen, steadyCounts, type ScreenFrame, type ScreenReading, type SteadyCounts } from "../recognize";
 import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "../detect";
@@ -113,6 +113,7 @@ export class ScreenFlow {
       const f = normalizeFrame(raw); // 자주 틀리게 읽히는 낱말을 바로잡은 것 (복사용은 원본 그대로 둔다)
       this.screenOn = true;
       const r = readScreen(f);
+      if (r) this.preferRegion(r);
       // "읽은 글자 복사"용으로는 게임 가챠 화면으로 보이는 것만 남긴다(다른 앱 글자를 붙잡아 두지 않게).
       // PC는 원인을 볼 수 있게 마지막으로 읽은 화면을 항상 남긴다.
       if (r || looksLikeGacha(f) || api.inTauri) this.screenFrame = raw;
@@ -224,9 +225,35 @@ export class ScreenFlow {
   private regionCurrencyAt: Partial<Record<GameId, Record<string, number>>> = {};
   /** 마지막으로 잘라 읽은 화면과 칸 글자("읽은 글자 복사"에 함께 넣는다 — 못 읽을 때 원인을 보려고) */
   lastRegion = $state.raw<RegionFrame | null>(null);
+  /** 게임별로 잘라 읽기가 그 게임 화면을 마지막으로 알아본 때 */
+  private regionSeenAt: Partial<Record<GameId, number>> = {};
+  /** 잘라 읽기가 검증까지 통과시킨 값(재화·천장 숫자) — 화면 전체 글자로 읽은 값 대신 쓴다 */
+  private regionValues: Partial<Record<GameId, { currency: Record<string, number>; toTop: number | null; toFeatured: number | null }>> = {};
+
+  /** 잘라 읽기가 최근(10초 안) 이 게임 화면을 알아봤는지 */
+  private regionActive(game: GameId): boolean {
+    return Date.now() - (this.regionSeenAt[game] ?? 0) < 10_000;
+  }
+
+  /**
+   * 잘라 읽기가 되는 화면에서는 화면 전체 글자로 읽은 재화·천장 숫자를 버리고 잘라 읽은 값으로 바꾼다.
+   * PC 실기(2026-11-27, 0.9.18): 화면 전체 읽기가 엔드필드 "77회"를 "7회", 오로베릴 8730을 87300, 원신 원석 419를 4,
+   * 명방 합성옥 170280을 28로 읽어 그 값이 재화·천장에 들어갔다. 같은 화면을 잘라 읽기는 모두 맞게 읽었다.
+   */
+  private preferRegion(r: ScreenReading) {
+    if (!this.regionActive(r.game)) return;
+    const v = this.regionValues[r.game];
+    r.currency = { ...(v?.currency ?? {}) };
+    r.toTop = v?.toTop ?? null;
+    r.toFeatured = v?.toFeatured ?? null;
+  }
 
   onRegions = (frame: RegionFrame) => {
-    if (frame.screen) this.lastRegion = frame;
+    if (frame.screen) {
+      this.lastRegion = frame;
+      const game = findScreen(frame.screen)?.profile.game as GameId | undefined;
+      if (game) this.regionSeenAt[game] = Date.now();
+    }
     const out = engineStep(this.engineState, frame, PROFILES);
     this.engineState = out.state;
     this.engineStatus = out.state.status;
@@ -239,8 +266,12 @@ export class ScreenFlow {
       const at = { ...(this.regionCurrencyAt[a.game] ?? {}) };
       for (const k of Object.keys(a.values)) at[k] = Date.now();
       this.regionCurrencyAt[a.game] = at;
+      const v = this.regionValues[a.game] ?? { currency: {}, toTop: null, toFeatured: null };
+      this.regionValues[a.game] = { ...v, currency: { ...v.currency, ...a.values } };
       this.setCurrencyIfChanged(a.game, a.values);
     } else if (a.type === "pity") {
+      const v = this.regionValues[a.game] ?? { currency: {}, toTop: null, toFeatured: null };
+      this.regionValues[a.game] = { ...v, toTop: a.toTop, toFeatured: a.toFeatured };
       // 검증을 통과한 천장 값은 바로 반영한다(규칙 7은 사용자가 뺐다, 2026-11-26)
       const marked = inferTopFromScreen(records, a.game, a.group, a.toTop, a.toFeatured);
       if (marked !== records) app.notify(`${GAMES[a.game].topLabel} 획득을 화면 천장 숫자로 기록했습니다`);

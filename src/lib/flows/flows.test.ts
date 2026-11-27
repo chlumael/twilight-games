@@ -332,13 +332,33 @@ describe("PC: 잘라 읽기(새 방식)와 화면 전체 글자(예전 방식)�
     flow.onScreenText(frame);
     expect(app.records.games.arknights.currency.orundum).toBe(170280);
   });
-  it("화면은 알아봤는데 칸을 못 읽으면(빈칸) 화면 전체 글자로 읽은 값을 쓴다 (PC 실기: 재화가 안 바뀌던 문제)", () => {
+  it("화면은 알아봤는데 칸을 못 읽으면(빈칸) 화면 전체 글자 값도 쓰지 않고 그대로 둔다 (0.9.18 PC 실기: 전체 읽기가 170280을 28로 넣음)", () => {
     app.game = "arknights";
+    app.records.games.arknights.currency = { orundum: 170280, originite: 182 };
     const flow = new ScreenFlow(() => {});
     for (let i = 0; i < 3; i++) flow.onRegions({ ...region(""), fields: { orundum: "", exchange: "" } });
     flow.onScreenText(frame);
     flow.onScreenText(frame);
-    expect(app.records.games.arknights.currency.orundum).toBe(169680);
+    expect(app.records.games.arknights.currency.orundum).toBe(170280);
+  });
+  it("엔드필드: 잘라 읽기 77·8690을 쓰고, 화면 전체 읽기의 '7회'·86900은 버린다 (0.9.18 PC 실기)", () => {
+    app.game = "endfield";
+    app.records.games.endfield.currency = {};
+    const flow = new ScreenFlow(() => {});
+    const ef = { time: Date.now(), width: 1920, height: 1080, screen: "endfield-chartered-main", tops: [], prints: [],
+      fields: { oroberyl: "8690", exchange: "11400", charteredPermit: "0", limitedPermit: "0", toTop: "77 회의 헤드헌팅 내 6성 오퍼레이터 확정 획득./", toFeatured: "" } };
+    for (let i = 0; i < 3; i++) flow.onRegions({ ...ef, time: Date.now() });
+    expect(app.records.games.endfield.currency.oroberyl).toBe(8690);
+    // 같은 화면을 화면 전체 글자로 1.5배 읽은 실제 글자(오로베릴 86900, 6성까지 "7회")
+    const whole = JSON.stringify(parseFrameText([
+      "0.78,0.03 0.03x0.02 114%", "0.88,0.02 0.06x0.03 86900", "0.84,0.19 0.13x0.02 지정 오퍼레이터 획득 확률 증가",
+      "0.78,0.23 0.19x0.02 잔여 25일 종료: 12.2312: (UTC+8)", "0.76,0.26 0.21x0.02 7회의 헤드현팅 내 6성 오퍼레이터 확정 획득./",
+      "0.70,0.28 0.27x0.02 7회의 헤드현팅 내 5성 혹은 그 이상의 오퍼레이터 확정 획득./", "0.80,0.92 0.08x0.03 1회 헤드헌팅", "0.92,0.92 0.08x0.03 10회 헤드헌팅",
+    ].join("\n")));
+    flow.onScreenText(whole);
+    flow.onScreenText(whole);
+    expect(app.records.games.endfield.currency.oroberyl).toBe(8690);
+    expect(flow.screenResult?.toTop ?? null).not.toBe(7);
   });
   it("잘라 읽기가 없으면 예전처럼 화면 전체 글자로 읽은 값을 쓴다", () => {
     app.game = "arknights";
