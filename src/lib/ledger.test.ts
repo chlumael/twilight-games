@@ -211,6 +211,15 @@ describe("화면에 적힌 남은 횟수로 천장 맞추기", () => {
     expect(status(r).pity).toBe(47);
     expect(syncPityFromScreen(r, "endfield", "endfield-chartered", 33, 80)).toBe(r);
   });
+  it("6성 기록이 있으면 같은 화면 값을 여러 번 받아도 한 번만 맞추고 더 늘리지 않는다 (0.9.19 PC 실기: 첫 6성 '1216뽑'이 계속 올라감)", () => {
+    // 10회 중 6번째(0부터 5)에 6성 → 그 뒤 4회 쌓임. 화면은 "77회 내 6성"(= 3회 쌓임)
+    let r = recordSession(emptyRecords(), "endfield", "endfield-chartered", 10, new Map([[5, { name: "포그라니치니크", featured: false }]]), t(0));
+    expect(status(r).pity).toBe(4);
+    const first = r.games.endfield.baseline["endfield-chartered"]?.pity ?? 0;
+    for (let i = 0; i < 20; i++) r = syncPityFromScreen(r, "endfield", "endfield-chartered", 77, null);
+    // 6성 뒤의 천장은 기록된 뽑기로 정해져서 기준값으로 맞출 수 없다 → 기준값을 건드리지 않는다
+    expect(r.games.endfield.baseline["endfield-chartered"]?.pity ?? 0).toBe(first);
+  });
   it("말이 안 되는 값은 무시한다", () => {
     const r = emptyRecords();
     expect(syncPityFromScreen(r, "endfield", "endfield-chartered", 530, null)).toBe(r);

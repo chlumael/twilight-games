@@ -31,10 +31,11 @@
      "rect": [
       0.9229,
       0.037,
-      0.0589,
+      0.0625,
       0.0259
      ],
      "kind": "digits",
+     "slashedZero": true,
      "use": {
       "type": "currency",
       "key": "orundum"
@@ -53,6 +54,7 @@
       0.0259
      ],
      "kind": "digits",
+     "slashedZero": true,
      "use": {
       "type": "currency",
       "key": "originite",
@@ -83,6 +85,7 @@
      "id": "orundum",
      "rect": null,
      "kind": "digits",
+     "slashedZero": true,
      "use": {
       "type": "currency",
       "key": "orundum"
@@ -96,6 +99,7 @@
      "id": "exchange",
      "rect": null,
      "kind": "digits",
+     "slashedZero": true,
      "use": {
       "type": "currency",
       "key": "originite",

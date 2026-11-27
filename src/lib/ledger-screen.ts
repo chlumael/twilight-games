@@ -68,10 +68,17 @@ export function syncPityFromScreen(
   const base = baseForBanner(rec, game, groupId, status.banner);
   let changed = false;
   if (toTop !== null && group.hardPity !== null && toTop >= 1 && toTop <= group.hardPity) {
-    const delta = group.hardPity - toTop - status.pity;
+    const target = group.hardPity - toTop;
+    const delta = target - status.pity;
     if (delta !== 0) {
-      base.pity += delta;
-      changed = true;
+      // 기준값을 바꿔서 천장이 정말 화면 값이 될 때만 바꾼다. 그 배너에 최고 등급 기록이 있으면 천장은 그 뒤 기록으로 정해져
+      // 기준값이 소용없다 — 그런데도 고치면 화면을 읽을 때마다 기준값이 계속 쌓였다(0.9.19 PC 실기: 첫 6성 "1216뽑"이 계속 올라감)
+      const trial = structuredClone(rec);
+      trial.baseline[groupId] = { ...base, pity: base.pity + delta };
+      if (groupStatus(trial, game, groupId).pity === target) {
+        base.pity += delta;
+        changed = true;
+      }
     }
   }
   const counter = countersOf(group, status.banner).find((c) => c.untilFeatured && !c.next);

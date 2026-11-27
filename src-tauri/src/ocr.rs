@@ -110,7 +110,29 @@ pub fn read_def(img: &crate::regions::Image, area: (usize, usize, usize, usize),
     if f.kind == "digits" && f.per_glyph == Some(true) {
         return read_digits_per_glyph(img, area, crate::ink::scale_for(area));
     }
-    read_field(img, area, f.kind == "digits", f.spacing.unwrap_or(DEFAULT_SPACING))
+    let text = read_field(img, area, f.kind == "digits", f.spacing.unwrap_or(DEFAULT_SPACING));
+    if f.kind == "digits" && f.slashed_zero == Some(true) {
+        return fix_slashed_zeros(img, area, text);
+    }
+    text
+}
+
+/// 빗금 친 0(Ø) 자리를 0으로 바꾼다(칸 정의 `slashedZero`, 명일방주). 읽은 글자 수(띄어쓰기 빼고)가 글자 덩어리 수와 같을 때만
+/// — 자리를 확실히 맞출 수 있을 때만 고친다(PC 실기 2026-11-27: 171020 → "171022", 170280 → "17028험").
+fn fix_slashed_zeros(img: &crate::regions::Image, area: (usize, usize, usize, usize), text: String) -> String {
+    use crate::glyphs::{glyph_columns, is_slashed_zero};
+    let (px, cw, ch) = prepare_field(img, area, crate::ink::scale_for(area), true);
+    let cols = glyph_columns(&px, cw, ch);
+    let mut chars: Vec<char> = text.chars().filter(|c| !c.is_whitespace()).collect();
+    if chars.len() != cols.len() {
+        return text;
+    }
+    for (i, &(x0, x1)) in cols.iter().enumerate() {
+        if is_slashed_zero(&px, cw, ch, x0, x1) {
+            chars[i] = '0';
+        }
+    }
+    chars.into_iter().collect()
 }
 
 /// 숫자 칸 글자 사이 벌리기 기본값(글자 높이의 0.25배) — PC 시험 2026-11-27: 원신 인연 183·명방 합성옥 170280이 이때 맞음
@@ -148,41 +170,43 @@ fn read_digits_at(img: &crate::regions::Image, area: (usize, usize, usize, usize
     ocr(&sp, sw as i32, sh as i32).map(join_lines).unwrap_or_default()
 }
 
-/// 숫자 칸을 한 글자씩 읽기(칸 정의 `perGlyph`, 림버스 광기): 덩어리마다 위가 열린 "4"면 4,
-/// 아니면 그 덩어리만 세 번 이어 붙여 읽고 두 번 이상 나온 숫자. 한 글자라도 모르면 빈 글자(못 읽음).
+/// 숫자 칸을 덩어리별로 읽기(칸 정의 `perGlyph`, 림버스 광기):
+/// 1) 위가 열린 "4"와 좁은 "1"은 모양으로 정한다(윈도우 글자 인식이 이 글꼴의 4를 못 읽고, 1은 따로 떼면 못 읽음).
+/// 2) 나머지 덩어리만 남긴 그림을 한 번에 읽어(5·8 같은 숫자는 함께 읽으면 잘 읽힌다) 왼쪽부터 자리에 넣는다.
+///    덩어리를 하나씩 세 번 붙여 읽던 방식은 "8"을 어떤 때는 "88B", 어떤 때는 빈칸으로 읽어서 바꿨다(PC 실기 2026-11-27).
+/// 읽은 숫자 개수가 남긴 덩어리 수와 다르면 빈 글자(못 읽음 — 틀린 값을 넣지 않는다).
 fn read_digits_per_glyph(img: &crate::regions::Image, area: (usize, usize, usize, usize), scale: usize) -> String {
     use crate::glyphs::{glyph_columns, is_narrow_one, is_open_four};
-    use crate::ink::repeat_single_glyph;
     let (px, cw, ch) = prepare_field(img, area, scale, true);
     let cols = glyph_columns(&px, cw, ch);
     if cols.is_empty() {
         return String::new();
     }
-    let mut out = String::new();
-    for (x0, x1) in cols {
-        if is_open_four(&px, cw, ch, x0, x1) {
-            out.push('4');
-            continue;
+    let known: Vec<Option<char>> = cols
+        .iter()
+        .map(|&(x0, x1)| if is_open_four(&px, cw, ch, x0, x1) { Some('4') } else if is_narrow_one(&px, cw, ch, x0, x1) { Some('1') } else { None })
+        .collect();
+    let unknown = known.iter().filter(|k| k.is_none()).count();
+    let mut read: Vec<char> = vec![];
+    if unknown > 0 {
+        // 모양으로 정하지 못한 덩어리만 붙여 놓고 그 묶음을 세 번 이어 붙여 읽는다("58" → "58 58 58").
+        // 세 묶음이 모두 같을 때만 인정
+        let rest: Vec<(usize, usize)> = cols.iter().zip(&known).filter(|(_, k)| k.is_none()).map(|(&c, _)| c).collect();
+        let gw = rest.iter().map(|(a, b)| b - a).max().unwrap_or(1);
+        let (g, gw2, gh) = crate::glyphs::compose(&px, cw, ch, &rest, 3, (gw / 4).max(2), gw * 2);
+        let t: String = ocr(&g, gw2 as i32, gh as i32).map(join_lines).unwrap_or_default().chars().filter(|c| !c.is_whitespace()).collect();
+        let cs: Vec<char> = t.chars().collect();
+        if cs.len() != unknown * 3 || !cs.iter().all(|c| c.is_ascii_digit()) {
+            return String::new();
         }
-        // 폭이 높이의 절반도 안 되는 덩어리 = "1"(세 번 붙여도 윈도우 글자 인식이 못 읽었다)
-        if is_narrow_one(&px, cw, ch, x0, x1) {
-            out.push('1');
-            continue;
+        let (a, b, c) = (&cs[..unknown], &cs[unknown..unknown * 2], &cs[unknown * 2..]);
+        if a != b || b != c {
+            return String::new();
         }
-        let mut g = vec![255u8; px.len()];
-        for y in 0..ch {
-            let (a, b) = ((y * cw + x0) * 4, (y * cw + x1) * 4);
-            g[a..b].copy_from_slice(&px[a..b]);
-        }
-        let Some((rp, rw, rh)) = repeat_single_glyph(&g, cw, ch) else { return String::new() };
-        let t = ocr(&rp, rw as i32, rh as i32).map(join_lines).unwrap_or_default();
-        let best = ('0'..='9').map(|d| (t.chars().filter(|&c| c == d).count(), d)).max();
-        match best {
-            Some((n, d)) if n >= 2 => out.push(d),
-            _ => return String::new(),
-        }
+        read = a.to_vec();
     }
-    out
+    let mut it = read.into_iter();
+    known.into_iter().map(|k| k.or_else(|| it.next()).unwrap_or('?')).collect()
 }
 
 /// 글자 인식에 넘길 그림: 자르기(scale배 + 여백) → 흰 바탕·검은 글자 (`digits` = 숫자 칸: 밝기 재는 방식을 칸마다 고름)

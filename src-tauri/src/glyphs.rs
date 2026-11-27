@@ -60,6 +60,66 @@ pub fn is_narrow_one(px: &[u8], w: usize, h: usize, x0: usize, x1: usize) -> boo
     gh >= 8 && (x1 - x0) * 5 < gh * 2
 }
 
+/// 빗금 친 0("Ø", 명일방주 재화 글꼴)인지. 윈도우 글자 인식이 이 0을 "2"로 읽었다(PC 실기 2026-11-27: 171020 → "171022").
+/// 가운데(높이 30~70%) 줄의 60% 이상이 왼쪽 벽·빗금·오른쪽 벽 세 갈래이고, 첫 갈래가 왼쪽 1/4에서, 끝 갈래가 오른쪽 1/4에서 끝난다.
+/// 8은 가운데가 한 줄로 막혀 있고 6·9는 두 갈래라 걸리지 않는다.
+pub fn is_slashed_zero(px: &[u8], w: usize, h: usize, x0: usize, x1: usize) -> bool {
+    let at = |x: usize, y: usize| px[(y * w + x) * 4] < 128;
+    let rows: Vec<usize> = (0..h).filter(|&y| (x0..x1).any(|x| at(x, y))).collect();
+    let (Some(&top), Some(&bot)) = (rows.first(), rows.last()) else { return false };
+    let gh = bot - top + 1;
+    let gw = x1 - x0;
+    if gh < 10 || gw < 6 {
+        return false;
+    }
+    let band: Vec<usize> = (top + gh * 3 / 10..top + gh * 7 / 10).collect();
+    let hits = band
+        .iter()
+        .filter(|&&y| {
+            let mut spans = vec![];
+            let mut x = x0;
+            while x < x1 {
+                if at(x, y) {
+                    let s = x;
+                    while x < x1 && at(x, y) {
+                        x += 1;
+                    }
+                    spans.push((s, x));
+                } else {
+                    x += 1;
+                }
+            }
+            spans.len() == 3 && spans[0].0 < x0 + gw / 4 && spans[2].1 > x1 - gw / 4
+        })
+        .count();
+    hits * 10 >= band.len() * 6
+}
+
+/// 고른 덩어리들(열 범위)만 왼쪽부터 붙여 놓고, 그 묶음을 `times`번 이어 붙인 그림. 덩어리 사이는 `gap`, 묶음 사이는 `group_gap` 열.
+/// 윈도우 글자 인식은 숫자가 한두 개뿐인 그림은 아예 못 읽어서(PC 실기 2026-11-27) 세 번 이어 붙여 읽는다.
+pub fn compose(px: &[u8], w: usize, h: usize, cols: &[(usize, usize)], times: usize, gap: usize, group_gap: usize) -> (Vec<u8>, usize, usize) {
+    let group: usize = cols.iter().map(|(a, b)| b - a).sum::<usize>() + gap * cols.len().saturating_sub(1);
+    let margin = h / 2;
+    let nw = margin * 2 + group * times + group_gap * times.saturating_sub(1);
+    let mut out = vec![255u8; nw * h * 4];
+    let mut x = margin;
+    for t in 0..times {
+        for (i, &(a, b)) in cols.iter().enumerate() {
+            for y in 0..h {
+                out[(y * nw + x) * 4..(y * nw + x + (b - a)) * 4].copy_from_slice(&px[(y * w + a) * 4..(y * w + b) * 4]);
+            }
+            x += b - a;
+            if i + 1 < cols.len() {
+                x += gap;
+            }
+        }
+        if t + 1 < times {
+            x += group_gap;
+        }
+    }
+    (out, nw, h)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,6 +158,22 @@ mod tests {
         assert!(is_narrow_one(&p, w, h, 0, w));
         let (p, w, h) = pic(&["#####"; 10]);
         assert!(!is_narrow_one(&p, w, h, 0, w));
+    }
+
+    #[test]
+    fn arknights_slashed_zero() {
+        // 빗금 친 0: 가운데 줄이 왼쪽 벽·빗금·오른쪽 벽 세 갈래
+        let zero = ["##########", "##......##", "##.....###", "##....#.##", "##...#..##", "##..#...##", "##.#....##", "###.....##", "##......##", "##########"];
+        let (p, w, h) = pic(&zero);
+        assert!(is_slashed_zero(&p, w, h, 0, w));
+        // 8: 가운데가 막힘
+        let eight = ["##########", "##......##", "##......##", "##......##", "##########", "##########", "##......##", "##......##", "##......##", "##########"];
+        let (p, w, h) = pic(&eight);
+        assert!(!is_slashed_zero(&p, w, h, 0, w));
+        // 빗금 없는 0도 아님(두 갈래)
+        let plain = ["##########", "##......##", "##......##", "##......##", "##......##", "##......##", "##......##", "##......##", "##......##", "##########"];
+        let (p, w, h) = pic(&plain);
+        assert!(!is_slashed_zero(&p, w, h, 0, w));
     }
 
 }

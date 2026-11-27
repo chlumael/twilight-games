@@ -119,7 +119,7 @@ fn main() {
         let v: Vec<f64> = r.split(',').map(|s| s.trim().parse().expect("--rect 숫자")).collect();
         let content = content_rect(w, h, Some(16.0 / 9.0));
         let area = rect_px(w, h, content, [v[0], v[1], v[2], v[3]]).expect("위치가 너무 작음");
-        let def = FieldDef { id: "rect".into(), rect: None, kind: if flag("--digits").is_some() { "digits".into() } else { "text".into() }, spacing: None, per_glyph: None };
+        let def = FieldDef { id: "rect".into(), rect: None, kind: if flag("--digits").is_some() { "digits".into() } else { "text".into() }, spacing: None, per_glyph: None, slashed_zero: None };
         println!("[{r}] 픽셀 {area:?} → \"{}\"", read_one(&img, area, out.as_ref(), "rect", &def));
         return;
     }
@@ -180,6 +180,19 @@ fn main() {
                 }
                 let note = if fixed != text { format!(" → 바꿈 표 적용 \"{fixed}\"") } else { String::new() };
                 println!("{:<28} {:<16} \"{text}\"{note}  (높이 {}px, 배율 {})", s.id, f.id, area.3 - area.1, scale_for(area));
+                if flag("--glyphs").is_some() && f.kind == "digits" {
+                    // 글자 덩어리마다 모양(# = 잉크)을 찍어 본다(모양으로 알아보는 규칙을 만들 때)
+                    let (p, cw, ch) = ocr::prepare_field(&img, area, scale_for(area), true);
+                    for (x0, x1) in glyphs::glyph_columns(&p, cw, ch) {
+                        println!("      덩어리 {x0}..{x1}");
+                        for y in (0..ch).step_by(3) {
+                            let row: String = (x0..x1).map(|x| if p[(y * cw + x) * 4] < 128 { '#' } else { '.' }).collect();
+                            if row.contains('#') {
+                                println!("        {row}");
+                            }
+                        }
+                    }
+                }
                 if sweep {
                     // 배율·언어를 바꿔 가며 (어느 조합이 잘 읽히는지 보려고)
                     for lang in ["ko", "ja"] {

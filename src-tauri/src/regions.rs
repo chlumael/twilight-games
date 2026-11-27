@@ -27,6 +27,9 @@ pub struct FieldDef {
     /// 숫자를 한 글자씩 읽기(윈도우 글자 인식이 통째로는 못 읽는 글꼴 — 림버스 광기의 4)
     #[serde(rename = "perGlyph")]
     pub per_glyph: Option<bool>,
+    /// 빗금 친 0(Ø) 자리를 모양으로 0으로 고치기(명일방주 — 윈도우 글자 인식이 2로 읽음)
+    #[serde(rename = "slashedZero")]
+    pub slashed_zero: Option<bool>,
 }
 
 #[derive(Deserialize, Clone, Debug)]

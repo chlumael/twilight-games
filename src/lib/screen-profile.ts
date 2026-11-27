@@ -46,6 +46,8 @@ export interface FieldDef {
   spacing?: number;
   /** PC: 숫자를 한 글자씩 읽기(윈도우 글자 인식이 통째로 못 읽는 글꼴 — 림버스 광기의 4는 모양으로 알아봄) */
   perGlyph?: boolean;
+  /** PC: 빗금 친 0(Ø) 자리를 모양으로 0으로 고치기(명일방주 — 윈도우 글자 인식이 2로 읽음) */
+  slashedZero?: boolean;
   note?: string;
 }
 
