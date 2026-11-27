@@ -1,10 +1,11 @@
 name: banners
 
-# Weekly refresh of data/banners.json. Opens a pull request for review instead
+# Daily refresh of data/banners.json and game images (사용자 2026-11-27: 매주 → 매일, 새 인격·배너 그림이 늦게 들어오지 않게).
+# Opens a pull request for review instead
 # of committing directly, because the sources are community data.
 on:
   schedule:
-    - cron: "17 3 * * 3" # Wednesdays 03:17 UTC (12:17 KST)
+    - cron: "47 4 * * *" # 매일 04:47 UTC (13:47 KST) — 림버스 목요일 12시, 원신·엔드필드 점검 뒤 공지까지 그날 잡히게
   workflow_dispatch:
 
 jobs:
