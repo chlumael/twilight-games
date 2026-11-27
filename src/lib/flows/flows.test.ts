@@ -154,3 +154,31 @@ describe("계정 동기화·친구 공유 (flows/account)", () => {
     expect(flow.syncState).toBe("ok");
   });
 });
+
+describe("림버스: 추출 화면의 이상 N/200으로 기록 (flows/screen, 실기 글자)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { parseFrameText } = await import("../recognize");
+  const { ScreenFlow } = await import("./screen.svelte");
+  const text = readFileSync(new URL("../fixtures/limbus-main-phone2.txt", import.meta.url), "utf8");
+  const frameWith = (n: number) => JSON.stringify(parseFrameText(text.replace("10/200", `${n}/200`)));
+  it("처음엔 기준만(앱 누적을 10으로 맞춤), 이상이 40이 되면 30회 기록, 재화는 안 깎음", () => {
+    app.game = "limbus";
+    app.pack = { schemaVersion: 1, games: { genshin: [], arknights: [], endfield: [], limbus: [{
+      id: "lb-pick", group: "limbus-extraction", name: "pick", start: "2026-11-26T03:00:00.000Z", end: "2026-12-10T01:00:00.000Z", version: null,
+      featured: [{ id: "a", ko: "오트쿠튀르::르루주 B2F 타래둥지 그레고르" }, { id: "b", ko: "오트쿠튀르::르누아르 B3F 건조장 이상" }], featuredRare: [],
+    }] } } as never;
+    app.records.games.limbus.currentBanner["limbus-extraction"] = "lb-pick";
+    app.records.games.limbus.currency = { ticket: 5 };
+    const flow = new ScreenFlow(() => {});
+    flow.onScreenText(frameWith(10));
+    flow.onScreenText(frameWith(10));
+    expect(groupStatus(app.records.games.limbus, "limbus", "limbus-extraction").bannerPulls).toBe(10);
+    expect(app.records.games.limbus.pulls).toHaveLength(0);
+    flow.onScreenText(frameWith(40));
+    flow.onScreenText(frameWith(40));
+    expect(app.records.games.limbus.pulls).toHaveLength(30);
+    expect(groupStatus(app.records.games.limbus, "limbus", "limbus-extraction").bannerPulls).toBe(40);
+    expect(app.records.games.limbus.currency.ticket).toBe(5);
+    expect(app.toast).toContain("30회 자동 기록 (이상 10→40)");
+  });
+});

@@ -9,12 +9,13 @@ import { app } from "../store.svelte";
 import { itemNames } from "../images.svelte";
 import { GAMES, GAME_IDS, findGroup } from "../games";
 import { groupBanners, itemName, matchFeatured } from "../banners";
-import { inferTopFromScreen, recordDetected, recordResult, setCurrency, syncBannerPulls, syncPityFromScreen } from "../ledger";
+import { groupStatus, inferTopFromScreen, recordDetected, recordResult, setCurrency, syncBannerPulls, syncPityFromScreen } from "../ledger";
 import { emptyEngineState, engineStep, type EngineAction, type EngineStatus, type RegionFrame } from "../engine";
 import { PROFILES, resultCountingReady } from "../screen-profile";
 import { newestIds, wishFeatured, wishRows } from "../genshin-wish";
 import { looksLikeGacha, normalizeFrame, readScreen, steadyCounts, type ScreenFrame, type ScreenReading, type SteadyCounts } from "../recognize";
 import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "../detect";
+import { counterStep, emptyCounterState, limbusBannerOnScreen, type CounterState } from "../limbus-counter";
 import { applyLimbusHistory, joinSequence, mergeSequence, parseLimbusHistory, type LimbusRow } from "../limbus-history";
 import { importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow } from "../history";
 import type { GameId, Records } from "../types";
@@ -37,6 +38,7 @@ const HISTORY_KEY = "tg-history";
 const LIMBUS_KEY = "tg-history-limbus";
 const AUTO_KEY = "tg-auto-log";
 const WISH_LAST_KEY = "tg-genshin-wish-last";
+const LIMBUS_COUNTER_KEY = "tg-limbus-counter";
 export const HISTORY_GAMES: GameId[] = ["genshin", "endfield", "arknights"];
 
 export interface AutoEntry { id: string; game: GameId; label: string; pullIds: string[]; uncertain: boolean; time: number }
@@ -88,6 +90,8 @@ export class ScreenFlow {
   private lastHistoryAt = 0;
   private askedManual: GameId | null = null;
   private warnedGapAt = 0;
+  /** 림버스 이상 N/200 (배너별 마지막 값은 저장해 두고 이어서 센다) */
+  private limbusCounter: CounterState = { ...emptyCounterState(), last: readLocal<Record<string, number>>(LIMBUS_COUNTER_KEY, {}) };
 
   /** 원신 5성이 나왔을 때 "기원 기록 불러올까요?" 묻기 (확인 창은 화면 쪽에 있다) */
   constructor(private askGenshinReload: () => void) {}
@@ -155,9 +159,40 @@ export class ScreenFlow {
       const synced = syncPityFromScreen(marked, "endfield", efGroup, r.toTop, r.toFeatured);
       if (synced !== records) app.update(synced);
     }
+    if (r.game === "limbus") this.countLimbus(r);
     this.screenResult = r;
     // 읽은 화면이 다른 게임이면 그 게임으로 바꾼다 (기록은 건드리지 않는다)
     if (r.game !== app.game) app.setGame(r.game);
+  }
+
+  /**
+   * 림버스: 추출 화면의 "이상 N/200"이 오른 만큼 뽑기로 기록한다(사용자 2026-11-27 — 티켓 뽑기도 세고, 다른 배너와 섞이지 않게).
+   * 화면의 배너(종료일·수감자)가 앱의 지금 픽업 배너와 같을 때만. 처음 본 배너는 기준값만 잡고, 앱 누적 횟수가 모자라면 맞춘다.
+   */
+  private countLimbus(r: ScreenReading) {
+    const gid = "limbus-extraction";
+    const current = app.currentBanner("limbus", gid);
+    const onScreen = limbusBannerOnScreen(r, groupBanners(app.pack, "limbus", gid));
+    const banner = onScreen && current && onScreen.id === current.id ? current.id : null;
+    const step = counterStep(this.limbusCounter, banner, r.counter ?? null);
+    this.limbusCounter = step.state;
+    if (step.first === null && !step.add) return;
+    writeLocal(LIMBUS_COUNTER_KEY, step.state.last);
+    if (step.first !== null) {
+      // 앱이 모르던 뽑기가 있으면 누적 횟수만 맞춘다(이상 = 뽑은 수 − 200 × 교환 수)
+      const rec = app.records.games.limbus;
+      const swaps = (rec.exchanges ?? []).filter((e) => e.group === gid && e.banner === current!.id && e.kind !== "free").length;
+      const target = step.first + 200 * swaps;
+      if (groupStatus(rec, "limbus", gid).bannerPulls < target) app.update(syncBannerPulls(app.records, "limbus", gid, target));
+      return;
+    }
+    const next = recordResult(app.records, "limbus", gid, step.add, [], new Date());
+    // 광기·티켓 중 무엇으로 뽑았는지 모르므로 재화는 깎지 않는다(광기는 화면에서 읽은 값으로 따로 맞춰진다)
+    next.games.limbus.currency = { ...app.records.games.limbus.currency };
+    app.update(next);
+    const label = `림버스 픽업 추출 ${step.add}회`;
+    this.addAuto({ id: `lb-${Date.now()}`, game: "limbus", label, pullIds: next.undo.at(-1)?.addedPullIds ?? [], uncertain: false, time: Date.now() });
+    app.notify(`${label} 자동 기록 (이상 ${step.from}→${r.counter}). 이름은 추출 이력에서 채워집니다`);
   }
 
   /**
@@ -192,6 +227,8 @@ export class ScreenFlow {
     this.detectState = out.state;
     // 결과 화면으로 횟수를 세는 게임은 재화 차이로 뽑기를 기록하지 않는다(두 번 세지 않게, DESIGN.md §4.8)
     if (!out.detection || resultCountingReady(out.detection.game)) return;
+    // 림버스는 "이상 N/200"으로 센다(countLimbus) — 광기 감소로 또 세지 않는다
+    if (out.detection.game === "limbus") return;
     // 감지되면 바로 기록한다(사용자 요청 2026-11-25). 확실하지 않은 것은 "확인"에 표시해 취소할 수 있게 한다.
     const d = out.detection;
     // 엔드필드는 화면의 픽업 이름으로 한정/재구축을 알 수 있으면 그 칸에, 아니면 골라 둔 칸에 기록한다

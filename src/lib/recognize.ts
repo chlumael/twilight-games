@@ -36,6 +36,10 @@ export interface ScreenReading {
   toFeatured: number | null;
   /** 그 밖에 화면에 적힌 참고 문구 (예: 명일방주 "잔여 110회 헤드헌팅") */
   notes?: string[];
+  /** 림버스: 이 배너의 "이상 N/200" (뽑을 때마다 1씩 오른다 — 광기·티켓 어느 쪽으로 뽑아도) */
+  counter?: number | null;
+  /** 림버스: 오른쪽에 크게 보이는 픽업 인격의 수감자 이름 (배너 확인용) */
+  sinner?: string | null;
 }
 
 const squash = (s: string) => s.replace(/\s+/g, "");
@@ -132,7 +136,13 @@ function limbus(lines: ScreenLine[]): ScreenReading | null {
       : undefined;
     banner = kindLine ? [kindLine.t.trim(), name?.t.trim()].filter(Boolean).join(" ") : null;
   }
-  return { game: "limbus", kind: "gacha-main", currency, banner, until: until?.t.trim() ?? null, toTop: null, toFeatured: null };
+  // 이상 N/200: "이상 [포행] 10/200 교환"처럼 한 줄로 읽힌다(실기 2026-11-27). 이상·교환 글자가 있는 줄의 "N/200"
+  const ideal = lines.map((l) => (/이상|교환/.test(l.t) ? l.t.match(/(\d{1,3})\s*\/\s*200\b/) : null)).find(Boolean);
+  const counter = ideal && Number(ideal[1]) <= 200 ? Number(ideal[1]) : null;
+  // 오른쪽 픽업 인격 칸의 큰 수감자 이름(실기: x 0.75, y 0.51 "그레고르")
+  const SINNERS = ["이상", "파우스트", "돈키호테", "료슈", "뫼르소", "홍루", "히스클리프", "이스마엘", "로쟈", "싱클레어", "오티스", "그레고르"];
+  const sinner = lines.filter((l) => l.x > 0.6 && l.y > 0.35 && l.y < 0.65).map((l) => squash(l.t)).find((t) => SINNERS.includes(t)) ?? null;
+  return { game: "limbus", kind: "gacha-main", currency, banner, until: until?.t.trim() ?? null, toTop: null, toFeatured: null, counter, sinner };
 }
 
 /** 한 줄 안의 숫자들을 위치와 함께 꺼낸다. 숫자 바로 뒤에 "+"가 있으면 plus=true (원신 원석의 충전 버튼). */

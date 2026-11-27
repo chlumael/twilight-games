@@ -56,6 +56,7 @@ describe("화면 읽기", () => {
       banner: "특정 추출 그레고르",
       until: "2023.03.09 06:00 까지",
       toTop: null, toFeatured: null,
+      counter: null, sinner: "그레고르",
     });
   });
 
@@ -145,6 +146,12 @@ describe("화면 읽기", () => {
   it("실기: 림버스 발푸르기스 메인 — 광기, 회차(로마 숫자)로 배너", () => {
     expect(readScreen(phone("limbus-main-phone"))).toMatchObject({
       game: "limbus", currency: { lunacy: 598 }, banner: "제10회 발푸르기스의 밤 특정 추출", until: null,
+    });
+  });
+
+  it("실기(2026-11-27): 림버스 픽업 메인 — 광기, 이상 N/200, 종료일, 오른쪽 수감자", () => {
+    expect(readScreen(phone("limbus-main-phone2"))).toMatchObject({
+      game: "limbus", currency: { lunacy: 58414 }, counter: 10, sinner: "그레고르", until: "2026.12.10 10:00 [KST] 까지",
     });
   });
 
