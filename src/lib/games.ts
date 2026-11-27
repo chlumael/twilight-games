@@ -239,7 +239,7 @@ export const GAMES: Record<GameId, GameDef> = {
       },
     ],
     // Unconfirmed: the PC client's executable name must be verified.
-    processNames: ["Arknights.exe"],
+    processNames: ["Arknights.exe"], // 공식 PC 클라이언트(사용자 2026-11-27). 실행 파일 이름은 추정 — 실제 이름 확인 대기
   },
   endfield: {
     id: "endfield",
