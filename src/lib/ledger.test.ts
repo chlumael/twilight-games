@@ -138,6 +138,20 @@ describe("history", () => {
     // 픽업까지: 74뽑 픽뚫 + 16뽑 픽업 = 90 (사용자 2026-11-27)
     expect(topHistory(r.games.genshin, "genshin-char").map((h) => h.toFeatured)).toEqual([null, 90]);
   });
+  it("픽업까지 가는 길: 그 사이 최고 등급과 처음부터 센 위치 (사용자 2026-11-28 예: 포그라니치니크 52 → 사 58 → 아델리아 80 → 케르 120)", () => {
+    let r = emptyRecords();
+    // 52·6·22·40뽑에 6성(앞의 셋은 픽뚫, 마지막이 픽업) — 10회씩 기록
+    const tops: [number, string, boolean][] = [[52, "포그라니치니크", false], [58, "사", false], [80, "아델리아", false], [120, "케르", true]];
+    for (let s = 0; s < 12; s++) {
+      const map = new Map(tops.filter(([at]) => Math.floor((at - 1) / 10) === s).map(([at, name, featured]) => [(at - 1) % 10, { name, featured }]));
+      r = recordSession(r, "endfield", "endfield-chartered", 10, map, t(s));
+    }
+    const hits = topHistory(r.games.endfield, "endfield-chartered");
+    expect(hits.map((h) => h.count)).toEqual([52, 6, 22, 40]);
+    expect(hits[3].toFeatured).toBe(120);
+    expect(hits[3].path?.map((s) => [s.name, s.at])).toEqual([["포그라니치니크", 52], ["사", 58], ["아델리아", 80], ["케르", 120]]);
+    expect(hits[0].path).toBeNull(); // 픽뚫에는 없음
+  });
   it("픽업까지 횟수: 바로 픽업이면 그 횟수, 픽업인지 모르는 기록이 끼면 모름, 시작이 확정 상태면 모름", () => {
     let r = emptyRecords();
     r = recordSession(r, "genshin", "genshin-char", 10, new Map([[4, { name: "A", featured: true }]]), t(0));

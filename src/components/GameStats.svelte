@@ -3,7 +3,7 @@
   import { GAMES } from "../lib/games";
   import { gameStats, luckLabel } from "../lib/stats";
   import type { GameId, GameRecord } from "../lib/types";
-  import { hitLabel, pullBatches } from "../lib/ledger";
+  import { hitLabel, pathText, pullBatches } from "../lib/ledger";
 
   // 게임 하나의 자세한 통계 (전체 통계 화면 StatsPanel에서 "자세히"로 펼친다)
   let { game, record, bannerName, onRemove, onReset }: {
@@ -61,11 +61,12 @@
           <div class="hits">
             {#each [...g.hits].reverse().slice(0, 12) as h (h.pull.id)}
               <div class="hit" class:lost={h.pull.featured === false}>
-                <span class="count">{h.count}뽑</span>{#if h.toFeatured !== null && h.toFeatured !== h.count}<span class="muted">픽업까지 {h.toFeatured}뽑</span>{/if}
+                <span class="count">{h.count}뽑</span>
                 <span class="name"><Portrait {game} name={h.pull.name} size={22} featured={h.pull.featured} />{h.pull.name ?? "이름 미입력"}</span>
                 {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
                 <span class="when">{day(h.pull.time)}</span>
               </div>
+              {#if pathText(h)}<div class="path">{pathText(h)}</div>{/if}
             {/each}
           </div>
         {/if}
@@ -129,6 +130,7 @@
   .rows > div { display: flex; justify-content: space-between; gap: 8px; }
   .rows b { color: var(--text); }
   .hits { display: flex; flex-direction: column; gap: 3px; }
+  .path { margin: -2px 0 2px 8px; font-size: 11px; color: var(--muted); line-height: 1.4; }
   .hit { display: grid; grid-template-columns: auto auto 1fr auto auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 12%, transparent); }
   .hit.lost { background: color-mix(in srgb, var(--muted) 14%, transparent); }
   .count { font-weight: 700; color: var(--top); text-align: right; white-space: nowrap; }

@@ -224,6 +224,11 @@ export interface TopHit {
    */
   toFeatured: number | null;
   /**
+   * 픽업이면: 직전 픽업 이후 이 픽업을 뽑기까지 나온 최고 등급들과, 처음부터 센 몇 번째 뽑기에 나왔는지(사용자 2026-11-28).
+   * 예) 포그라니치니크 52 → 사 58 → 아델리아 80 → 케르 120(천장). 마지막이 이 픽업. toFeatured를 모르면 null
+   */
+  path: { name: string | null; at: number; ceiling: "half" | "full" | null }[] | null;
+  /**
    * 천장으로 얻었는지 (사용자 2026-11-26). half = 반천(확률 상승 구간~최고 등급 확정 천장에서 나옴),
    * full = 확천(픽업 확정 천장: 엔드필드 120회·무기 80개, 원신은 확정 상태에서 천장). 천장이 아니면 null
    */
@@ -235,6 +240,13 @@ export function hitLabel(h: TopHit): string {
   const a = h.pull.featured === true ? "픽업" : h.pull.featured === false ? "픽뚫" : "";
   const b = h.ceiling === "full" ? "확천" : h.ceiling === "half" ? "반천" : "";
   return [a, b].filter(Boolean).join("/");
+}
+
+/** 표시용: "포그라니치니크 52 → 사 58 → 아델리아 80 → 케르 120 확천". 픽업 앞에 픽뚫이 없으면(바로 픽업) null */
+export function pathText(h: TopHit, topLabel = "최고 등급"): string | null {
+  if (!h.path || h.path.length < 2) return null;
+  const mark = (c: TopHit["ceiling"]) => (c === "full" ? " 확천" : c === "half" ? " 반천" : "");
+  return h.path.map((s) => `${s.name ?? topLabel} ${s.at}${mark(s.ceiling)}`).join(" → ");
 }
 
 /** Every top pull in a group with the number of pulls it took, oldest first. */
@@ -252,6 +264,8 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
   let seen = 0; // 직전 최고 등급 이후 기록된 뽑기 수
   // 직전 픽업 이후 픽뚫에 쓴 뽑기 수(픽업인지 모르는 것이 끼면 null). 시작 상태가 '확정'이면 그 전 픽뚫 횟수를 모른다
   let lost: number | null = base.guaranteed ? null : 0;
+  // 직전 픽업 이후 나온 픽뚫들(이름·처음부터 센 위치). lost와 같이 모르면 null
+  let chain: NonNullable<TopHit["path"]> | null = base.guaranteed ? null : [];
   let state: FeaturedState = { guaranteed: base.guaranteed, losses: 0, radiant: false };
   const onBanner = new Map<string, number>(base.banner ? [[base.banner, base.bannerPulls]] : []);
   const hits: TopHit[] = [];
@@ -260,6 +274,7 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       since = p.banner === base.banner ? base.pity : 0;
       lastBanner = p.banner;
       lost = 0;
+      chain = [];
     }
     since++;
     seen++;
@@ -286,7 +301,11 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       // 기준값이 음수라(화면 값에 맞추느라 뺀 뒤 기록을 지운 경우) 횟수가 0 이하로 나오면, 기록된 뽑기 수로 센다
       const count = up(since > 0 ? since : seen);
       const toFeatured = p.featured === true && lost !== null ? lost + count : null;
-      hits.push({ pull: p, count, at: up(n), ceiling, toFeatured });
+      // 픽업을 노리는 동안 나온 최고 등급들(처음부터 센 위치)
+      const step = lost !== null ? { name: p.name, at: lost + count, ceiling } : null;
+      const path = p.featured === true && step && chain ? [...chain, step] : null;
+      hits.push({ pull: p, count, at: up(n), ceiling, toFeatured, path });
+      chain = p.featured === true ? [] : p.featured === false && chain && step ? [...chain, step] : null;
       lost = p.featured === true ? 0 : p.featured === false && lost !== null ? lost + count : null;
       since = 0;
       seen = 0;

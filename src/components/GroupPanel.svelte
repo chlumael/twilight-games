@@ -1,7 +1,7 @@
 <script lang="ts">
   import Portrait from "./Portrait.svelte";
   import { activeBanners, bannerLabel, bannerState, daysLeft, itemName, type PackBanner, type PoolEntry } from "../lib/banners";
-  import { hitLabel, type GroupStatus, type TopHit } from "../lib/ledger";
+  import { hitLabel, pathText, type GroupStatus, type TopHit } from "../lib/ledger";
   import type { Exchange, GameId, Pull } from "../lib/types";
   import BannerDetail from "./BannerDetail.svelte";
   import PityBar from "./PityBar.svelte";
@@ -302,9 +302,10 @@
         <span class="count">{h.count}<small>뽑</small></span>
         <Portrait {game} name={h.pull.name} size={30} featured={h.pull.featured} />
         <span class="name">{h.pull.name ?? `${topLabel} (이름 미입력)`}</span>
-        {#if h.toFeatured !== null && h.toFeatured !== h.count}<span class="took">픽업까지 {h.toFeatured}뽑</span>{/if}
         {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
       </button>
+      <!-- 픽업이면 그 픽업을 뽑기까지 나온 최고 등급과 처음부터 센 위치(사용자 2026-11-28) -->
+      {#if pathText(h, topLabel)}<div class="path">{pathText(h, topLabel)}</div>{/if}
       {#if editId === h.pull.id}
         <form class="add edit" novalidate onsubmit={(e) => { e.preventDefault(); saveEdit(h); }}>
           <div class="aline">
@@ -412,7 +413,7 @@
   .count { white-space: nowrap; }
   .count.txt { font-family: inherit; font-size: 13px; }
   .count small { font-size: 10px; font-weight: 500; margin-left: 1px; color: var(--muted); }
-  .took { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .path { margin: -2px 0 2px 11px; font-size: 11px; color: var(--muted); line-height: 1.4; }
   .name { flex: 1; min-width: 0; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .badge { flex: none; white-space: nowrap; font-size: 10px; padding: 2px 6px; border-radius: var(--btn-radius); background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
   .badge.win { background: var(--top); color: #1a1408; font-weight: 700; }
