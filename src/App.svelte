@@ -735,7 +735,9 @@
     const what = name || def.topLabel;
     if (out.mode === "added" || out.mode === "marked") {
       update(out.records);
-      notify(`배너 ${n}번째 ${what} 기록`);
+      // 무기고처럼 10회씩 뽑는 곳은 37 → 40번째(그 10회 묶음의 끝)로 기록된다
+      const at = Math.ceil(n / status.unit) * status.unit;
+      notify(at === n ? `배너 ${n}번째 ${what} 기록` : `${n} → ${at}번째(10회 묶음 단위)로 ${what} 기록`);
     } else if (out.mode === "too-far") {
       notify(`지금 기록(${status.bannerPulls}번째)에서 너무 멉니다. 그 사이에 나온 ${def.topLabel}부터 순서대로 넣어 주세요`);
     } else if (out.mode === "before") {

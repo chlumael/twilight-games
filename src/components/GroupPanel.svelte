@@ -229,11 +229,11 @@
 
 {#if onTopAt}
   {#if adding}
-    <form class="add" onsubmit={(e) => { e.preventDefault(); saveAdd(); }}>
+    <form class="add" novalidate onsubmit={(e) => { e.preventDefault(); saveAdd(); }}>
       <div class="aline">
         {#if !byExchange && !byFree}
           <span>배너</span>
-          <input class="n" type="number" inputmode="numeric" min="1" step={step} placeholder={String(status.bannerPulls + step)} bind:value={addN} aria-label="이 배너에서 몇 번째" />
+          <input class="n" type="number" inputmode="numeric" min={step} step={step} placeholder={String(status.bannerPulls + step)} bind:value={addN} aria-label="이 배너에서 몇 번째" />
           <span>번째</span>
         {/if}
         {#if canExchange}<label class="exch"><input type="checkbox" bind:checked={byExchange} />교환</label>{/if}
@@ -298,11 +298,11 @@
         {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
       </button>
       {#if editId === h.pull.id}
-        <form class="add edit" onsubmit={(e) => { e.preventDefault(); saveEdit(h); }}>
+        <form class="add edit" novalidate onsubmit={(e) => { e.preventDefault(); saveEdit(h); }}>
           <div class="aline">
             {#if h.pull.banner === status.banner}
               <span>배너</span>
-              <input class="n" type="number" inputmode="numeric" min="1" step={step} bind:value={editN} aria-label="몇 번째" />
+              <input class="n" type="number" inputmode="numeric" min={step} step={step} bind:value={editN} aria-label="몇 번째" />
               <span>번째</span>
             {/if}
             <span class="seg3">
