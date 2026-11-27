@@ -53,6 +53,8 @@ const FAST: Duration = Duration::from_millis(600);
 const FAST_WINDOW: Duration = Duration::from_secs(20);
 /// 반복 간격. 새 방식의 화면 판단(작은 부분 모양 비교)은 이 간격마다 한다(글자 인식은 판단된 화면의 칸만).
 const PROBE: Duration = Duration::from_millis(250);
+/// 잘라 읽기가 가챠 화면을 알아본 동안의 쉬는 시간
+const REGION_FAST: Duration = Duration::from_millis(100);
 // 윈도우 글자 인식은 "헤드헌팅"을 "해드현팅"처럼 읽기도 해서 조각 낱말도 넣는다.
 const GACHA_WORDS: [&str; 10] = ["헤드헌팅", "헌팅", "현팅", "해드", "기원", "추출", "진행", "LUNACY", "UID", "획득결과"];
 
@@ -68,6 +70,38 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, profiles: State
     }
     let flag = state.0.clone();
     let profiles = profiles.0.clone();
+    // 잘라 읽기(새 방식)와 화면 전체 글자 읽기(예전 방식)를 따로 돌린다.
+    // 한 줄로 번갈아 하면 잘라 읽기가 화면 전체 읽기(0.2~0.35초)와 쉬는 시간을 기다려 한 바퀴 0.8초쯤 걸렸고,
+    // 값을 2~3번 연속 같게 읽어야 믿으니 재화가 바뀌기까지 2~3초 걸렸다(사용자 PC 실기 2026-11-27: "읽는 속도가 느림").
+    // 가챠 화면을 마지막으로 본 때(1970년부터 ms) — 두 반복이 함께 쓴다
+    let last_gacha = Arc::new(std::sync::atomic::AtomicU64::new(0));
+    {
+        let (flag, app, last_gacha) = (flag.clone(), app.clone(), last_gacha.clone());
+        std::thread::spawn(move || {
+            while flag.load(Ordering::SeqCst) {
+                // 새 방식(정해진 위치만 잘라 읽기): 판단 가능한 화면이 있을 때만
+                let snapshot = profiles.lock().map(|p| p.clone()).unwrap_or_default();
+                let mut matched = false;
+                if crate::regions::any_ready(&snapshot) {
+                    match imp::read_regions(&snapshot) {
+                        Ok(Some(frame)) => {
+                            if frame.screen.is_some() {
+                                matched = true;
+                                last_gacha.store(now_ms(), Ordering::SeqCst);
+                            }
+                            let _ = app.emit("screen-regions", frame);
+                        }
+                        Ok(None) => {}
+                        Err(e) => {
+                            let _ = app.emit("screen-state", serde_json::json!({ "state": "warn", "message": e }));
+                        }
+                    }
+                }
+                // 가챠 화면이 보이는 동안은 거의 쉬지 않고 다시 읽는다(칸 글자 인식만이라 한 번에 0.1~0.3초)
+                std::thread::sleep(if matched { REGION_FAST } else { PROBE });
+            }
+        });
+    }
     std::thread::spawn(move || {
         if let Err(e) = imp::prepare(&app) {
             flag.store(false, Ordering::SeqCst);
@@ -75,36 +109,12 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, profiles: State
             return;
         }
         let _ = app.emit("screen-state", serde_json::json!({ "state": "started", "message": "" }));
-        let mut last_gacha = std::time::Instant::now() - FAST_WINDOW;
-        // 화면 전체 글자 읽기(예전 방식)를 마지막으로 한 때. 잘라 읽기(새 방식)는 0.25초마다 판단만 해서 결과 화면을 놓치지 않게 한다
-        let mut last_full = std::time::Instant::now() - SLOW;
         while flag.load(Ordering::SeqCst) {
-            // 새 방식(정해진 위치만 잘라 읽기): 판단 가능한 화면이 있을 때만
-            let snapshot = profiles.lock().map(|p| p.clone()).unwrap_or_default();
-            if crate::regions::any_ready(&snapshot) {
-                match imp::read_regions(&snapshot) {
-                    Ok(Some(frame)) => {
-                        if frame.screen.is_some() {
-                            last_gacha = std::time::Instant::now();
-                        }
-                        let _ = app.emit("screen-regions", frame);
-                    }
-                    Ok(None) => {}
-                    Err(e) => {
-                        let _ = app.emit("screen-state", serde_json::json!({ "state": "warn", "message": e }));
-                    }
-                }
-            }
-            let interval = if last_gacha.elapsed() < FAST_WINDOW { FAST } else { SLOW };
-            if last_full.elapsed() < interval {
-                std::thread::sleep(PROBE);
-                continue;
-            }
-            last_full = std::time::Instant::now();
+            let started = std::time::Instant::now();
             match imp::read_once() {
                 Ok(Some(frame)) => {
                     if frame.lines.iter().any(|l| { let t = l.t.replace(' ', ""); GACHA_WORDS.iter().any(|w| t.contains(w)) }) {
-                        last_gacha = std::time::Instant::now();
+                        last_gacha.store(now_ms(), Ordering::SeqCst);
                     }
                     let _ = app.emit("screen-text", frame);
                 }
@@ -115,10 +125,16 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, profiles: State
                     return;
                 }
             }
-            std::thread::sleep(PROBE);
+            let recent = now_ms().saturating_sub(last_gacha.load(Ordering::SeqCst)) < FAST_WINDOW.as_millis() as u64;
+            let interval = if recent { FAST } else { SLOW };
+            std::thread::sleep(interval.saturating_sub(started.elapsed()).max(PROBE));
         }
     });
     Ok(())
+}
+
+fn now_ms() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0)
 }
 
 /// 화면 공유(디스코드 등)에 우리 창이 보이게 할지 (사용자 2026-11-27: 디스코드 화면 공유에 창이 안 나옴).

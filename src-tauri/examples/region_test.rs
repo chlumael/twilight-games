@@ -131,8 +131,9 @@ fn main() {
         let big = image::imageops::resize(&image::RgbaImage::from_raw(w as u32, h as u32, rgba).expect("그림"), (w * 3 / 2) as u32, (h * 3 / 2) as u32, image::imageops::FilterType::Triangle);
         let big_bgra: Vec<u8> = big.as_raw().chunks(4).flat_map(|p| [p[2], p[1], p[0], 255]).collect();
         for (name, buf, bw, bh) in [("1배", px.clone(), w, h), ("1.5배", big_bgra, w * 3 / 2, h * 3 / 2)] {
+            let started = std::time::Instant::now();
             let lines = ocr::ocr(&buf, bw as i32, bh as i32).unwrap_or_default();
-            println!("\n== 화면 전체 {name} ==");
+            println!("\n== 화면 전체 {name} ({}ms) ==", started.elapsed().as_millis());
             // src/lib/fixtures/*.txt 와 같은 형식("x,y wxh 글자")
             for l in lines {
                 println!("{:.2},{:.2} {:.2}x{:.2} {}", l.x, l.y, l.w, l.h, l.t);
@@ -173,7 +174,11 @@ fn main() {
             for f in &s.fields {
                 let Some(area) = f.rect.and_then(|r| rect_px(w, h, content, r)) else { continue };
                 let name = format!("{}__{}", s.id, f.id);
+                let started = std::time::Instant::now();
                 let text = read_one(&img, area, out.as_ref(), &name, f);
+                if flag("--time").is_some() {
+                    println!("      걸린 시간 {}ms", started.elapsed().as_millis());
+                }
                 let mut fixed = text.clone();
                 for (from, to) in fixes.get(&p.game).into_iter().flatten() {
                     fixed = fixed.replace(from.as_str(), to.as_str());
