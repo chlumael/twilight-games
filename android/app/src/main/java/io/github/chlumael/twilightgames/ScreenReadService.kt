@@ -146,12 +146,22 @@ class ScreenReadService : Service() {
     /** 마지막으로 게임 가챠 화면(또는 공개 화면)으로 보이는 글자를 본 시각 */
     private var lastGachaSeen = 0L
 
+    /** 마지막으로 뽑는 중인 화면(확인 창·재추출·결과)을 본 시각 */
+    private var lastPullSeen = 0L
+
     /**
-     * 읽는 간격: 가챠 화면이 보이면 그 뒤 잠시 동안은 빠르게(1초), 아니면 천천히(2.5초).
-     * 연출을 빠르게 넘겨도 덜 놓치고, 다른 화면에서는 배터리를 아낀다(사용자 선택 2026-11-25).
+     * 읽는 간격: 뽑는 중(확인 창·재추출·결과 화면)이면 0.3초(사실상 글자 인식이 끝나는 대로 바로),
+     * 가챠 화면이 보이면 그 뒤 잠시 동안은 1초, 아니면 2.5초.
+     * 확인 창을 띄우자마자 눌러도 덜 놓치게(사용자 2026-11-27: 뽑을 때만 잠깐 쓰니 배터리·발열은 괜찮음).
      */
-    private fun interval(): Long =
-        if (System.currentTimeMillis() - lastGachaSeen < FAST_WINDOW_MS) FAST_INTERVAL_MS else INTERVAL_MS
+    private fun interval(): Long {
+        val now = System.currentTimeMillis()
+        return when {
+            now - lastPullSeen < BURST_WINDOW_MS -> BURST_INTERVAL_MS
+            now - lastGachaSeen < FAST_WINDOW_MS -> FAST_INTERVAL_MS
+            else -> INTERVAL_MS
+        }
+    }
 
     private val tick = object : Runnable {
         override fun run() {
@@ -202,6 +212,7 @@ class ScreenReadService : Service() {
                     )
                 }
                 if (text.text.contains(GACHA_WORDS)) lastGachaSeen = System.currentTimeMillis()
+                if (text.text.contains(PULL_WORDS)) lastPullSeen = System.currentTimeMillis()
                 val payload = JSONObject()
                     .put("time", System.currentTimeMillis())
                     .put("landscape", w > h)
@@ -246,6 +257,14 @@ class ScreenReadService : Service() {
         private const val INTERVAL_MS = 2500L
         private const val FAST_INTERVAL_MS = 1000L
         private const val FAST_WINDOW_MS = 20_000L
+        private const val BURST_INTERVAL_MS = 300L
+        private const val BURST_WINDOW_MS = 15_000L
+        /**
+         * 뽑는 중에만 보이는 글자(모두 실제 화면에서 읽힌 글자, src/lib/fixtures):
+         * 림버스 추출 버튼·확인 창("소비하여", "추출 진행")·결과("재추출"), 원신 "기원 1회/10회",
+         * 명일방주 "1회/10회 진행", 엔드필드 "1회/10회 헤드헌팅"(실기에서 "해드현팅"으로 읽힘).
+         */
+        private val PULL_WORDS = Regex("소비\\s*하여|추출\\s*진행|재추출|1?0?회\\s*추출|기원\\s*1?0?회|1?0?회\\s*진행|1?0?회\\s*[해헤]드[현헌]팅")
         /** 네 게임의 가챠 메인·뽑기 화면에 나오는 글자 (원신 공개 화면은 UID가 늘 보인다) */
         private val GACHA_WORDS = Regex("헤드헌팅|기원|추출|회\\s*진행|LUNACY|UID|획득\\s*결과", RegexOption.IGNORE_CASE)
         private const val FIRST_DELAY_MS = 800L
