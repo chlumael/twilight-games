@@ -25,7 +25,7 @@
   import { SKINS, skinStyle } from "./lib/themes";
   import * as sync from "./lib/sync";
   import { bannerLabel, bannerPool, groupBanners, itemName, matchFeatured } from "./lib/banners";
-  import { currencyIcon } from "./lib/icons";
+  import { gameIcon } from "./lib/icons";
   import { pickDetectedGame, type Settings } from "./lib/settings";
   import type { GameId } from "./lib/types";
   import { app } from "./lib/store.svelte";
@@ -49,7 +49,6 @@
     { id: "friends", label: "친구", icon: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20c.5-3.5 3.2-6 6.5-6s6 2.5 6.5 6M16 4.3a3.5 3.5 0 0 1 0 6.4M18.5 14.4c1.7.9 2.8 2.9 3 5.6" },
     { id: "settings", label: "설정", icon: "M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4" },
   ] as const;
-  const GAME_ICON: Record<GameId, string> = { genshin: "intertwined", arknights: "orundum", endfield: "oroberyl", limbus: "lunacy" };
 
   // ── 화면 상태 ──
   let collapsed = $state(!web);
@@ -285,7 +284,7 @@
     {#if web && !WHOLE_VIEWS.includes(view)}
       <nav class="games" aria-label="게임 선택" style:grid-template-columns="repeat({myGames.length}, 1fr)">
         {#each myGames as id (id)}
-          {@const ic = currencyIcon(id, GAME_ICON[id])}
+          {@const ic = gameIcon(id)}
           <button class:active={id === game} onclick={() => switchGame(id)}>
             {#if ic}<img src={ic} alt="" />{/if}<span>{GAMES[id].shortName}</span>
           </button>
@@ -443,7 +442,7 @@
     border: 1px solid transparent; background: transparent; color: inherit; font-size: 11px; opacity: 0.65;
   }
   .games button.active { opacity: 1; border-color: var(--line); background: var(--panel); font-weight: 700; }
-  .games img { width: 24px; height: 24px; object-fit: contain; }
+  .games img { width: 28px; height: 28px; border-radius: 7px; object-fit: contain; }
   main.web :global(input), main.web :global(select) { font-size: 16px; } /* no zoom-on-focus */
   .launch { font-size: 12px; font-weight: 700; white-space: nowrap; }
 

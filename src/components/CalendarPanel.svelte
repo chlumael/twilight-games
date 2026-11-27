@@ -10,7 +10,7 @@
   } from "../lib/calendar";
   import type { BannerPack } from "../lib/banners";
   import { GAME_IDS, GAMES } from "../lib/games";
-  import { currencyIcon } from "../lib/icons";
+  import { gameIcon } from "../lib/icons";
   import type { GameId } from "../lib/types";
 
   let { pack, mine = [], game, gameList = GAME_IDS, onMine, onClose }: {
@@ -24,8 +24,7 @@
     onClose: () => void;
   } = $props();
 
-  const GAME_ICON: Record<GameId, string> = { genshin: "intertwined", arknights: "orundum", endfield: "oroberyl", limbus: "lunacy" };
-  const icon = (g: GameId | null) => (g ? currencyIcon(g, GAME_ICON[g]) : undefined);
+  const icon = (g: GameId | null) => (g ? gameIcon(g) : undefined);
   /** 종류 고르기 (픽업·복각은 한 묶음) */
   const KINDS: { k: CalKind; label: string }[] = [
     { k: "pickup", label: "픽업" }, { k: "event", label: "이벤트" }, { k: "version", label: "업데이트" },

@@ -3,7 +3,7 @@
   // 위: 게임별 요약 한 줄씩, 아래: 게임마다 종류별 표. 게임별 자세한 내용(최고 등급 목록·배너별·기록 정리)은 "자세히"로 펼친다.
   import { untrack } from "svelte";
   import { GAMES } from "../lib/games";
-  import { currencyIcon } from "../lib/icons";
+  import { gameIcon } from "../lib/icons";
   import { gameStats, luckLabel } from "../lib/stats";
   import type { GameId, Records } from "../lib/types";
   import GameStats from "./GameStats.svelte";
@@ -19,7 +19,6 @@
     onReset?: (game: GameId, groupId: string) => void;
   } = $props();
 
-  const GAME_ICON: Record<GameId, string> = { genshin: "intertwined", arknights: "orundum", endfield: "oroberyl", limbus: "lunacy" };
   const all = $derived(games.map((g) => ({ g, s: gameStats(records.games[g], g) })));
   const used = $derived(all.filter((x) => x.s.pulls > 0));
   let open = $state<GameId | null>(untrack(() => game));
@@ -40,7 +39,7 @@
     <div class="sum card">
       {#each all as { g, s } (g)}
         <div class="srow" class:none={!s.pulls}>
-          {#if currencyIcon(g, GAME_ICON[g])}<img src={currencyIcon(g, GAME_ICON[g])} alt="" />{/if}
+          {#if gameIcon(g)}<img src={gameIcon(g)} alt="" />{/if}
           <span class="gname">{GAMES[g].shortName}</span>
           {#if s.pulls}
             <span class="v"><b>{s.pulls.toLocaleString()}</b>회</span>
@@ -58,7 +57,7 @@
       {@const def = GAMES[g]}
       <div class="game card">
         <div class="ghead">
-          {#if currencyIcon(g, GAME_ICON[g])}<img src={currencyIcon(g, GAME_ICON[g])} alt="" />{/if}
+          {#if gameIcon(g)}<img src={gameIcon(g)} alt="" />{/if}
           <b>{def.name}</b>
           {#if s.spent}<span class="muted spent">{s.spent.label} {Math.round(s.spent.amount).toLocaleString()} 사용</span>{/if}
           {#if s.firstPull && s.lastPull}<span class="muted when">{s.firstPull.slice(5, 10).replace("-", "/")} ~ {s.lastPull.slice(5, 10).replace("-", "/")}</span>{/if}

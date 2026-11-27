@@ -12,3 +12,8 @@ const PREFIX = { genshin: "gen", arknights: "ak", endfield: "ef", limbus: "lb" }
 export function currencyIcon(game: keyof typeof PREFIX, key: string): string | undefined {
   return byName[`${PREFIX[game]}_${key}`];
 }
+
+/** 게임 앱 아이콘(공식 앱 스토어 아이콘, 사용자 허용 2026-11-27). 게임을 나타내는 자리(게임 줄·달력·통계·친구)에 쓴다 */
+export function gameIcon(game: keyof typeof PREFIX): string | undefined {
+  return byName[`game_${game}`];
+}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import { GAMES, GAME_IDS } from "../lib/games";
+  import { gameIcon } from "../lib/icons";
   import { emptyBaseline } from "../lib/ledger";
   import { android, androidMode, inTauri, installPcUpdate, listProcesses, openPcDownload, pcVersion } from "../lib/api";
   import { isNewer, latestRelease } from "../lib/version";
@@ -105,7 +106,7 @@
           const cur = shownGames(settings);
           const next = on ? cur.filter((g) => g !== id) : [...cur, id];
           if (next.length) onSettings({ ...settings, myGames: next });
-        }} aria-pressed={on}>{GAMES[id].shortName}</button>
+        }} aria-pressed={on}>{#if gameIcon(id)}<img class="gi" src={gameIcon(id)} alt="" />{/if}{GAMES[id].shortName}</button>
       {/each}
     </div>
     <p class="muted hint">고른 게임만 위쪽 줄과 달력에 보입니다</p>
@@ -307,7 +308,8 @@
   .privacy { width: 100%; height: 60vh; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
   .danger { color: #ff8a7a; font-size: 12px; align-self: flex-start; }
   .mygames { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { font-size: 12px; padding: 4px 12px; border-radius: 999px; opacity: 0.5; }
+  .chip { font-size: 12px; padding: 4px 12px; border-radius: 999px; opacity: 0.5; display: inline-flex; align-items: center; gap: 5px; }
+  .chip .gi { width: 18px; height: 18px; border-radius: 5px; margin-left: -6px; }
   .chip.on { opacity: 1; font-weight: 700; border-color: var(--top); }
   .small { font-size: 11px; }
   .base { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; padding: 6px; background: var(--panel); border-radius: 6px; }

@@ -4,7 +4,7 @@
   import { untrack } from "svelte";
   import Portrait from "./Portrait.svelte";
   import { GAMES } from "../lib/games";
-  import { currencyIcon } from "../lib/icons";
+  import { gameIcon } from "../lib/icons";
   import { luckText, poolStats, ranking, type RankRow, type ShareSummary } from "../lib/share";
   import type { GameId } from "../lib/types";
 
@@ -21,7 +21,6 @@
     load: () => Promise<{ uid: string; summary: ShareSummary }[]>;
   } = $props();
 
-  const GAME_ICON: Record<GameId, string> = { genshin: "intertwined", arknights: "orundum", endfield: "oroberyl", limbus: "lunacy" };
   const SHOW = 20;
   let members = $state<{ uid: string; summary: ShareSummary }[] | null>(null);
   let error = $state("");
@@ -89,7 +88,7 @@
     <div class="pool card">
       {#each perGame as { g, st } (g)}
         <div class="prow">
-          {#if currencyIcon(g, GAME_ICON[g])}<img src={currencyIcon(g, GAME_ICON[g])} alt="" />{/if}
+          {#if gameIcon(g)}<img src={gameIcon(g)} alt="" />{/if}
           <span class="gname">{GAMES[g].shortName}</span>
           <span class="v"><b>{st.people}</b>명</span>
           <span class="v">평균 <b>{num(st.average)}</b></span>
