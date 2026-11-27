@@ -14,6 +14,9 @@ mod regions;
 #[path = "../src/ink.rs"]
 #[allow(dead_code)]
 mod ink;
+#[path = "../src/glyphs.rs"]
+#[allow(dead_code)]
+mod glyphs;
 #[path = "../src/ocr.rs"]
 #[allow(dead_code)]
 mod ocr;

@@ -1,5 +1,6 @@
 mod detect;
 mod genshin;
+mod glyphs;
 mod ink;
 mod login;
 mod ocr;

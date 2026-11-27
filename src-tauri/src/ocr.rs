@@ -151,7 +151,8 @@ fn read_digits_at(img: &crate::regions::Image, area: (usize, usize, usize, usize
 /// 숫자 칸을 한 글자씩 읽기(칸 정의 `perGlyph`, 림버스 광기): 덩어리마다 위가 열린 "4"면 4,
 /// 아니면 그 덩어리만 세 번 이어 붙여 읽고 두 번 이상 나온 숫자. 한 글자라도 모르면 빈 글자(못 읽음).
 fn read_digits_per_glyph(img: &crate::regions::Image, area: (usize, usize, usize, usize), scale: usize) -> String {
-    use crate::ink::{glyph_columns, is_narrow_one, is_open_four, repeat_single_glyph};
+    use crate::glyphs::{glyph_columns, is_narrow_one, is_open_four};
+    use crate::ink::repeat_single_glyph;
     let (px, cw, ch) = prepare_field(img, area, scale, true);
     let cols = glyph_columns(&px, cw, ch);
     if cols.is_empty() {
