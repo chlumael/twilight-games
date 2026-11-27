@@ -24,6 +24,9 @@ pub struct FieldDef {
     pub kind: String,
     /// 숫자 칸 글자 사이 벌리기(글자 높이 대비). 없으면 0.25, 0이면 벌리지 않음
     pub spacing: Option<f64>,
+    /// 숫자를 한 글자씩 읽기(윈도우 글자 인식이 통째로는 못 읽는 글꼴 — 림버스 광기의 4)
+    #[serde(rename = "perGlyph")]
+    pub per_glyph: Option<bool>,
 }
 
 #[derive(Deserialize, Clone, Debug)]

@@ -116,7 +116,7 @@ fn main() {
         let v: Vec<f64> = r.split(',').map(|s| s.trim().parse().expect("--rect 숫자")).collect();
         let content = content_rect(w, h, Some(16.0 / 9.0));
         let area = rect_px(w, h, content, [v[0], v[1], v[2], v[3]]).expect("위치가 너무 작음");
-        let def = FieldDef { id: "rect".into(), rect: None, kind: if flag("--digits").is_some() { "digits".into() } else { "text".into() }, spacing: None };
+        let def = FieldDef { id: "rect".into(), rect: None, kind: if flag("--digits").is_some() { "digits".into() } else { "text".into() }, spacing: None, per_glyph: None };
         println!("[{r}] 픽셀 {area:?} → \"{}\"", read_one(&img, area, out.as_ref(), "rect", &def));
         return;
     }

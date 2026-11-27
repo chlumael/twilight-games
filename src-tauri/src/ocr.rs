@@ -107,6 +107,9 @@ pub fn ocr_with(engine: &OcrEngine, bytes: &[u8], w: i32, h: i32) -> Result<Vec<
 /// 읽지 못하면 빈 글자.
 /// 칸 정의에 맞춰 읽기 (앱과 시험 도구가 함께 쓴다)
 pub fn read_def(img: &crate::regions::Image, area: (usize, usize, usize, usize), f: &crate::regions::FieldDef) -> String {
+    if f.kind == "digits" && f.per_glyph == Some(true) {
+        return read_digits_per_glyph(img, area, crate::ink::scale_for(area));
+    }
     read_field(img, area, f.kind == "digits", f.spacing.unwrap_or(DEFAULT_SPACING))
 }
 
@@ -143,6 +146,42 @@ fn read_digits_at(img: &crate::regions::Image, area: (usize, usize, usize, usize
     }
     let (sp, sw, sh) = space_glyphs(&px, cw, ch, spacing);
     ocr(&sp, sw as i32, sh as i32).map(join_lines).unwrap_or_default()
+}
+
+/// 숫자 칸을 한 글자씩 읽기(칸 정의 `perGlyph`, 림버스 광기): 덩어리마다 위가 열린 "4"면 4,
+/// 아니면 그 덩어리만 세 번 이어 붙여 읽고 두 번 이상 나온 숫자. 한 글자라도 모르면 빈 글자(못 읽음).
+fn read_digits_per_glyph(img: &crate::regions::Image, area: (usize, usize, usize, usize), scale: usize) -> String {
+    use crate::ink::{glyph_columns, is_narrow_one, is_open_four, repeat_single_glyph};
+    let (px, cw, ch) = prepare_field(img, area, scale, true);
+    let cols = glyph_columns(&px, cw, ch);
+    if cols.is_empty() {
+        return String::new();
+    }
+    let mut out = String::new();
+    for (x0, x1) in cols {
+        if is_open_four(&px, cw, ch, x0, x1) {
+            out.push('4');
+            continue;
+        }
+        // 폭이 높이의 절반도 안 되는 덩어리 = "1"(세 번 붙여도 윈도우 글자 인식이 못 읽었다)
+        if is_narrow_one(&px, cw, ch, x0, x1) {
+            out.push('1');
+            continue;
+        }
+        let mut g = vec![255u8; px.len()];
+        for y in 0..ch {
+            let (a, b) = ((y * cw + x0) * 4, (y * cw + x1) * 4);
+            g[a..b].copy_from_slice(&px[a..b]);
+        }
+        let Some((rp, rw, rh)) = repeat_single_glyph(&g, cw, ch) else { return String::new() };
+        let t = ocr(&rp, rw as i32, rh as i32).map(join_lines).unwrap_or_default();
+        let best = ('0'..='9').map(|d| (t.chars().filter(|&c| c == d).count(), d)).max();
+        match best {
+            Some((n, d)) if n >= 2 => out.push(d),
+            _ => return String::new(),
+        }
+    }
+    out
 }
 
 /// 글자 인식에 넘길 그림: 자르기(scale배 + 여백) → 흰 바탕·검은 글자 (`digits` = 숫자 칸: 밝기 재는 방식을 칸마다 고름)
