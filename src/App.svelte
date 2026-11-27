@@ -151,6 +151,7 @@
   // ── 화면 효과 ──
   $effect(() => { document.documentElement.style.setProperty("--bg-alpha", String(settings.opacity)); });
   $effect(() => { if (app.loaded) api.setProcessMap(settings.processNames); });
+  $effect(() => { if (app.loaded) api.setShareVisible(!!settings.shareVisible); });
   $effect(() => {
     if (web) return;
     const size = collapsed ? COLLAPSED : EXPANDED;

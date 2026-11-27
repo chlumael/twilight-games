@@ -195,6 +195,13 @@
 
   {#if !web}
   <section>
+    <h4>화면 공유</h4>
+    <label class="check"><input type="checkbox" checked={!!settings.shareVisible}
+      onchange={(e) => onSettings({ ...settings, shareVisible: (e.currentTarget as HTMLInputElement).checked })} /> 디스코드 화면 공유·방송에 이 창 보이기</label>
+    <p class="muted hint">켜면 이 창이 게임을 가린 자리는 화면 읽기가 못 읽습니다. 재화 숫자가 가려지지 않게 창을 옮겨 두세요.</p>
+  </section>
+
+  <section>
     <h4>게임 감지 (실행 파일 이름)</h4>
     <p class="muted hint">방금 앞에 있던 프로그램: {foregroundApp || "아직 없음"}{#if foregroundApp} — 게임이 안 잡히면 이 이름을 아래 칸에 넣거나 알려 주세요{/if}</p>
     <button onclick={async () => (processes = await listProcesses())}>실행 중인 프로그램 불러오기</button>

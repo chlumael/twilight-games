@@ -127,6 +127,16 @@ pub fn screen_read(app: AppHandle, state: State<'_, ScreenRead>, profiles: State
     Ok(())
 }
 
+/// 화면 공유(디스코드 등)에 우리 창이 보이게 할지 (사용자 2026-11-27: 디스코드 화면 공유에 창이 안 나옴).
+/// 켜면 화면 찍기에서 우리 창을 빼지 않으므로, 글자를 읽기 전에 찍은 그림에서 우리 창 자리를 검게 지운다.
+pub static SHARE_VISIBLE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+#[tauri::command]
+pub fn set_share_visible(app: AppHandle, visible: bool) {
+    SHARE_VISIBLE.store(visible, Ordering::SeqCst);
+    imp::apply_affinity(&app);
+}
+
 #[tauri::command]
 pub fn screen_reading(state: State<'_, ScreenRead>) -> bool {
     state.0.load(Ordering::SeqCst)
@@ -145,6 +155,7 @@ mod imp {
     pub fn read_regions(_profiles: &[crate::regions::Profile]) -> Result<Option<super::RegionFrame>, String> {
         Ok(None)
     }
+    pub fn apply_affinity(_app: &AppHandle) {}
 }
 
 #[cfg(windows)]
@@ -163,8 +174,8 @@ mod imp {
     };
     use windows::Win32::System::Threading::GetCurrentProcessId;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GetClientRect, GetForegroundWindow, GetWindowThreadProcessId, IsIconic, IsWindow, IsWindowVisible, SetWindowDisplayAffinity,
-        WDA_EXCLUDEFROMCAPTURE,
+        GetClientRect, GetForegroundWindow, GetWindowRect, GetWindowThreadProcessId, IsIconic, IsWindow, IsWindowVisible, SetWindowDisplayAffinity,
+        WDA_EXCLUDEFROMCAPTURE, WDA_NONE,
     };
 
     use std::sync::atomic::{AtomicIsize, Ordering};
@@ -177,15 +188,54 @@ mod imp {
 
     /// 우리 창은 화면 캡처에 안 찍히게 한다(창 글자를 게임 글자로 읽지 않게). 한국어 인식이 되는지도 확인한다.
     pub fn prepare(app: &AppHandle) -> Result<(), String> {
+        apply_affinity(app);
+        engine().map(|_| ())
+    }
+
+    /// 우리 창 핸들 (화면 공유에 보이게 했을 때 찍은 그림에서 이 자리를 지운다)
+    static OWN: AtomicIsize = AtomicIsize::new(0);
+
+    /// 화면 공유 설정에 맞춰 우리 창을 화면 찍기에서 뺄지 정한다
+    pub fn apply_affinity(app: &AppHandle) {
         if let Some(win) = app.get_webview_window("main") {
             if let Ok(hwnd) = win.hwnd() {
+                OWN.store(hwnd.0 as isize, Ordering::SeqCst);
+                let mode = if super::SHARE_VISIBLE.load(Ordering::SeqCst) { WDA_NONE } else { WDA_EXCLUDEFROMCAPTURE };
                 // SAFETY: 우리 창의 유효한 핸들. 실패해도(구형 윈도우) 계속한다.
                 unsafe {
-                    let _ = SetWindowDisplayAffinity(HWND(hwnd.0 as _), WDA_EXCLUDEFROMCAPTURE);
+                    let _ = SetWindowDisplayAffinity(HWND(hwnd.0 as _), mode);
                 }
             }
         }
-        engine().map(|_| ())
+    }
+
+    /// 찍은 그림(창 안쪽 왼쪽 위 = origin, 배율 num/den)에서 우리 창이 겹친 자리를 검게 칠한다
+    fn mask_own(buf: &mut [u8], cw: i32, ch: i32, origin: POINT, num: i32, den: i32) {
+        if !super::SHARE_VISIBLE.load(Ordering::SeqCst) {
+            return;
+        }
+        let own = HWND(OWN.load(Ordering::SeqCst) as *mut core::ffi::c_void);
+        if own.0.is_null() {
+            return;
+        }
+        let mut r = RECT::default();
+        // SAFETY: 우리 창의 핸들과 유효한 출력 포인터
+        unsafe {
+            if !IsWindowVisible(own).as_bool() || IsIconic(own).as_bool() || GetWindowRect(own, &mut r).is_err() {
+                return;
+            }
+        }
+        let x0 = ((r.left - origin.x) * num / den).clamp(0, cw);
+        let x1 = ((r.right - origin.x) * num / den).clamp(0, cw);
+        let y0 = ((r.top - origin.y) * num / den).clamp(0, ch);
+        let y1 = ((r.bottom - origin.y) * num / den).clamp(0, ch);
+        for y in y0..y1 {
+            let row = (y * cw) as usize * 4;
+            for x in x0..x1 {
+                let i = row + x as usize * 4;
+                buf[i..i + 3].fill(0);
+            }
+        }
     }
 
     thread_local! {
@@ -279,6 +329,7 @@ mod imp {
             if got == 0 {
                 return Err("화면을 읽지 못했습니다".into());
             }
+            mask_own(&mut buf, cw, ch, origin, num, den);
             Ok(Some((buf, cw, ch, w, h)))
         }
     }

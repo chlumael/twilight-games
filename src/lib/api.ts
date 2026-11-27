@@ -107,6 +107,11 @@ export function onEvent<T>(name: string, handler: (payload: T) => void): Promise
 /** 이 환경에서 화면 읽기를 쓸 수 있는지 */
 export const screenSupported = inTauri || (!!android?.screenRead && androidMode === "overlay");
 
+/** PC: 화면 공유(디스코드 등)에 이 창이 보이게 할지 (사용자 2026-11-27) */
+export function setShareVisible(visible: boolean): void {
+  if (inTauri) void invoke("set_share_visible", { visible }).catch(() => {});
+}
+
 export function screenRead(start: boolean): void {
   if (inTauri) void invoke("screen_read", { start }).catch(() => {});
   else android?.screenRead?.(start);

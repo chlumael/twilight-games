@@ -20,6 +20,8 @@ export interface Settings {
   share?: { on: boolean; nickname: string; groups?: { code: string; name: string }[] };
   /** 화면 테마(배경): "game" = 홈에서 고른 게임을 따라감, 게임 id = 그 게임 테마로 고정(사용자 2026-11-27) */
   theme?: "game" | GameId;
+  /** PC: 디스코드 등 화면 공유·방송에 이 창이 보이게(사용자 2026-11-27). 켜면 글자를 읽을 때 이 창이 가린 자리는 못 읽는다 */
+  shareVisible?: boolean;
 }
 
 export function defaultSettings(): Settings {

@@ -100,6 +100,7 @@ pub fn run() {
             detect::list_processes,
             screen::screen_read,
             screen::screen_reading,
+            screen::set_share_visible,
             screen::set_screen_profiles,
             genshin::genshin_wishes,
             login::google_login,
