@@ -288,3 +288,29 @@ describe("림버스 확인 창 — 휴대폰 실기 글자 (flows/screen)", asyn
     expect(app.records.games.limbus.currency.tenTicket).toBe(3); // 취소였으니 티켓도 되돌림
   });
 });
+
+describe("PC: 잘라 읽기(새 방식)와 화면 전체 글자(예전 방식)가 같은 화면을 읽을 때 (flows/screen, 2026-11-27)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { parseFrameText } = await import("../recognize");
+  const { ScreenFlow } = await import("./screen.svelte");
+  const text = readFileSync(new URL("../fixtures/arknights-main-phone.txt", import.meta.url), "utf8");
+  const frame = JSON.stringify(parseFrameText(text));
+  const region = (orundum: string) => ({ time: Date.now(), width: 1920, height: 1080, screen: "arknights-limited-main", fields: { orundum, exchange: "32760" }, tops: [], prints: [] });
+  it("명방 뽑기 화면을 잘라 읽고 있으면 합성옥·오리지늄은 잘라 읽은 값만 쓴다", () => {
+    app.game = "arknights";
+    const flow = new ScreenFlow(() => {});
+    for (let i = 0; i < 3; i++) flow.onRegions(region("170280"));
+    expect(app.records.games.arknights.currency).toMatchObject({ orundum: 170280, originite: 182 });
+    // 화면 전체 글자로는 다른 값(169680)이 읽혀도 덮어쓰지 않는다
+    flow.onScreenText(frame);
+    flow.onScreenText(frame);
+    expect(app.records.games.arknights.currency.orundum).toBe(170280);
+  });
+  it("잘라 읽기가 없으면 예전처럼 화면 전체 글자로 읽은 값을 쓴다", () => {
+    app.game = "arknights";
+    const flow = new ScreenFlow(() => {});
+    flow.onScreenText(frame);
+    flow.onScreenText(frame);
+    expect(app.records.games.arknights.currency.orundum).toBe(169680);
+  });
+});

@@ -10,16 +10,30 @@
    "shot": "L1",
    "detect": [
     {
-     "rect": null,
-     "hash": null,
-     "rgb": null,
-     "note": "추출 화면에만 있는 작은 부분"
+     "rect": [
+      0.8724,
+      0.875,
+      0.0365,
+      0.0926
+     ],
+     "hash": "146e5ada7c007e3c",
+     "rgb": [
+      117,
+      80,
+      9
+     ],
+     "note": "아래 메뉴에서 골라진(주황) '추출' 아이콘 (PC 스크린샷 2026-11-27)"
     }
    ],
    "fields": [
     {
      "id": "lunacy",
-     "rect": null,
+     "rect": [
+      0.4089,
+      0.912,
+      0.0495,
+      0.0435
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",

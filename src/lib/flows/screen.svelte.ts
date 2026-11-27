@@ -11,7 +11,7 @@ import { GAMES, GAME_IDS, findGroup } from "../games";
 import { groupBanners, itemName, matchFeatured } from "../banners";
 import { inferTopFromScreen, recordDetected, recordResult, setCurrency, syncBannerPulls, syncPityFromScreen } from "../ledger";
 import { emptyEngineState, engineStep, type EngineAction, type EngineStatus, type RegionFrame } from "../engine";
-import { PROFILES, resultCountingReady } from "../screen-profile";
+import { PROFILES, findScreen, resultCountingReady } from "../screen-profile";
 import { newestIds, wishFeatured, wishRows } from "../genshin-wish";
 import { looksLikeGacha, normalizeFrame, readScreen, steadyCounts, type ScreenFrame, type ScreenReading, type SteadyCounts } from "../recognize";
 import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "../detect";
@@ -186,6 +186,7 @@ export class ScreenFlow {
     for (const g of GAME_IDS) {
       const now = out.state.stable[g];
       if (!now || JSON.stringify(now) === JSON.stringify(this.detectState.stable[g])) continue;
+      if (Date.now() - (this.regionMainAt[g] ?? 0) < 5000) continue;
       this.setCurrencyIfChanged(g, now);
     }
     if (JSON.stringify(out.state.stable) !== JSON.stringify(this.detectState.stable)) {
@@ -215,7 +216,13 @@ export class ScreenFlow {
 
   // ───────── PC 새 화면 인식 (DESIGN.md §4.8): 정해진 위치만 잘라 읽은 결과 → 틀로 해석 → 검증 → 반영 ─────────
 
+  /** 게임별로 잘라 읽기(새 방식)가 뽑기 메인 화면을 마지막으로 알아본 때. 그 동안은 화면 전체 글자로 읽은 재화를 쓰지 않는다 */
+  private regionMainAt: Partial<Record<GameId, number>> = {};
+
   onRegions = (frame: RegionFrame) => {
+    // 같은 화면을 두 방식이 다르게 읽으면 재화가 왔다 갔다 한다(PC 실기 2026-11-27: 명방 합성옥) → 잘라 읽은 값만 쓴다
+    const hit = frame.screen ? findScreen(frame.screen) : null;
+    if (hit && hit.screen.kind === "main") this.regionMainAt[hit.profile.game] = Date.now();
     const out = engineStep(this.engineState, frame, PROFILES);
     this.engineState = out.state;
     this.engineStatus = out.state.status;

@@ -20,7 +20,7 @@ describe("화면 틀 데이터", () => {
   });
   it("PC 스크린샷(2026-11-27)으로 채운 뽑기 메인 화면만 준비됨, 결과 화면은 아직 → 뽑기는 예전 방식(재화 차이)으로 센다", () => {
     const ready = PROFILES.flatMap((p) => p.screens.filter(screenReady).map((s) => s.id)).sort();
-    expect(ready).toEqual(["endfield-arsenal-main", "endfield-chartered-main", "endfield-refactor-main", "genshin-char-main", "genshin-weapon-main"]);
+    expect(ready).toEqual(["arknights-limited-main", "endfield-arsenal-main", "endfield-chartered-main", "endfield-refactor-main", "genshin-char-main", "genshin-weapon-main", "limbus-main"]);
     for (const g of ["genshin", "endfield", "arknights", "limbus"] as const) expect(resultCountingReady(g)).toBe(false);
     expect(profileGaps().length).toBe(PROFILES.reduce((n, p) => n + p.screens.length, 0) - ready.length);
   });

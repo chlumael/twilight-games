@@ -10,16 +10,30 @@
    "shot": "A1",
    "detect": [
     {
-     "rect": null,
-     "hash": null,
-     "rgb": null,
-     "note": "한정 헤드헌팅 화면에만 있는 작은 부분"
+     "rect": [
+      0.7604,
+      0.8333,
+      0.1328,
+      0.0648
+     ],
+     "hash": "ffffc1818181b1ff",
+     "rgb": [
+      210,
+      186,
+      39
+     ],
+     "note": "오른쪽 아래 노란 '10회 진행' 단추 (PC 스크린샷 2026-11-27, 콜라보 한정 배너). 일반 헤드헌팅에도 같은 단추가 있어 일반 화면도 여기로 잡힌다 — 재화만 읽으므로 상관없음"
     }
    ],
    "fields": [
     {
      "id": "orundum",
-     "rect": null,
+     "rect": [
+      0.9167,
+      0.0306,
+      0.0703,
+      0.0361
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -32,7 +46,12 @@
     },
     {
      "id": "exchange",
-     "rect": null,
+     "rect": [
+      0.8063,
+      0.0306,
+      0.0557,
+      0.0361
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -43,19 +62,6 @@
      "max": 9999999,
      "confirm": 2,
      "note": "오리지늄 교환 칸(합성옥 환산값, 180의 배수 — 실기 확인)"
-    },
-    {
-     "id": "bannerPulls",
-     "rect": null,
-     "kind": "text",
-     "use": {
-      "type": "bannerPulls"
-     },
-     "min": 0,
-     "max": 300,
-     "confirm": 3,
-     "note": "300회 누적 표시(보이면 그걸로 맞춤)",
-     "template": null
     }
    ]
   },
