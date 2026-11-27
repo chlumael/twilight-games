@@ -107,6 +107,7 @@ def genshin() -> dict[str, str]:
 # ── 명일방주: 한국 서버 게임 데이터(이름) + ArknightsGameResource(얼굴 아이콘) ──────────
 AK_TABLE = "https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/main/ko_KR/gamedata/excel/character_table.json"
 AK_AVATAR = "https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar"
+AK_TABLE_CN = "https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/master/zh_CN/gamedata/excel/character_table.json"
 
 
 def arknights() -> dict[str, str]:
@@ -123,6 +124,31 @@ def arknights() -> dict[str, str]:
         rel = f"arknights/i/{slug(cid)}.webp"
         if save(rel, f"{AK_AVATAR}/{cid}.png", "icon"):
             items[name] = rel
+    # 한국 서버 자료에 아직 없는 새 오퍼레이터(예: 콜라보 "염호룡 오키드", 2026-11-27): 배너·6성 목록의 이름이
+    # "앞말 + 기존 오퍼레이터 이름"이면, 중국 서버 자료에서 그 오퍼레이터 이름으로 끝나는 새 오퍼레이터가 하나뿐일 때 그것으로
+    wanted = set(json.loads((ROOT / "data/names/arknights-6star.json").read_text("utf-8")).get("names", []))
+    for b in json.loads(PACK.read_text("utf-8")).get("games", {}).get("arknights", []):
+        wanted |= {f.get("ko") for f in b.get("featured", []) + b.get("featuredRare", []) if f.get("ko")}
+    missing = sorted(n for n in wanted if n not in items)
+    if missing:
+        try:
+            cn = json.loads(get(AK_TABLE_CN, timeout=180))
+        except Exception as e:
+            warnings.append(f"명일방주 중국 서버 자료: {e}")
+            cn = {}
+        kr_names = {c.get("name"): cid for cid, c in table.items() if cid.startswith("char_")}
+        for n in missing:
+            base = next((b for b in sorted(kr_names, key=len, reverse=True) if b and n != b and n.endswith(" " + b)), None)
+            cn_base = cn.get(kr_names.get(base, ""), {}).get("name") if base else None
+            if not cn_base:
+                continue
+            alts = [cid for cid, c in cn.items() if cid.startswith("char_") and cid not in table and not c.get("isNotObtainable")
+                    and c.get("name", "").endswith(cn_base) and c.get("name") != cn_base]
+            if len(alts) != 1:
+                continue
+            rel = f"arknights/i/{slug(alts[0])}.webp"
+            if save(rel, f"{AK_AVATAR}/{alts[0]}.png", "icon"):
+                items[n] = rel
     return items
 
 
@@ -248,8 +274,15 @@ def main() -> None:
     index = {"schemaVersion": 1, "games": games}
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(json.dumps(index, ensure_ascii=False, indent=1) + "\n", "utf-8")
+    # 목록에서 빠진 그림 파일은 지운다(예: 영어판 원신 배너 그림을 한국어 그림으로 바꾼 뒤)
+    used = {rel for v in games.values() for rel in [*v["items"].values(), *v["banners"].values()]}
+    gone = [f for f in OUT.rglob("*.webp") if f.relative_to(OUT).as_posix() not in used]
+    for f in gone:
+        f.unlink()
     for g, v in games.items():
         print(f"{g}: 아이콘 {len(v['items'])}개, 배너 그림 {len(v['banners'])}개")
+    if gone:
+        print(f"안 쓰는 그림 {len(gone)}개 지움")
     for w in warnings[:40]:
         print("경고:", w)
 

@@ -5,12 +5,14 @@
 const ANN = "https://sg-hk4e-api.hoyoverse.com/common/hk4e_global/announcement/api/getAnnList"
   + "?game=hk4e&game_biz=hk4e_global&lang=ko&bundle_id=hk4e_global&platform=pc&region=os_asia&level=55&uid=100000000";
 
-/** 공지 목록 → [{ name: "「사직 의례」 기원", title }] (기원 공지만) */
+/** 공지 목록 → [{ name: "「사직 의례」 기원", title, banner }] (기원 공지만). banner = 공지의 한국어 배너 그림 */
 export function wishAnnouncements(data) {
   const out = [];
   for (const group of data?.list ?? []) {
     for (const a of group.list ?? []) {
-      if (/^「[^」]+」 기원$/.test(a.subtitle ?? "")) out.push({ name: a.subtitle, title: a.title ?? "" });
+      if (/^「[^」]+」 기원$/.test(a.subtitle ?? "")) {
+        out.push({ name: a.subtitle, title: a.title ?? "", ...(/^https:\/\//.test(a.banner ?? "") ? { banner: a.banner } : {}) });
+      }
     }
   }
   return out;
@@ -20,23 +22,31 @@ export function wishAnnouncements(data) {
  * 배너에 한국어 이름을 붙인다(원래 영어 이름은 nameEn에 남긴다).
  * - 진행 중인 배너: 픽업 최고 등급의 한국어 이름이 공지 제목에 들어 있으면 그 공지의 기원 이름
  * - 그 외: 이전 팩에 한국어 이름이 있으면 이어받는다
+ * 배너 그림도 같은 공지의 한국어 그림으로 바꾸고(영어판 그림 대신, 사용자 지적 2026-11-27), 지난 배너는 이전 팩에서 이어받는다.
  */
 export function applyKoreanNames(banners, announcements, previous = [], now = new Date()) {
   const kept = new Map(previous.filter((b) => b.nameEn).map((b) => [b.id, b.name]));
+  const keptImage = new Map(previous.filter((b) => KO_IMAGE.test(b.image ?? "")).map((b) => [b.id, b.image]));
   const t = now.toISOString();
   return banners.map((b) => {
     let ko = null;
+    let image = null;
     if (b.start <= t && t <= b.end) {
       const hit = announcements.find((a) =>
         b.group === "genshin-chronicled"
           ? a.title.includes("묶음 기원")
           : b.featured.some((f) => f.ko && a.title.includes(f.ko)));
       ko = hit?.name ?? null;
+      image = hit?.banner ?? null;
     }
     ko ??= kept.get(b.id) ?? null;
-    return ko ? { ...b, name: ko, nameEn: b.name } : b;
+    image ??= keptImage.get(b.id) ?? null;
+    return { ...b, ...(ko ? { name: ko, nameEn: b.name } : {}), ...(image ? { image } : {}) };
   });
 }
+
+/** 공식 한국어 공지 그림 주소 (영어판 팬 자료 그림과 구분) */
+const KO_IMAGE = /^https:\/\/sdk\.hoyoverse\.com\/upload\/ann\//;
 
 export async function fetchWishAnnouncements() {
   const res = await fetch(ANN, { headers: { "User-Agent": "twilight-games-banner-pack" } });

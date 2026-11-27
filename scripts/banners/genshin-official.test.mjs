@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { applyKoreanNames, applyWishPools, wishAnnouncements, wishDetail } from "./genshin-official.mjs";
 
 const data = { list: [{ list: [
-  { subtitle: "「사직 의례」 기원", title: "「사직 의례」 기원: 「샘물에 숨은 세월·자백(바위)」 확률 UP!" },
+  { subtitle: "「사직 의례」 기원", title: "「사직 의례」 기원: 「샘물에 숨은 세월·자백(바위)」 확률 UP!", banner: "https://sdk.hoyoverse.com/upload/ann/2026/11/10/abc_1" },
   { subtitle: "「신의 주조」 기원", title: "「신의 주조」 기원: 「한손검·신월의 달빛」, 「활·서리 맺힌 금빛 가지」 확률 UP!" },
   { subtitle: "「불꽃에 새긴 이름」 기원", title: "「불꽃에 새긴 이름」: 묶음 기원 오픈!" },
   { subtitle: "「검에 서린 설원의 여정」", title: "초심자 혜택 일반 기원" },
@@ -26,6 +26,15 @@ describe("원신 한국어 기원 이름", () => {
     expect(out.map((x) => x.name)).toEqual(["「사직 의례」 기원", "「신의 주조」 기원", "「불꽃에 새긴 이름」 기원", "English Name"]);
     expect(out[0].nameEn).toBe("English Name");
     expect(out[3].nameEn).toBeUndefined();
+  });
+
+  it("배너 그림은 공지의 한국어 그림, 지난 배너는 이전 팩의 한국어 그림만 이어받는다(영어판 그림은 안 씀)", () => {
+    const en = "https://raw.githubusercontent.com/MadeBaruna/paimon-moe/main/static/images/banners/X%201.png";
+    const out = applyKoreanNames([b("c", "genshin-char", "자백")], wishAnnouncements(data), [], now);
+    expect(out[0].image).toBe("https://sdk.hoyoverse.com/upload/ann/2026/11/10/abc_1");
+    const old = b("o", "genshin-char", "자백", { start: "2026-01-01T00:00:00.000Z", end: "2026-01-20T00:00:00.000Z" });
+    expect(applyKoreanNames([old], [], [{ id: "o", image: "https://sdk.hoyoverse.com/upload/ann/x" }], now)[0].image).toBe("https://sdk.hoyoverse.com/upload/ann/x");
+    expect(applyKoreanNames([old], [], [{ id: "o", image: en }], now)[0].image).toBeUndefined();
   });
 
   it("끝난 배너는 공지와 맞추지 않고, 이전 팩의 한국어 이름을 이어받는다", () => {
