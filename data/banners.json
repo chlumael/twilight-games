@@ -7481,7 +7481,23 @@
     "endApprox": true,
     "version": null,
     "source": "림버스 스팀 공식 공지",
-    "featured": [],
+    "featured": [
+     {
+      "id": "ko:마침표 사무소 대표 홍루",
+      "ko": "마침표 사무소 대표 홍루",
+      "grade": "000"
+     },
+     {
+      "id": "ko:마침표 사무소 해결사 히스클리프",
+      "ko": "마침표 사무소 해결사 히스클리프",
+      "grade": "000"
+     },
+     {
+      "id": "ko:마탄 오티스",
+      "ko": "마탄 오티스",
+      "grade": "HE"
+     }
+    ],
     "featuredRare": []
    },
    {
@@ -7669,7 +7685,23 @@
     "end": "2025-07-31T01:00:00.000Z",
     "version": null,
     "source": "림버스 스팀 공식 공지",
-    "featured": [],
+    "featured": [
+     {
+      "id": "ko:로보토미 E.G.O:: 사랑과 증오의 이름으로 돈키호테",
+      "ko": "로보토미 E.G.O:: 사랑과 증오의 이름으로 돈키호테",
+      "grade": "000"
+     },
+     {
+      "id": "ko:로보토미 E.G.O:: 눈물로 벼려낸 검 로쟈",
+      "ko": "로보토미 E.G.O:: 눈물로 벼려낸 검 로쟈",
+      "grade": "000"
+     },
+     {
+      "id": "ko:사랑과 증오의 이름으로 돈키호테",
+      "ko": "사랑과 증오의 이름으로 돈키호테",
+      "grade": "WAW"
+     }
+    ],
     "featuredRare": []
    },
    {
@@ -7734,7 +7766,18 @@
     "end": "2025-11-20T01:00:00.000Z",
     "version": null,
     "source": "림버스 스팀 공식 공지",
-    "featured": [],
+    "featured": [
+     {
+      "id": "ko:정사무소 대표 이스마엘",
+      "ko": "정사무소 대표 이스마엘",
+      "grade": "000"
+     },
+     {
+      "id": "ko:밤의 송곳 카피타노 그레고르",
+      "ko": "밤의 송곳 카피타노 그레고르",
+      "grade": "000"
+     }
+    ],
     "featuredRare": []
    },
    {
@@ -7886,7 +7929,23 @@
     "end": "2026-03-19T01:00:00.000Z",
     "version": null,
     "source": "림버스 스팀 공식 공지",
-    "featured": [],
+    "featured": [
+     {
+      "id": "ko:로보토미 E.G.O:: 잔향・외로움 료슈",
+      "ko": "로보토미 E.G.O:: 잔향・외로움 료슈",
+      "grade": "000"
+     },
+     {
+      "id": "ko:로보토미 E.G.O:: 호넷【변조】 뫼르소",
+      "ko": "로보토미 E.G.O:: 호넷【변조】 뫼르소",
+      "grade": "000"
+     },
+     {
+      "id": "ko:하모니 싱클레어",
+      "ko": "하모니 싱클레어",
+      "grade": "HE"
+     }
+    ],
     "featuredRare": [],
     "image": "https://clan.akamai.steamstatic.com/images/43587230/271d7f5e979dcc860c94caefac399de217723410.png"
    },
