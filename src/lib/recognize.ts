@@ -116,13 +116,14 @@ function roman(s: string): number {
 }
 
 function limbus(lines: ScreenLine[]): ScreenReading | null {
-  if (!has(lines, /10회추출/) || !has(lines, /1회추출/)) return null;
+  // PC 윈도우 글자 인식은 "추"를 "李"·"주"로 읽었다("1회李출", "10회 주출" — PC 실기 2026-11-27, fixtures/limbus-main-pc.txt)
+  if (!has(lines, /10회[추李주]출/) || !has(lines, /(?<!0)1회[추李주]출/)) return null;
   // 광기: 아래쪽 "LUNACY" 표시 근처의 숫자. 표시가 잘려 읽히는 일이 많아(실기: "INAY") 위치로도 찾는다.
   const label = lines.find((l) => /UNACY|LUNA|NACY|INAY/i.test(l.t));
   const near = numbersIn(lines, (l) => l.y > 0.8 && (label ? Math.abs(l.x - label.x) < 0.12 && l.y >= label.y : l.x > 0.3 && l.x < 0.5));
   const currency: Record<string, number> = {};
   if (near.length) currency.lunacy = near[near.length - 1].n;
-  const until = lines.find((l) => /\d{4}\.\d{2}\.\d{2}.*까지/.test(l.t));
+  const until = lines.find((l) => /\d{4}\.?\d{2}\.\d{2}.*까지/.test(l.t));
   // 배너: 발푸르기스의 밤은 "WALPURGISNACHT - X"(로마 숫자 = 회차), 그 외는 "특정 추출" 바로 아래의 이름.
   const walp = lines.map((l) => l.t.match(/WALPUR\w*\s*[-–]\s*([IVXL]+)\b/i)).find(Boolean);
   let banner: string | null = null;

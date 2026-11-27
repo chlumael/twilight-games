@@ -43,7 +43,8 @@ export function counterStep(state: CounterState, banner: string | null, value: n
 
 /** "2026.12.10 10:00 [KST] 까지" → "2026-12-10" */
 function untilDay(until: string | null): string | null {
-  const m = until?.match(/(\d{4})\.(\d{2})\.(\d{2})/);
+  // PC 윈도우 글자 인식은 연도 뒤 점을 빠뜨렸다("202612.1010:00 [K5TJ 까지" — PC 실기 2026-11-27, fixtures/limbus-main-pc.txt)
+  const m = until?.match(/(\d{4})\.?(\d{2})\.(\d{2})/);
   return m ? `${m[1]}-${m[2]}-${m[3]}` : null;
 }
 

@@ -189,6 +189,53 @@ pub fn space_glyphs(px: &[u8], w: usize, h: usize, gap: f64) -> (Vec<u8>, usize,
     (out, nw, h)
 }
 
+/// 숫자 칸 전용: 칸의 왼쪽·오른쪽 끝에 닿은 잉크 덩어리를 지운다(흰색으로). 칸 옆 버튼·테두리가 걸린 것이다.
+/// 원신 인연 칸 오른쪽 끝에 닫기 버튼 테두리가 회색 호로 걸려, 화면에 따라 "183"을 빈칸으로 읽었다(PC 실기 2026-11-27).
+/// `pad` = crop이 붙인 여백(칸은 x가 pad..w-pad). 덩어리는 조금이라도 어두운(200 미만) 열로 나눈다.
+/// **나머지 숫자보다 위아래로 20% 넘게 긴 덩어리만** 지운다(테두리 호는 숫자보다 길다) — 끝에 닿은 진짜 숫자까지 지우면
+/// 명방 합성옥 170280이 "17028"(멀쩡해 보이는 틀린 값)이 되고 원신 원석 419가 "9"가 됐다(같은 날 시험).
+pub fn drop_edge_glyphs(px: &mut [u8], w: usize, h: usize, pad: usize) {
+    if w <= pad * 2 + 2 {
+        return;
+    }
+    let cols: Vec<bool> = (0..w).map(|x| (0..h).any(|y| px[(y * w + x) * 4] < 200)).collect();
+    let (left, right) = (pad, w - pad - 1);
+    // 열 범위 안 잉크의 위아래 길이
+    let span = |px: &[u8], from: usize, to: usize| {
+        let rows: Vec<usize> = (0..h).filter(|&y| (from..=to).any(|x| px[(y * w + x) * 4] < 200)).collect();
+        rows.last().map_or(0, |b| b - rows[0] + 1)
+    };
+    let faint = |px: &[u8], from: usize, to: usize| {
+        // 나머지(이 덩어리 밖) 잉크의 높이와 비교. 나머지가 없으면 지우지 않는다
+        let rest_l = (0..from).filter(|&x| cols[x]).min();
+        let rest_r = (to + 1..w).filter(|&x| cols[x]).max();
+        let rest = match (rest_l, rest_r) {
+            (Some(a), _) if from > 0 => span(px, a, from - 1),
+            (_, Some(b)) => span(px, to + 1, b),
+            _ => 0,
+        };
+        rest > 0 && span(px, from, to) as f64 > rest as f64 * 1.2
+    };
+    let clear = |px: &mut [u8], from: usize, to: usize| {
+        for y in 0..h {
+            for x in from..=to {
+                let i = (y * w + x) * 4;
+                px[i..i + 3].copy_from_slice(&[255, 255, 255]);
+            }
+        }
+    };
+    if cols[right] {
+        let mut a = right;
+        while a > 0 && cols[a - 1] {
+            a -= 1;
+        }
+        if a > left && faint(px, a, w - 1) {
+            clear(px, a, w - 1);
+        }
+    }
+    // 왼쪽 끝은 지우지 않는다: 원신 원석 칸에서 "41"이 아이콘 자국과 붙어 지워져 "9"가 됐다(같은 날 시험)
+}
+
 /// 숫자 칸에 글자 덩어리가 하나뿐이면(예: 허가증 "0") 그 덩어리를 세 번 이어 붙인 그림. 아니면 None.
 /// 윈도우 글자 인식은 한 글자만 있는 그림을 아예 읽지 못했다(엔드필드 허가증 0, PC 시험 2026-11-27).
 /// 읽은 뒤 세 글자가 모두 같을 때만 그 숫자로 인정한다(ocr.rs의 read_field).
@@ -356,6 +403,35 @@ mod tests {
         let ink: Vec<bool> = (0..rw).map(|x| rep[x * 4] < 128).collect();
         assert_eq!(ink.iter().filter(|&&b| b).count(), 6);
         assert_eq!(rw, 3 + 2 * 3 + 4 * 2 + 3);
+    }
+
+    #[test]
+    fn drop_edge_glyphs_only_tall_right_edge() {
+        // 폭 20, 높이 20, 여백 2: 숫자(가운데 높이 6)와 오른쪽 끝에 닿은 키 큰 막대(테두리) → 막대만 지운다
+        let (w, h) = (20, 20);
+        let mut px = vec![255u8; w * h * 4];
+        let mut paint = |xs: std::ops::Range<usize>, ys: std::ops::Range<usize>| {
+            for y in ys.clone() {
+                for x in xs.clone() {
+                    px[(y * w + x) * 4..(y * w + x) * 4 + 3].copy_from_slice(&[0, 0, 0]);
+                }
+            }
+        };
+        paint(5..8, 7..13);
+        paint(16..18, 2..18);
+        let mut a = px.clone();
+        drop_edge_glyphs(&mut a, w, h, 2);
+        assert!(a[(10 * w + 6) * 4] < 128, "숫자는 남는다");
+        assert!(a[(10 * w + 17) * 4] > 200, "테두리는 지운다");
+        // 오른쪽 끝에 닿았어도 숫자와 키가 같으면 남긴다(끝자리 숫자 — 명방 합성옥 170280의 0)
+        let mut b = vec![255u8; w * h * 4];
+        for y in 7..13 {
+            for x in (5..8).chain(15..18) {
+                b[(y * w + x) * 4..(y * w + x) * 4 + 3].copy_from_slice(&[0, 0, 0]);
+            }
+        }
+        drop_edge_glyphs(&mut b, w, h, 2);
+        assert!(b[(10 * w + 16) * 4] < 128);
     }
 
     #[test]

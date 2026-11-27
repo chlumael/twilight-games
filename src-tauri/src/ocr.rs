@@ -147,10 +147,13 @@ fn read_digits_at(img: &crate::regions::Image, area: (usize, usize, usize, usize
 
 /// 글자 인식에 넘길 그림: 자르기(scale배 + 여백) → 흰 바탕·검은 글자 (`digits` = 숫자 칸: 밝기 재는 방식을 칸마다 고름)
 pub fn prepare_field(img: &crate::regions::Image, area: (usize, usize, usize, usize), scale: usize, digits: bool) -> (Vec<u8>, usize, usize) {
-    use crate::ink::{crop, to_ink};
+    use crate::ink::{crop, drop_edge_glyphs, to_ink};
     let (mut px, cw, ch) = crop(img, area, scale);
     let pad = (ch - (area.3 - area.1) * scale.clamp(1, crate::ink::MAX_SCALE)) / 2;
     to_ink(&mut px, cw, ch, pad, digits);
+    if digits {
+        drop_edge_glyphs(&mut px, cw, ch, pad);
+    }
     (px, cw, ch)
 }
 

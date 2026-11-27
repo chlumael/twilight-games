@@ -121,6 +121,23 @@ fn main() {
         return;
     }
 
+    // --full : 화면 전체 글자 읽기(앱의 read_once처럼 창 전체를 여백 없이 글자 인식. 1080p는 앱이 1.5배로 찍지만 여기서는 그대로)
+    if flag("--full").is_some() {
+        // 앱(screen.rs capture)은 세로 900~1500 창을 1.5배(HALFTONE)로 키워 찍는다 → 1배와 1.5배(Triangle로 비슷하게) 둘 다
+        let rgba: Vec<u8> = px.chunks(4).flat_map(|p| [p[2], p[1], p[0], 255]).collect();
+        let big = image::imageops::resize(&image::RgbaImage::from_raw(w as u32, h as u32, rgba).expect("그림"), (w * 3 / 2) as u32, (h * 3 / 2) as u32, image::imageops::FilterType::Triangle);
+        let big_bgra: Vec<u8> = big.as_raw().chunks(4).flat_map(|p| [p[2], p[1], p[0], 255]).collect();
+        for (name, buf, bw, bh) in [("1배", px.clone(), w, h), ("1.5배", big_bgra, w * 3 / 2, h * 3 / 2)] {
+            let lines = ocr::ocr(&buf, bw as i32, bh as i32).unwrap_or_default();
+            println!("\n== 화면 전체 {name} ==");
+            // src/lib/fixtures/*.txt 와 같은 형식("x,y wxh 글자")
+            for l in lines {
+                println!("{:.2},{:.2} {:.2}x{:.2} {}", l.x, l.y, l.w, l.h, l.t);
+            }
+        }
+        return;
+    }
+
     let profiles = load_profiles();
     // 화면 판단 부분마다 거리(모양 지문 차이 / 색 차이) — 맞지 않을 때 어디가 다른지 보려고
     println!("\n== 화면 판단 ==");

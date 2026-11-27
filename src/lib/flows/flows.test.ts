@@ -183,6 +183,32 @@ describe("림버스: 추출 화면의 이상 N/200으로 기록 (flows/screen, �
   });
 });
 
+describe("림버스 PC: 켜 둔 게임 화면을 앱처럼 1.5배로 찍어 윈도우 글자 인식으로 읽은 글자 (PC 실기 2026-11-27)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { parseFrameText, readScreen } = await import("../recognize");
+  const { ScreenFlow } = await import("./screen.svelte");
+  const text = readFileSync(new URL("../fixtures/limbus-main-pc.txt", import.meta.url), "utf8");
+  const frameWith = (n: number) => JSON.stringify(parseFrameText(text.replace("10/200", `${n}/200`)));
+  it("이상 10/200·그레고르를 읽고, 10 → 12면 2회 기록", () => {
+    const f = readScreen(parseFrameText(text)) as { counter: number | null; sinner: string | null };
+    expect(f.counter).toBe(10);
+    expect(f.sinner).toBe("그레고르");
+    app.game = "limbus";
+    app.pack = { schemaVersion: 1, games: { genshin: [], arknights: [], endfield: [], limbus: [{
+      id: "lb-pc", group: "limbus-extraction", name: "pc", start: "2026-11-26T03:00:00.000Z", end: "2026-12-10T01:00:00.000Z", version: null,
+      featured: [{ id: "a", ko: "오트쿠튀르::르루주 B2F 타래둥지 그레고르" }], featuredRare: [],
+    }] } } as never;
+    app.records.games.limbus.currentBanner["limbus-extraction"] = "lb-pc";
+    app.records.games.limbus.pulls = [];
+    const flow = new ScreenFlow(() => {});
+    flow.onScreenText(frameWith(10));
+    flow.onScreenText(frameWith(10));
+    flow.onScreenText(frameWith(12));
+    flow.onScreenText(frameWith(12));
+    expect(app.records.games.limbus.pulls).toHaveLength(2);
+  });
+});
+
 describe("림버스 이상: 교환과 20회 넘는 경우 (flows/screen)", async () => {
   const { readFileSync } = await import("node:fs");
   const { parseFrameText } = await import("../recognize");
