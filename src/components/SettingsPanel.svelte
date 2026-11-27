@@ -111,6 +111,17 @@
     <p class="muted hint">고른 게임만 위쪽 줄과 달력에 보입니다</p>
   </section>
 
+  <section>
+    <h4>테마</h4>
+    <div class="mygames">
+      {#each [{ id: "game", label: "게임 따라" }, ...GAME_IDS.map((id) => ({ id, label: GAMES[id].shortName }))] as t (t.id)}
+        {@const on = (settings.theme ?? "game") === t.id}
+        <button class="chip" class:on aria-pressed={on} onclick={() => onSettings({ ...settings, theme: t.id as Settings["theme"] })}>{t.label}</button>
+      {/each}
+    </div>
+    <p class="muted hint">{(settings.theme ?? "game") === "game" ? "홈에서 고른 게임의 테마를 따라갑니다" : "모든 화면에 이 테마를 씁니다"}</p>
+  </section>
+
   {#if !web}
   <section>
     <h4>오버레이</h4>

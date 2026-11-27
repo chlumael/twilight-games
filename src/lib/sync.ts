@@ -1,16 +1,15 @@
 // Tracker account: Google sign-in + per-game documents in Firestore.
 //   users/{uid}/games/{gameId}  = { data: JSON(GameRecord), updatedAt }
 //   users/{uid}/meta/settings   = { data: JSON(Settings), updatedAt }
-// 친구 공유(DESIGN.md §8.5, 공유를 켠 사람만):
-//   groups/{code}               = { name, owner, members: { uid: true }, createdAt }   code = 초대 코드
-//   groups/{code}/members/{uid} = { data: JSON(ShareSummary), updatedAt }             그룹 멤버만 읽기, 본인만 쓰기
+// 친구(DESIGN.md §8.5, 공유를 켠 사람만):
+//   shares/{uid} = { data: JSON(ShareSummary), updatedAt }   로그인한 사람은 읽기, 본인만 쓰기
 // Local storage stays the source of truth while offline; see merge.ts for how copies combine.
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import {
   deleteUser, getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithCredential, signInWithPopup, signOut,
   type Auth, type User,
 } from "firebase/auth";
-import { collection, deleteDoc, doc, getDoc, getDocs, getFirestore, setDoc, updateDoc, deleteField, type Firestore } from "firebase/firestore/lite";
+import { collection, deleteDoc, doc, getDoc, getDocs, getFirestore, limit, orderBy, query, setDoc, type Firestore } from "firebase/firestore/lite";
 import type { ShareSummary } from "./share";
 import { android, googleLoginPc, inTauri } from "./api";
 import { firebaseConfig, googleWebClientId } from "./firebase-config";
@@ -115,98 +114,49 @@ export async function pushSettings(uid: string, settings: unknown): Promise<void
   await setDoc(doc(db, "users", uid, "meta", "settings"), { data: JSON.stringify(settings), updatedAt: new Date().toISOString() });
 }
 
-// ───────────── 친구 공유 ─────────────
+// ───────────── 친구(공유) ─────────────
+// 그룹 없이 한 곳에 모은다(사용자 2026-11-27): 공유를 켠 사람의 요약만 shares/{uid}에 올라가고, 로그인한 사람은 모두 볼 수 있다.
 
-export interface ShareGroup {
-  code: string;
-  name: string;
-  owner: string;
-  members: string[];
+/** 내 요약 올리기 */
+export async function pushShare(uid: string, summary: ShareSummary): Promise<void> {
+  const { db } = ensure();
+  await setDoc(doc(db, "shares", uid), { data: JSON.stringify(summary), updatedAt: summary.updatedAt });
 }
 
-/** 그룹 만들기 (만든 사람이 첫 멤버) */
-export async function createGroup(uid: string, code: string, name: string): Promise<ShareGroup> {
+/** 공유 끄기: 내 요약을 지운다 */
+export async function removeShare(uid: string): Promise<void> {
   const { db } = ensure();
-  const g = { name: name.trim().slice(0, 30) || "친구들", owner: uid, members: { [uid]: true }, createdAt: new Date().toISOString() };
-  await setDoc(doc(db, "groups", code), g);
-  return { code, name: g.name, owner: uid, members: [uid] };
+  await deleteDoc(doc(db, "shares", uid)).catch(() => {});
 }
 
-export async function getGroup(code: string): Promise<ShareGroup | null> {
+/** 공유한 사람들의 요약 (최근에 올린 순으로 최대 limitN명) */
+export async function pullShares(limitN = 300): Promise<{ uid: string; summary: ShareSummary }[]> {
   const { db } = ensure();
-  const s = await getDoc(doc(db, "groups", code));
-  if (!s.exists()) return null;
-  const d = s.data();
-  return { code, name: String(d.name ?? ""), owner: String(d.owner ?? ""), members: Object.keys(d.members ?? {}) };
-}
-
-/** 초대 코드로 참가 (자기 이름만 멤버에 넣을 수 있다 — 보안 규칙) */
-export async function joinGroup(uid: string, code: string): Promise<ShareGroup | null> {
-  const { db } = ensure();
-  const g = await getGroup(code);
-  if (!g) return null;
-  if (!g.members.includes(uid)) await updateDoc(doc(db, "groups", code), { [`members.${uid}`]: true });
-  return { ...g, members: [...new Set([...g.members, uid])] };
-}
-
-/** 그룹 나가기: 내 요약을 지우고 멤버에서 뺀다. 만든 사람이 나가면 그룹째 지운다 */
-export async function leaveGroup(uid: string, code: string): Promise<void> {
-  const { db } = ensure();
-  const g = await getGroup(code);
-  await deleteDoc(doc(db, "groups", code, "members", uid)).catch(() => {});
-  if (!g) return;
-  if (g.owner === uid) {
-    for (const m of g.members) await deleteDoc(doc(db, "groups", code, "members", m)).catch(() => {});
-    await deleteDoc(doc(db, "groups", code));
-  } else if (g.members.includes(uid)) {
-    await updateDoc(doc(db, "groups", code), { [`members.${uid}`]: deleteField() });
-  }
-}
-
-/** 내 요약 올리기 (공유를 켠 그룹마다) */
-export async function pushShare(uid: string, codes: string[], summary: ShareSummary): Promise<void> {
-  const { db } = ensure();
-  for (const code of codes) {
-    await setDoc(doc(db, "groups", code, "members", uid), { data: JSON.stringify(summary), updatedAt: summary.updatedAt });
-  }
-}
-
-/** 공유 끄기: 모든 그룹에서 내 요약만 지운다(그룹에는 남는다) */
-export async function removeShare(uid: string, codes: string[]): Promise<void> {
-  const { db } = ensure();
-  for (const code of codes) await deleteDoc(doc(db, "groups", code, "members", uid)).catch(() => {});
-}
-
-/** 그룹 멤버들의 요약 */
-export async function pullGroup(code: string): Promise<{ group: ShareGroup; members: { uid: string; summary: ShareSummary }[] } | null> {
-  const { db } = ensure();
-  const group = await getGroup(code);
-  if (!group) return null;
-  const snap = await getDocs(collection(db, "groups", code, "members"));
-  const members: { uid: string; summary: ShareSummary }[] = [];
+  const snap = await getDocs(query(collection(db, "shares"), orderBy("updatedAt", "desc"), limit(limitN)));
+  const out: { uid: string; summary: ShareSummary }[] = [];
   snap.forEach((d) => {
     try {
-      members.push({ uid: d.id, summary: JSON.parse(d.data().data as string) as ShareSummary });
+      out.push({ uid: d.id, summary: JSON.parse(d.data().data as string) as ShareSummary });
     } catch {
       /* 깨진 요약은 건너뛴다 */
     }
   });
-  return { group, members };
+  return out;
 }
 
 // ───────────── 계정 삭제 ─────────────
 
 /**
- * 계정과 서버의 기록을 모두 지운다: 그룹에서 나가기(만든 그룹은 삭제) → users/{uid} 아래 문서 → 로그인 계정.
+ * 계정과 서버의 기록을 모두 지운다: 공유 요약 → users/{uid} 아래 문서 → 로그인 계정.
  * 이 기기의 기록은 지우지 않는다(백업 내보내기를 할 수 있게). 로그인한 지 오래되면 계정 삭제가 거절되어 다시 로그인을 요구한다.
  */
-export async function deleteAccount(uid: string, groupCodes: string[]): Promise<"deleted" | "relogin"> {
+export async function deleteAccount(uid: string): Promise<"deleted" | "relogin"> {
   const { auth, db } = ensure();
   // 로그인 계정 삭제는 최근에 로그인했을 때만 된다. 기록만 지우고 계정이 남는 일이 없게 먼저 확인한다
   const user0 = auth.currentUser;
   const last = Date.parse(user0?.metadata.lastSignInTime ?? "");
   if (!user0 || user0.uid !== uid || !(Date.now() - last < 4 * 60_000)) return "relogin";
-  for (const code of groupCodes) await leaveGroup(uid, code).catch(() => {});
+  await removeShare(uid);
   const games = await getDocs(collection(db, "users", uid, "games"));
   for (const d of games.docs) await deleteDoc(d.ref);
   await deleteDoc(doc(db, "users", uid, "meta", "settings")).catch(() => {});

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyRecords, recordSession } from "./ledger";
-import { buildSummary, luckText, newGroupCode, ranking, validCode } from "./share";
+import { buildSummary, luckText, ranking } from "./share";
 
 const t = (min: number) => new Date(Date.UTC(2026, 10, 24, 12, min));
 
@@ -28,10 +28,14 @@ describe("친구 공유 요약", () => {
     expect(luckText(10)).toBe("상위 10%");
     expect(luckText(80)).toBe("하위 20%");
   });
-  it("초대 코드는 헷갈리는 글자 없이 10자리", () => {
-    const c = newGroupCode();
-    expect(validCode(c)).toBe(true);
-    expect(validCode("ABCDE1O0IL")).toBe(false);
-    expect(validCode(c.toLowerCase())).toBe(true);
+  it("전체 통계: 모두 합친 평균·픽업 성공률과 내 등수", async () => {
+    const { poolStats } = await import("./share");
+    const g = (pulls: number, tops: number, luck: number | null, won: number, lost: number) => ({
+      genshin: { pulls, tops, average: tops ? pulls / tops : null, luck, recent: [],
+        groups: [{ groupId: "genshin-char", name: "캐릭터", pulls, tops, average: null, featuredWon: won, featuredLost: lost, luck }] },
+    });
+    const m = (uid: string, games: object) => ({ uid, summary: { nickname: uid, updatedAt: "", manualShare: 0, games } });
+    const st = poolStats([m("a", g(300, 5, 20, 3, 2)), m("b", g(100, 1, 70, 0, 1)), m("c", {})], "b", "genshin");
+    expect(st).toEqual({ people: 2, pulls: 400, tops: 6, average: 400 / 6, featuredRate: 0.5, myRank: 2, ranked: 2 });
   });
 });

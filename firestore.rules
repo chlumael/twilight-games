@@ -1,40 +1,25 @@
 // 황혼 게임즈 서버(Firestore) 보안 규칙 — Firebase 콘솔 → Firestore Database → 규칙에 이 내용을 그대로 붙여 넣고 "게시".
 // 뜻:
-//  · users/{uid}/…  : 로그인한 본인만 자기 기록을 읽고 쓴다.
-//  · groups/{코드}  : 친구 공유 그룹(DESIGN.md §8.5). 코드를 아는 로그인 사용자는 그룹 정보를 볼 수 있고(참가하려면 필요),
-//                     멤버 목록에는 자기 이름만 넣거나 뺄 수 있다. 그룹은 만든 사람만 지운다.
-//  · groups/{코드}/members/{uid} : 그 그룹 멤버만 읽고, 본인 것만 쓴다. 만든 사람은 그룹을 지울 때 남의 것도 지울 수 있다.
-//  · 그 밖의 모든 접근은 막는다(그룹 목록 훑어보기도 막음).
+//  · users/{uid}/… : 로그인한 본인만 자기 기록을 읽고 쓴다.
+//  · shares/{uid}  : 친구 탭(DESIGN.md §8.5). 공유를 켠 사람의 요약(닉네임·뽑기 수·운 등)만 있다.
+//                    로그인한 사람은 모두 읽을 수 있고, 본인 것만 쓰고 지운다.
+//  · 그 밖의 모든 접근은 막는다(예전 그룹 방식 groups/…도 이제 막힌다).
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function me() { return request.auth.uid; }
-    function groupOf(code) { return get(/databases/$(database)/documents/groups/$(code)).data; }
 
     match /users/{uid}/{document=**} {
-      allow read, write: if signedIn() && me() == uid;
+      allow read, write: if signedIn() && request.auth.uid == uid;
     }
 
-    match /groups/{code} {
-      allow get: if signedIn();
-      allow list: if false;
-      allow create: if signedIn()
-        && request.resource.data.owner == me()
-        && request.resource.data.members.keys().hasOnly([me()])
-        && request.resource.data.name is string && request.resource.data.name.size() <= 30;
-      // 참가·나가기: 멤버 목록에서 자기 이름만 바뀐다
-      allow update: if signedIn()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["members"])
-        && request.resource.data.members.diff(resource.data.members).affectedKeys().hasOnly([me()]);
-      allow delete: if signedIn() && resource.data.owner == me();
-
-      match /members/{uid} {
-        allow read: if signedIn() && me() in groupOf(code).members;
-        allow create, update: if signedIn() && uid == me() && me() in groupOf(code).members
-          && request.resource.data.data is string && request.resource.data.data.size() < 200000;
-        allow delete: if signedIn() && (uid == me() || groupOf(code).owner == me());
-      }
+    match /shares/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(["data", "updatedAt"])
+        && request.resource.data.data is string && request.resource.data.data.size() < 100000
+        && request.resource.data.updatedAt is string;
+      allow delete: if signedIn() && request.auth.uid == uid;
     }
   }
 }

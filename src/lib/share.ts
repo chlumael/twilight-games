@@ -124,16 +124,42 @@ export function luckText(p: number | null): string {
   return `상위 ${p < 1 ? p.toFixed(1) : Math.round(p)}%`;
 }
 
-/** 초대 코드: 헷갈리는 글자(0/O, 1/I/L)를 뺀 10자리 */
-export function newGroupCode(random: () => number = Math.random): string {
-  const abc = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
-  let s = "";
-  for (let i = 0; i < 10; i++) s += abc[Math.floor(random() * abc.length)];
-  return s;
+export interface PoolStats {
+  /** 이 게임(또는 전체)을 공유한 사람 수 */
+  people: number;
+  pulls: number;
+  tops: number;
+  /** 모두 합친 최고 등급 하나당 평균 뽑기 */
+  average: number | null;
+  /** 모두 합친 픽업 성공률 (0~1) */
+  featuredRate: number | null;
+  /** 나보다 운이 좋은 사람 수 + 1 (운을 모르면 null) */
+  myRank: number | null;
+  /** 운을 아는 사람 수 */
+  ranked: number;
 }
 
-export function validCode(code: string): boolean {
-  return /^[A-HJ-NP-Z2-9]{10}$/.test(code.trim().toUpperCase());
+/** 공유한 사람들 전체의 통계와 내 등수 (game이 없으면 모든 게임 합계) */
+export function poolStats(members: { uid: string; summary: ShareSummary }[], me: string, game?: GameId): PoolStats {
+  const rows = ranking(members, me, game);
+  let pulls = 0, tops = 0, won = 0, lost = 0;
+  for (const m of members) {
+    const gs = (game ? [m.summary.games[game]] : Object.values(m.summary.games)).filter(Boolean) as ShareGame[];
+    for (const x of gs) {
+      pulls += x.pulls;
+      tops += x.tops;
+      for (const g of x.groups) { won += g.featuredWon; lost += g.featuredLost; }
+    }
+  }
+  const ranked = rows.filter((r) => r.luck !== null);
+  const mine = ranked.findIndex((r) => r.me);
+  return {
+    people: rows.length, pulls, tops,
+    average: tops ? pulls / tops : null,
+    featuredRate: won + lost ? won / (won + lost) : null,
+    myRank: mine >= 0 ? mine + 1 : null,
+    ranked: ranked.length,
+  };
 }
 
 /** 게임 이름 (순위 제목용) */
