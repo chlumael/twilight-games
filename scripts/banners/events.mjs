@@ -252,6 +252,38 @@ function dedupe(list) {
   return [...seen.values()];
 }
 
+/**
+ * 달력에 안 맞는 일정 걸러내기 (사용자 2026-11-27: 상시 이벤트 빼고, 잘못된 일정 거르기).
+ * - 상시: 제목에 "상시·상설", 끝나는 날 없이 "업데이트·개방"(새 콘텐츠 추가 안내), 70일 넘게 이어지는 것(버전 두 개 이상 — 추정 기준)
+ * - 이벤트가 아닌 안내: 정보 안내·보상 지급 안내·상점 광고(월정액·먼슬리카드), 이름만 있는 묶음("신규 이벤트", "스페셜 이벤트", "이벤트 및 콘텐츠 업데이트")
+ * - 픽업과 겹침: 림버스 발푸르기스의 밤(픽업 배너로 이미 나온다)
+ * - 버전 이름과 같은 이벤트(원신 「종말의 서막」 = 7.2 버전 이름)
+ * - 같은 이름이 기간이 겹친 채 여러 번(다른 공지에서 잘못 읽은 것): 가장 먼저 시작한 것만
+ */
+const NOT_EVENT = /상시|상설|정보 안내|지급 안내|보상 지급|먼슬리\s*카드|월정액|^신규 이벤트$|^스페셜 이벤트$|^이벤트 및 콘텐츠 업데이트$|발푸르기스의 밤/;
+export function cleanEvents(list) {
+  const versions = list.filter((x) => x.kind === "version").map((x) => x.title.match(/「([^」]+)」/)?.[1]).filter(Boolean);
+  const ok = list.filter((x) => {
+    if (x.kind !== "event") return true;
+    const t = x.title.trim();
+    if (NOT_EVENT.test(t)) return false;
+    if (!x.end && /업데이트|개방/.test(t)) return false;
+    if (x.end && Date.parse(x.end) - Date.parse(x.start) > 70 * 864e5) return false;
+    if (versions.some((v) => t === `「${v}」`)) return false;
+    return true;
+  });
+  const kept = [];
+  for (const x of [...ok].sort((a, b) => a.start.localeCompare(b.start))) {
+    if (x.kind === "event") {
+      const end = (y) => Date.parse(y.end ?? y.start) || Infinity;
+      const same = kept.find((y) => y.kind === "event" && y.title.trim() === x.title.trim() && Date.parse(x.start) < end(y));
+      if (same) continue;
+    }
+    kept.push(x);
+  }
+  return kept;
+}
+
 /** 이번에 모은 일정 + 이전 팩의 일정(공지에서 사라진 지난 일정 보존, 400일 지난 것은 버림) */
 export function mergeEvents(current, previous, now = Date.now()) {
   const ids = new Set(current.map((x) => x.id));
@@ -271,10 +303,10 @@ export async function collectEvents(previous = {}) {
   };
   for (const [game, job] of Object.entries(jobs)) {
     try {
-      events[game] = mergeEvents(await job(), previous[game]);
+      events[game] = cleanEvents(mergeEvents(await job(), previous[game]));
     } catch (e) {
       errors[game] = String(e?.message ?? e);
-      events[game] = previous[game] ?? [];
+      events[game] = cleanEvents(previous[game] ?? []);
     }
   }
   return { events, errors };
