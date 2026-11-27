@@ -49,7 +49,7 @@ for g,l in d['games'].items():
 
 ## 주간 자동 PR
 
-`.github/workflows/banners.yml`이 매주 수요일 12:17(KST)에 생성 → 변경 시 `bot/banners` 브랜치로 PR. 생성 작업은 읽기 전용 권한, PR 작업만 쓰기 권한이다. PR이 안 생기면 저장소 Settings → Actions → General의 "Allow GitHub Actions to create and approve pull requests"가 꺼져 있는지 사용자에게 확인한다. 검토할 때는 진행 중 배너와 픽업 이름이 실제 게임과 맞는지 본다.
+`.github/workflows/banners.yml`이 **매일 13:47(KST)**에 생성(2026-11-27부터, 전엔 매주 수요일). 게임 이미지(`scripts/images/build.py`)도 같이 만들어 같은 PR에 넣는다 → 변경 시 `bot/banners` 브랜치로 PR. 생성 작업은 읽기 전용 권한, PR 작업만 쓰기 권한이다. PR이 안 생기면 저장소 Settings → Actions → General의 "Allow GitHub Actions to create and approve pull requests"가 꺼져 있는지 사용자에게 확인한다. 검토할 때는 진행 중 배너와 픽업 이름이 실제 게임과 맞는지 본다.
 
 ## 새 출처를 붙일 때
 
