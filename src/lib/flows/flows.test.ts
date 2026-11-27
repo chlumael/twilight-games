@@ -306,6 +306,14 @@ describe("PC: 잘라 읽기(새 방식)와 화면 전체 글자(예전 방식)�
     flow.onScreenText(frame);
     expect(app.records.games.arknights.currency.orundum).toBe(170280);
   });
+  it("화면은 알아봤는데 칸을 못 읽으면(빈칸) 화면 전체 글자로 읽은 값을 쓴다 (PC 실기: 재화가 안 바뀌던 문제)", () => {
+    app.game = "arknights";
+    const flow = new ScreenFlow(() => {});
+    for (let i = 0; i < 3; i++) flow.onRegions({ ...region(""), fields: { orundum: "", exchange: "" } });
+    flow.onScreenText(frame);
+    flow.onScreenText(frame);
+    expect(app.records.games.arknights.currency.orundum).toBe(169680);
+  });
   it("잘라 읽기가 없으면 예전처럼 화면 전체 글자로 읽은 값을 쓴다", () => {
     app.game = "arknights";
     const flow = new ScreenFlow(() => {});

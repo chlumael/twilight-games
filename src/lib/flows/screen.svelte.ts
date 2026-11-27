@@ -11,7 +11,7 @@ import { GAMES, GAME_IDS, findGroup } from "../games";
 import { groupBanners, itemName, matchFeatured } from "../banners";
 import { inferTopFromScreen, recordDetected, recordResult, setCurrency, syncBannerPulls, syncPityFromScreen } from "../ledger";
 import { emptyEngineState, engineStep, type EngineAction, type EngineStatus, type RegionFrame } from "../engine";
-import { PROFILES, findScreen, resultCountingReady } from "../screen-profile";
+import { PROFILES, resultCountingReady } from "../screen-profile";
 import { newestIds, wishFeatured, wishRows } from "../genshin-wish";
 import { looksLikeGacha, normalizeFrame, readScreen, steadyCounts, type ScreenFrame, type ScreenReading, type SteadyCounts } from "../recognize";
 import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "../detect";
@@ -186,8 +186,11 @@ export class ScreenFlow {
     for (const g of GAME_IDS) {
       const now = out.state.stable[g];
       if (!now || JSON.stringify(now) === JSON.stringify(this.detectState.stable[g])) continue;
-      if (Date.now() - (this.regionMainAt[g] ?? 0) < 5000) continue;
-      this.setCurrencyIfChanged(g, now);
+      // 잘라 읽기가 방금(5초 안) 실제로 읽어 낸 재화만 빼고 반영한다. 잘라 읽기가 못 읽으면 예전처럼 이 값을 쓴다
+      // (PC 실기 2026-11-27: 화면만 알아보고 칸을 못 읽어서 모든 게임 재화가 안 바뀌던 문제)
+      const fresh = this.regionCurrencyAt[g] ?? {};
+      const rest = Object.fromEntries(Object.entries(now).filter(([k]) => Date.now() - (fresh[k] ?? 0) >= 5000));
+      if (Object.keys(rest).length) this.setCurrencyIfChanged(g, rest);
     }
     if (JSON.stringify(out.state.stable) !== JSON.stringify(this.detectState.stable)) {
       writeLocal(DETECT_STATE_KEY, { stable: out.state.stable, stableAt: out.state.stableAt });
@@ -216,13 +219,14 @@ export class ScreenFlow {
 
   // ───────── PC 새 화면 인식 (DESIGN.md §4.8): 정해진 위치만 잘라 읽은 결과 → 틀로 해석 → 검증 → 반영 ─────────
 
-  /** 게임별로 잘라 읽기(새 방식)가 뽑기 메인 화면을 마지막으로 알아본 때. 그 동안은 화면 전체 글자로 읽은 재화를 쓰지 않는다 */
-  private regionMainAt: Partial<Record<GameId, number>> = {};
+  /** 게임·재화별로 잘라 읽기(새 방식)가 마지막으로 값을 읽어 낸 때. 그 동안 그 재화는 화면 전체 글자로 읽은 값을 쓰지 않는다
+   *  (같은 화면을 두 방식이 다르게 읽으면 값이 왔다 갔다 한다, PC 실기 2026-11-27: 명방 합성옥) */
+  private regionCurrencyAt: Partial<Record<GameId, Record<string, number>>> = {};
+  /** 마지막으로 잘라 읽은 화면과 칸 글자("읽은 글자 복사"에 함께 넣는다 — 못 읽을 때 원인을 보려고) */
+  lastRegion = $state.raw<RegionFrame | null>(null);
 
   onRegions = (frame: RegionFrame) => {
-    // 같은 화면을 두 방식이 다르게 읽으면 재화가 왔다 갔다 한다(PC 실기 2026-11-27: 명방 합성옥) → 잘라 읽은 값만 쓴다
-    const hit = frame.screen ? findScreen(frame.screen) : null;
-    if (hit && hit.screen.kind === "main") this.regionMainAt[hit.profile.game] = Date.now();
+    if (frame.screen) this.lastRegion = frame;
     const out = engineStep(this.engineState, frame, PROFILES);
     this.engineState = out.state;
     this.engineStatus = out.state.status;
@@ -232,6 +236,9 @@ export class ScreenFlow {
   private applyEngine(a: EngineAction) {
     const records = app.records;
     if (a.type === "currency") {
+      const at = { ...(this.regionCurrencyAt[a.game] ?? {}) };
+      for (const k of Object.keys(a.values)) at[k] = Date.now();
+      this.regionCurrencyAt[a.game] = at;
       this.setCurrencyIfChanged(a.game, a.values);
     } else if (a.type === "pity") {
       // 검증을 통과한 천장 값은 바로 반영한다(규칙 7은 사용자가 뺐다, 2026-11-26)

@@ -306,7 +306,7 @@
           onGenshinWishes={api.inTauri ? screen.loadGenshinWishes : undefined} genshinWishBusy={screen.wishBusy} genshinWishMsg={screen.wishMsg}
         />
         <!-- 화면 읽기 상태·읽은 재화 (예전 "확인" 탭에 있던 것) -->
-        <ScreenPanel {game} currency={rec.currency} reading={screen.screenOn} message={screen.screenMessage} frame={screen.screenFrame} result={screen.screenResult}
+        <ScreenPanel {game} currency={rec.currency} reading={screen.screenOn} message={screen.screenMessage} frame={screen.screenFrame} result={screen.screenResult} region={screen.lastRegion}
           onCurrency={(values) => app.update(setCurrency(records, game, values))} />
       {:else if view === "calendar"}
         <CalendarPanel {pack} {game} gameList={myGames} mine={settings.calendar ?? []} onClose={() => (view = "main")}

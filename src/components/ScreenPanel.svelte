@@ -2,9 +2,12 @@
   import * as api from "../lib/api";
   import { GAMES } from "../lib/games";
   import { frameText, type ScreenFrame, type ScreenReading } from "../lib/recognize";
+  import type { RegionFrame } from "../lib/engine";
   import type { GameId } from "../lib/types";
 
-  let { game, currency, reading, message, frame, result, onCurrency }: {
+  let { game, currency, reading, message, frame, result, onCurrency, region = null }: {
+    /** PC: 마지막으로 잘라 읽은 화면과 칸 글자 */
+    region?: RegionFrame | null;
     game: GameId;
     currency: Record<string, number>;
     /** 화면 읽기가 켜져 있는지, 알림 문구, 마지막으로 읽은 화면과 해석 결과 (App이 받아서 넘긴다) */
@@ -26,8 +29,10 @@
     ? Object.entries(result.currency).filter(([k, v]) => currency[k] !== v) : []);
 
   async function copy() {
-    if (!frame) return;
-    try { await navigator.clipboard.writeText(frameText(frame)); copied = true; setTimeout(() => (copied = false), 1500); } catch { showRaw = true; }
+    if (!frame && !region) return;
+    // 잘라 읽은 칸 글자도 함께(PC 실기 2026-11-27: 화면은 알아보는데 재화를 못 읽는 원인을 보려고)
+    const cut = region ? `\n[잘라 읽기 ${region.screen} ${new Date(region.time).toLocaleTimeString("ko-KR")}]\n${Object.entries(region.fields).map(([k, v]) => `${k}: ${v || "(빈칸)"}`).join("\n")}` : "";
+    try { await navigator.clipboard.writeText((frame ? frameText(frame) : "") + cut); copied = true; setTimeout(() => (copied = false), 1500); } catch { showRaw = true; }
   }
 </script>
 

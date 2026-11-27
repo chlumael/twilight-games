@@ -158,15 +158,27 @@ pub fn probe_print(img: &Image, content: (f64, f64, f64, f64), p: &Probe) -> Str
 }
 
 /// 영역을 잘라 BGRA로. scale배(1~4)로 키운다(작은 글자 인식률). 가장 가까운 점 방식.
+/// 잘라 낸 부분을 scale배로 키우고 둘레에 여백을 붙인다.
+/// 글자가 그림 가장자리에 붙어 있으면 윈도우 글자 인식이 아예 못 읽는 일이 있어서(PC 실기 2026-11-27: 재화 칸을 못 읽음)
+/// 키운 높이의 절반만큼 가장자리 색(왼쪽 위 점)으로 채운다.
 pub fn crop(img: &Image, area: (usize, usize, usize, usize), scale: usize) -> (Vec<u8>, usize, usize) {
     let (x0, y0, x1, y1) = area;
     let s = scale.clamp(1, 4);
-    let (w, h) = ((x1 - x0) * s, (y1 - y0) * s);
+    let (iw, ih) = ((x1 - x0) * s, (y1 - y0) * s);
+    let pad = ih / 2;
+    let (w, h) = (iw + pad * 2, ih + pad * 2);
+    let edge = {
+        let i = (y0 * img.w + x0) * 4;
+        [img.px[i], img.px[i + 1], img.px[i + 2], 255]
+    };
     let mut out = vec![0u8; w * h * 4];
-    for y in 0..h {
-        for x in 0..w {
+    for px in out.chunks_mut(4) {
+        px.copy_from_slice(&edge);
+    }
+    for y in 0..ih {
+        for x in 0..iw {
             let si = ((y0 + y / s) * img.w + (x0 + x / s)) * 4;
-            let di = (y * w + x) * 4;
+            let di = ((y + pad) * w + (x + pad)) * 4;
             out[di..di + 4].copy_from_slice(&img.px[si..si + 4]);
         }
     }
@@ -248,8 +260,12 @@ mod tests {
         let px = checker(16, 16);
         let img = Image { w: 16, h: 16, px: &px };
         let (out, w, h) = crop(&img, (6, 0, 10, 2), 2);
-        assert_eq!((w, h), (8, 4));
-        assert_eq!(out[0], 255);
-        assert_eq!(out[(w - 1) * 4], 0);
+        // 8×4로 키운 것 + 둘레 여백 2(키운 높이의 절반)
+        assert_eq!((w, h), (12, 8));
+        let at = |x: usize, y: usize| out[(y * w + x) * 4];
+        assert_eq!(at(2, 2), 255);
+        assert_eq!(at(9, 2), 0);
+        // 여백은 가장자리 색(왼쪽 위 점)
+        assert_eq!(at(0, 0), at(2, 2));
     }
 }

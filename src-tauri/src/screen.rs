@@ -246,11 +246,12 @@ mod imp {
             // 작은 글자는 글자 인식이 자주 틀리므로("헤드헌팅" → "해드현팅") 창이 작으면 2배로 키워서 찍는다.
             // 1080p 창까지 2배로 키우면(3840×2160) 글자 인식이 몇 초씩 걸려 재화가 아주 늦게 바뀌었다(사용자 PC 실기 2026-11-27)
             // → 작은 창(세로 900 미만)만 키운다. 재화 같은 작은 칸은 잘라 읽기(read_regions)가 그 부분만 키워 읽는다.
-            let scale = if upscale && h < 900 { 2 } else { 1 };
-            let (cw, ch) = (w * scale, h * scale);
+            // 다만 1배로 읽으니 숫자를 못 읽는 게임이 생겨서(PC 실기 2026-11-27) 1080p는 1.5배로 절충한다.
+            let (num, den) = if upscale && h < 900 { (2, 1) } else if upscale && h < 1500 { (3, 2) } else { (1, 1) };
+            let (cw, ch) = (w * num / den, h * num / den);
             let bmp = CreateCompatibleBitmap(screen, cw, ch);
             let old = SelectObject(mem, bmp.into());
-            let blt = if scale == 1 {
+            let blt = if num == den {
                 BitBlt(mem, 0, 0, w, h, Some(screen), origin.x, origin.y, SRCCOPY)
             } else {
                 SetStretchBltMode(mem, HALFTONE);
@@ -347,7 +348,11 @@ mod imp {
         for f in &screen.fields {
             let Some(area) = f.rect.and_then(|r| rect_px(img.w, img.h, content, r)) else { continue };
             let (px, cw, ch) = crop(&img, area, scale_for(area));
-            let mut lines = ocr(&px, cw as i32, ch as i32)?;
+            // 한 칸을 못 읽어도 다른 칸은 계속 읽는다(빈칸으로 넘긴다)
+            let Ok(mut lines) = ocr(&px, cw as i32, ch as i32) else {
+                frame.fields.insert(f.id.clone(), String::new());
+                continue;
+            };
             lines.sort_by(|a, b| a.y.partial_cmp(&b.y).unwrap_or(std::cmp::Ordering::Equal));
             let text = lines.into_iter().map(|l| l.t).collect::<Vec<_>>().join(" ");
             frame.fields.insert(f.id.clone(), text);
