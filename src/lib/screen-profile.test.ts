@@ -49,6 +49,10 @@ describe("틀로만 해석", () => {
     expect(readDigits("55,025")).toBe(55025);
     expect(readDigits("× 2500")).toBe(2500);
     expect(readDigits("+")).toBeNull();
+    // 숫자 옆에 글자가 붙으면 잘못 읽은 것(글자를 버리면 틀린 값이 된다)
+    expect(readDigits("S8414")).toBeNull();
+    expect(readDigits("5841l")).toBeNull();
+    expect(readDigits(" 58414 ")).toBe(58414);
   });
   it("문구 틀: 공백은 무시, 글자는 정확히 같아야", () => {
     expect(matchTemplate("53 회의 헤드헌팅 내 6성 오퍼레이터 확정 획득./", "{n}회의 헤드헌팅 내 6성")).toBe(53);

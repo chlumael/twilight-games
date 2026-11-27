@@ -398,7 +398,9 @@ mod imp {
         frame.screen = Some(screen.id.clone());
         for f in &screen.fields {
             let Some(area) = f.rect.and_then(|r| rect_px(img.w, img.h, content, r)) else { continue };
-            let (px, cw, ch) = crop(&img, area, scale_for(area));
+            let (mut px, cw, ch) = crop(&img, area, scale_for(area));
+            let pad = (ch - (area.3 - area.1) * scale_for(area)) / 2;
+            crate::regions::to_ink(&mut px, cw, ch, pad);
             // 한 칸을 못 읽어도 다른 칸은 계속 읽는다(빈칸으로 넘긴다)
             let Ok(mut lines) = ocr(&px, cw as i32, ch as i32) else {
                 frame.fields.insert(f.id.clone(), String::new());

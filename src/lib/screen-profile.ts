@@ -146,7 +146,14 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /** 숫자 칸: 0~9 외 글자를 버린다. 숫자가 없으면 null */
 export function readDigits(text: string): number | null {
-  const d = text.replace(/[^0-9]/g, "");
+  // 숫자 덩어리 바로 앞뒤에 글자가 붙어 있으면 숫자를 글자로 잘못 읽은 것(예: 58414 → "S8414") → 못 읽은 것으로 본다
+  // (글자를 버리고 "8414"로 읽으면 틀린 값이 들어간다, PC 실기 2026-11-27 림버스 광기)
+  const m = text.match(/[0-9][0-9,.\s]*[0-9]|[0-9]/);
+  if (!m) return null;
+  const before = text.slice(0, m.index).trimEnd().slice(-1);
+  const after = text.slice(m.index! + m[0].length).trimStart().slice(0, 1);
+  if (/[A-Za-z가-힣]/.test(before) || /[A-Za-z가-힣]/.test(after)) return null;
+  const d = m[0].replace(/[^0-9]/g, "");
   if (!d || d.length > 9) return null;
   return Number(d);
 }
