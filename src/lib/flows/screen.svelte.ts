@@ -6,6 +6,7 @@
 // - 자동 기록 목록(취소용)
 import * as api from "../api";
 import { app } from "../store.svelte";
+import { itemNames } from "../images.svelte";
 import { GAMES, GAME_IDS, findGroup } from "../games";
 import { groupBanners, itemName, matchFeatured } from "../banners";
 import { inferTopFromScreen, recordDetected, recordResult, setCurrency, syncBannerPulls, syncPityFromScreen } from "../ledger";
@@ -14,7 +15,7 @@ import { PROFILES, resultCountingReady } from "../screen-profile";
 import { newestIds, wishFeatured, wishRows } from "../genshin-wish";
 import { looksLikeGacha, normalizeFrame, readScreen, steadyCounts, type ScreenFrame, type ScreenReading, type SteadyCounts } from "../recognize";
 import { emptyDetectState, step as detectStep, type Detection, type ItemTable } from "../detect";
-import { applyLimbusHistory, mergeSequence, parseLimbusHistory, type LimbusRow } from "../limbus-history";
+import { applyLimbusHistory, joinSequence, mergeSequence, parseLimbusHistory, type LimbusRow } from "../limbus-history";
 import { importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow } from "../history";
 import type { GameId, Records } from "../types";
 import genshinItemsFile from "../../../data/genshin-items.json";
@@ -86,6 +87,7 @@ export class ScreenFlow {
   private steady: { game: GameId; counts: SteadyCounts } | null = null;
   private lastHistoryAt = 0;
   private askedManual: GameId | null = null;
+  private warnedGapAt = 0;
 
   /** 원신 5성이 나왔을 때 "기원 기록 불러올까요?" 묻기 (확인 창은 화면 쪽에 있다) */
   constructor(private askGenshinReload: () => void) {}
@@ -305,9 +307,18 @@ export class ScreenFlow {
   private readHistory(f: ScreenFrame) {
     const page = parseEndfieldHistory(f) ?? parseGenshinHistory(f, (n) => genshinItems[n]?.rarity ?? null) ?? parseArknightsHistory(f);
     if (page?.rows.length) { this.saveHistory(page.game, mergePages(this.historyStore[page.game] ?? {}, page)); this.lastHistoryAt = Date.now(); }
-    const known = (app.pack?.games.limbus ?? []).flatMap((b) => b.featured.map((x) => x.ko ?? "")).filter(Boolean);
+    // 아는 인격 이름: 배너 자료의 픽업 + 이미지 목록의 인격·E.G.O 전체(수감자 이름이 잘못 읽힌 줄도 찾게, 2026-11-27)
+    const known = [...(app.pack?.games.limbus ?? []).flatMap((b) => [...b.featured, ...b.featuredRare].map((x) => x.ko ?? "")), ...itemNames("limbus")].filter(Boolean);
     const lb = page ? null : parseLimbusHistory(f, known);
-    if (lb?.length) { this.saveLimbus(mergeSequence(this.limbusRows, lb)); this.lastHistoryAt = Date.now(); }
+    if (lb?.length) {
+      // 앞서 읽은 줄과 겹치지 않으면 그사이를 놓친 것 → 알리고, 더 긴 쪽을 남긴다
+      if (!joinSequence(this.limbusRows, lb) && Date.now() - this.warnedGapAt > 10_000) {
+        this.warnedGapAt = Date.now();
+        app.notify("추출 이력을 너무 빨리 넘겨 중간을 놓쳤습니다. 맨 위로 돌아가 한두 칸씩 천천히 내려 주세요");
+      }
+      this.saveLimbus(mergeSequence(this.limbusRows, lb));
+      this.lastHistoryAt = Date.now();
+    }
     if (!page && !lb?.length) this.autoApplyHistories();
   }
 

@@ -44,3 +44,8 @@ export function bannerImageUrl(game: GameId, bannerId: string | null | undefined
   const rel = bannerId ? state.index?.games[game]?.banners[bannerId] : undefined;
   return rel ? IMAGES_BASE + rel : null;
 }
+
+/** 이미지 목록에 있는 이름들(캐릭터·인격·무기). 화면 글자를 바로잡는 데도 쓴다(림버스 추출 이력) */
+export function itemNames(game: GameId): string[] {
+  return Object.keys(state.index?.games[game]?.items ?? {});
+}

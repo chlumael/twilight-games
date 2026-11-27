@@ -5,6 +5,7 @@ import { applyLimbusHistory, mergeSequence, parseLimbusHistory, sinnerOf, type L
 import { parseFrameText } from "./recognize";
 
 const phone = parseFrameText(readFileSync(new URL("./fixtures/limbus-history-phone.txt", import.meta.url), "utf8"));
+const phone2 = parseFrameText(readFileSync(new URL("./fixtures/limbus-history-phone2.txt", import.meta.url), "utf8"));
 let n = 0;
 const id = () => `l${++n}`;
 const R = (name: string, top = false): LimbusRow => ({ name, top });
@@ -20,6 +21,14 @@ describe("림버스 추출 이력", () => {
     expect(parseLimbusHistory(phone)).toEqual([
       R("LCB 수감자 그레고르"), R("LCB 수감자 뫼르소"), R("쇄기 사무소 대표 오티스", true),
     ]);
+  });
+
+  it("실기(2026-11-27): 수감자 이름이 잘못 읽힌 줄(뫼르소 → \"미르\")도 인격 이름 목록으로 찾는다", () => {
+    expect(parseLimbusHistory(phone2, ["데드레빗츠 보스 뫼르소", "데드레빗츠 보스 로쟈"])).toEqual([
+      R("LCB 수감자 돈키호테"), R("LCB 수감자 히스클리프"), R("데드레빗츠 보스 뫼르소"),
+    ]);
+    // 이름 목록이 없으면 그 줄은 건너뛴다(짐작하지 않음)
+    expect(parseLimbusHistory(phone2)).toHaveLength(2);
   });
 
   it("배너 자료의 이름으로 OCR 오타 바로잡기", () => {
@@ -50,5 +59,24 @@ describe("림버스 추출 이력", () => {
     const out = applyLimbusHistory(r, [R("가", true), R("다"), R("라")], new Date("2026-11-25T11:00:00Z"), id);
     expect(out).toMatchObject({ filled: 1, added: 0, known: 2 });
     expect(out.records.games.limbus.pulls.find((p) => p.name === "가")?.top).toBe(true);
+  });
+});
+
+describe("림버스 이력 이름 바로잡기는 같은 수감자 안에서만", () => {
+  it("수감자가 다른 비슷한 인격으로 바꾸지 않는다", async () => {
+    const { parseLimbusHistory: parse } = await import("./limbus-history");
+    const { parseFrameText: pf } = await import("./recognize");
+    const f = pf(["0.46,0.08 0.08x0.04 추출 이력", "0.41,0.31 0.06x0.03 W사 3등급 정리 요원", "0.41,0.35 0.04x0.02 이상", "0.39,0.63 0.22x0.02 지난 15일간 이력이 최대 20건 표기됩니다."].join("\n"));
+    expect(parse(f, ["W사 3등급 정리 요원 홍루"])?.[0].name).toBe("W사 3등급 정리 요원 이상");
+  });
+});
+
+describe("이력 조각 이어 붙이기 실패 알아내기", () => {
+  it("겹치는 줄이 없으면 null(그사이를 놓침), 겹치면 이어 붙인다", async () => {
+    const { joinSequence } = await import("./limbus-history");
+    const r = (n: string) => ({ name: n, top: false });
+    expect(joinSequence([r("가"), r("나"), r("다")], [r("나"), r("다"), r("라")])?.map((x) => x.name)).toEqual(["가", "나", "다", "라"]);
+    expect(joinSequence([r("가"), r("나"), r("다")], [r("마"), r("바"), r("사")])).toBeNull();
+    expect(joinSequence([], [r("가")])?.length).toBe(1);
   });
 });

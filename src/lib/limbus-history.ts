@@ -30,7 +30,27 @@ export function sinnerOf(text: string): string | null {
   return best.d <= 1 && t.length >= 2 ? best.s : null;
 }
 
-/** 추출 이력 화면 → 줄(최신이 앞). 위아래로 잘린 항목은 건너뛴다. */
+const norm = (t: string) => t.replace(/\s+/g, "");
+
+/** 제목(예: "데드레빗츠 보스")으로 시작하는 이름 중, 뒷부분(수감자)이 읽힌 글자와 가장 비슷한 하나. 애매하면 null */
+export function byTitle(names: string[], title: string, tail: string): string | null {
+  const tn = norm(title);
+  const tl = norm(tail);
+  if (tn.length < 2 || !tl) return null;
+  const cands = names.filter((n) => norm(n).startsWith(tn) && norm(n).length > tn.length)
+    .map((n) => {
+      const rest = norm(n).slice(tn.length);
+      const d = distance(rest, tl);
+      return { n, d, r: d / Math.max(rest.length, tl.length) }; // 길이에 비해 얼마나 다른지
+    })
+    .sort((a, b) => a.r - b.r);
+  const best = cands[0];
+  if (!best || best.d > Math.floor(tl.length / 2) + 1 || best.r > 0.7) return null;
+  if (cands[1] && cands[1].r === best.r) return null;
+  return best.n;
+}
+
+/** 추출 이력 화면 → 줄(최신이 앞). 위아래로 잘린 항목은 건너뛴다. known = 아는 인격 이름(수감자 이름이 잘못 읽힌 줄을 찾는 데도 쓴다) */
 export function parseLimbusHistory(frame: ScreenFrame, known: string[] = []): LimbusRow[] | null {
   const lines = frame.lines;
   const head = lines.find((l) => /추출\s*이력/.test(l.t));
@@ -38,24 +58,36 @@ export function parseLimbusHistory(frame: ScreenFrame, known: string[] = []): Li
   if (!head || !foot) return null;
   // 목록 칸: 수감자 이름이 있는 줄들의 x를 기준으로
   const inList = lines.filter((l) => l.y > head.y + 0.05 && l.y < foot.y && l.x > 0.25 && l.x < 0.6);
-  const sinnerLines = inList.filter((l) => sinnerOf(l.t)).sort((a, b) => a.y - b.y);
+  const isGrade = (t: string) => /^0{1,3}$/.test(t.trim().replace(/[oO]/g, "0"));
+  // 인격 이름 목록(배너 자료 + 이미지 목록 + 기본 인격 "LCB 수감자 X"): 수감자 이름이 잘못 읽혀도 앞부분으로 찾는다
+  const names = [...new Set([...known, ...SINNERS.map((x) => `LCB 수감자 ${x}`)])];
   const rows: LimbusRow[] = [];
-  for (const s of sinnerLines) {
+  for (const s of [...inList].sort((a, b) => a.y - b.y)) {
+    if (isGrade(s.t)) continue;
     const above = (l: ScreenLine, max: number) => l.y < s.y && s.y - l.y < max && Math.abs(l.x - s.x) < 0.05;
-    const title = inList.filter((l) => l !== s && above(l, 0.06) && !/^0{1,3}$/.test(l.t.trim()) && !sinnerOf(l.t))
+    const title = inList.filter((l) => l !== s && above(l, 0.06) && !isGrade(l.t) && !sinnerOf(l.t))
       .sort((a, b) => b.y - a.y)[0];
-    if (!title) continue; // 위가 잘린 항목
-    const grade = inList.find((l) => above(l, 0.1) && l.y < title.y && /^0{1,3}$/.test(l.t.trim().replace(/[oO]/g, "0")));
-    const raw = `${title.t.trim()} ${sinnerOf(s.t)}`;
+    if (!title) continue; // 위가 잘린 항목(또는 이 줄이 제목 줄)
+    const sinner = sinnerOf(s.t);
+    // 수감자 이름을 못 읽은 줄(실기: "뫼르소" → "미르"): 제목으로 시작하는 이름 중 뒷부분이 가장 비슷한 하나
+    const name = sinner ? null : byTitle(names, title.t, s.t);
+    if (!sinner && !name) continue;
+    const grade = inList.find((l) => above(l, 0.1) && l.y < title.y && isGrade(l.t));
+    const raw = name ?? `${title.t.trim()} ${sinner}`;
     // 배너 자료에 있는 이름과 한두 글자만 다르면 그 이름으로 바로잡는다 ("쇄기" → "쐐기")
-    const fix = known.map((k) => ({ k, d: distance(k.replace(/\s+/g, ""), raw.replace(/\s+/g, "")) })).sort((a, b) => a.d - b.d)[0];
+    // (이름 목록이 커서, 수감자가 읽혔으면 같은 수감자의 이름 중에서만 — 다른 수감자의 비슷한 인격으로 바뀌지 않게)
+    const pool = sinner ? names.filter((k) => k.endsWith(` ${sinner}`)) : known;
+    const fix = pool.map((k) => ({ k, d: distance(norm(k), norm(raw)) })).sort((a, b) => a.d - b.d)[0];
     rows.push({ name: fix && fix.d <= 2 ? fix.k : raw, top: grade?.t.trim().length === 3 });
   }
   return rows;
 }
 
-/** 스크롤해서 여러 번 읽은 목록을 겹치는 부분으로 이어 붙인다(최신이 앞). */
-export function mergeSequence(have: LimbusRow[], incoming: LimbusRow[]): LimbusRow[] {
+/**
+ * 스크롤해서 여러 번 읽은 목록을 겹치는 부분으로 이어 붙인다(최신이 앞).
+ * 겹치는 줄이 없으면 null — 그사이 줄을 놓친 것(너무 빨리 넘김, 2026-11-27 실기: 10줄 중 4줄만 남음).
+ */
+export function joinSequence(have: LimbusRow[], incoming: LimbusRow[]): LimbusRow[] | null {
   if (!have.length) return incoming;
   if (!incoming.length) return have;
   const same = (a: LimbusRow, b: LimbusRow) => a.name === b.name && a.top === b.top;
@@ -70,7 +102,12 @@ export function mergeSequence(have: LimbusRow[], incoming: LimbusRow[]): LimbusR
     }
     return null;
   };
-  return join(have, incoming) ?? join(incoming, have) ?? (incoming.length >= have.length ? incoming : have);
+  return join(have, incoming) ?? join(incoming, have);
+}
+
+/** 이어 붙이되, 못 붙이면 더 긴 쪽을 남긴다 */
+export function mergeSequence(have: LimbusRow[], incoming: LimbusRow[]): LimbusRow[] {
+  return joinSequence(have, incoming) ?? (incoming.length >= have.length ? incoming : have);
 }
 
 export interface LimbusApply {
