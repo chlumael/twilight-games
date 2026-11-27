@@ -152,6 +152,26 @@ describe("history", () => {
     expect(hits[3].path?.map((s) => [s.name, s.at])).toEqual([["포그라니치니크", 52], ["사", 58], ["아델리아", 80], ["케르", 120]]);
     expect(hits[0].path).toBeNull(); // 픽뚫에는 없음
   });
+  it("이전 배너에서 쌓은 스택도 센다 (사용자 2026-11-28: 원신 이전 배너 40스택 + 새 배너 34뽑 = 74, 34가 아님)", () => {
+    let r = emptyRecords();
+    r.games.genshin.currentBanner["genshin-char"] = "이전 배너";
+    for (let s = 0; s < 4; s++) r = recordSession(r, "genshin", "genshin-char", 10, new Map(), t(s));
+    r.games.genshin.currentBanner["genshin-char"] = "새 배너";
+    // 새 배너 34번째에 픽뚫, 그 뒤 20번째에 픽업
+    for (let s = 0; s < 3; s++) r = recordSession(r, "genshin", "genshin-char", 10, new Map(), t(10 + s));
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map([[3, { name: "A", featured: false }]]), t(13));
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map(), t(14));
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map([[9, { name: "B", featured: true }]]), t(15));
+    expect(new Set(r.games.genshin.pulls.map((p) => p.banner))).toEqual(new Set(["이전 배너", "새 배너"]));
+    const hits = topHistory(r.games.genshin, "genshin-char");
+    expect(hits.map((h) => h.count)).toEqual([74, 26]);
+    expect(hits[1].path?.map((s) => [s.name, s.at])).toEqual([["A", 74], ["B", 100]]);
+    // 앱에 기록하기 전 스택(기준값)도 포함
+    let g = emptyRecords();
+    g.games.genshin.baseline["genshin-char"] = { ...emptyBaseline(), pity: 40 };
+    g = recordSession(g, "genshin", "genshin-char", 10, new Map([[3, { name: "C", featured: true }]]), t(0));
+    expect(topHistory(g.games.genshin, "genshin-char")[0].count).toBe(44);
+  });
   it("픽업까지 횟수: 바로 픽업이면 그 횟수, 픽업인지 모르는 기록이 끼면 모름, 시작이 확정 상태면 모름", () => {
     let r = emptyRecords();
     r = recordSession(r, "genshin", "genshin-char", 10, new Map([[4, { name: "A", featured: true }]]), t(0));
