@@ -150,7 +150,7 @@ class ScreenReadService : Service() {
     private var lastPullSeen = 0L
 
     /**
-     * 읽는 간격: 뽑는 중(확인 창·재추출·결과 화면)이면 0.3초(사실상 글자 인식이 끝나는 대로 바로),
+     * 읽는 간격: 뽑는 중(확인 창·재추출·결과 화면)이 보이면 그 뒤 30초 동안 0.3초(사실상 글자 인식이 끝나는 대로 바로, 다시 보이면 30초를 새로 셈),
      * 가챠 화면이 보이면 그 뒤 잠시 동안은 1초, 아니면 2.5초.
      * 확인 창을 띄우자마자 눌러도 덜 놓치게(사용자 2026-11-27: 뽑을 때만 잠깐 쓰니 배터리·발열은 괜찮음).
      */
@@ -258,7 +258,7 @@ class ScreenReadService : Service() {
         private const val FAST_INTERVAL_MS = 1000L
         private const val FAST_WINDOW_MS = 20_000L
         private const val BURST_INTERVAL_MS = 300L
-        private const val BURST_WINDOW_MS = 15_000L
+        private const val BURST_WINDOW_MS = 30_000L // 결과 연출을 끝까지 봐도 끊기지 않게(글자가 다시 보이면 처음부터 다시 셈)
         /**
          * 뽑는 중에만 보이는 글자(모두 실제 화면에서 읽힌 글자, src/lib/fixtures):
          * 림버스 추출 버튼·확인 창("소비하여", "추출 진행")·결과("재추출"), 원신 "기원 1회/10회",
