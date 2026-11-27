@@ -111,15 +111,17 @@ describe("배너 그림 (eventImages)", async () => {
     event_name: name, rtime32_start_time: t, clan_steamid: "103582791473108638",
     jsondata: JSON.stringify({ localized_capsule_image: cap ? [cap] : [] }), announcement_body: { body },
   });
-  it("표지가 있으면 표지, 공통 표지면 소개 영상 그림, 같은 배너는 가장 이른 공지", () => {
+  it("소개 영상 그림이 있으면 그것(더 선명), 없으면 표지, 같은 배너는 가장 이른 공지", () => {
     const out = eventImages([
       ev("2026.11.26 (KST) 오트쿠튀르 특정 추출", 20, "bbb.png"),
       ev("2026.11.26 (KST) 오트쿠튀르 특정 추출 안내", 10, "aaa.png"),
+      ev("2026.10.29 (KST) 히스클리프 특정 추출", 9, "ddd.png", "[previewyoutube=jWYcZpYtdls;full]"),
       ev("2025.02.20 (KST) 류 이상 특정 추출", 5, "62e63adbc551470064256668df2ba6cae5138cad.png", "[previewyoutube=pEDkIzAgXRk;full]"),
       ev("2026.10.01 (KST) 제10회 발푸르기스의 밤 특정 추출", 7, "ccc.png"),
     ]);
     expect(out["limbus:official:2026-11-26"]).toBe("https://clan.akamai.steamstatic.com/images/43587230/aaa.png");
     expect(out["limbus:official:2025-02-20"]).toBe("https://i.ytimg.com/vi/pEDkIzAgXRk/maxresdefault.jpg");
     expect(out["limbus:official:walpurgis-10"]).toMatch(/ccc\.png$/);
+    expect(out["limbus:official:2026-10-29"]).toBe("https://i.ytimg.com/vi/jWYcZpYtdls/maxresdefault.jpg");
   });
 });

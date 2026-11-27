@@ -252,7 +252,7 @@ const GENERIC_CAPSULE = "62e63adbc551470064256668df2ba6cae5138cad.png";
 const CLAN0 = 103582791429521408n;
 
 /**
- * 배너 그림: 공지마다 그 배너의 표지(capsule)가 있으면 그것을, 없으면 공지 속 소개 영상의 미리보기 그림을 쓴다.
+ * 배너 그림: 공지 속 소개 영상의 미리보기 그림(더 선명), 없으면 그 배너의 표지(capsule).
  * 같은 배너의 공지가 여럿이면 가장 이른 것. 앱은 줄인 사본(data/images)을 쓴다 — scripts/images
  */
 export function eventImages(events) {
@@ -267,9 +267,11 @@ export function eventImages(events) {
     try { json = typeof e.jsondata === "string" ? JSON.parse(e.jsondata) : e.jsondata ?? {}; } catch { /* 깨진 칸 */ }
     const cap = json.localized_capsule_image?.[0];
     const yt = String(e.announcement_body?.body ?? "").match(/\[previewyoutube=([\w-]{6,20})/);
-    if (cap && cap !== GENERIC_CAPSULE && /^[\w.]+$/.test(cap) && e.clan_steamid) {
+    // 소개 영상 미리보기(1280×720)가 표지(800×450)와 같은 그림이라 더 선명한 쪽을 먼저 쓴다(사용자 지적 2026-11-27: 화질)
+    if (yt) out[key] = `https://i.ytimg.com/vi/${yt[1]}/maxresdefault.jpg`;
+    else if (cap && cap !== GENERIC_CAPSULE && /^[\w.]+$/.test(cap) && e.clan_steamid) {
       out[key] = `https://clan.akamai.steamstatic.com/images/${BigInt(e.clan_steamid) - CLAN0}/${cap}`;
-    } else if (yt) out[key] = `https://i.ytimg.com/vi/${yt[1]}/maxresdefault.jpg`;
+    }
   }
   return out;
 }

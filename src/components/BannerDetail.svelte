@@ -128,7 +128,8 @@
 </section>
 
 <style>
-  .art { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); display: block; background: var(--panel); }
+  /* 그림 비율은 게임마다 다르다(원신 2:1, 명방 1.83:1, 엔드필드·림버스 16:9) → 자르지 않고 원래 비율로 (사용자 지적 2026-11-27) */
+  .art { width: 100%; height: auto; border-radius: var(--radius); display: block; background: var(--panel); }
   .detail { display: flex; flex-direction: column; gap: 10px; padding: 12px; font-size: 12px; }
   .dhead { display: flex; align-items: center; gap: 8px; }
   .kind { color: var(--muted); flex: 1; min-width: 0; }

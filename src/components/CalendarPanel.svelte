@@ -201,7 +201,7 @@
 {/snippet}
 
 <style>
-  .rart { width: 100%; max-width: 360px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); margin: 4px 0 2px; display: block; background: var(--panel); }
+  .rart { width: 100%; max-width: 480px; height: auto; border-radius: var(--radius); margin: 4px 0 2px; display: block; background: var(--panel); }
   .rnames { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0; }
   /* 종류별 색: 픽업(보라) · 복각(보라 테두리) · 이벤트(청록) · 업데이트(주황) · 행사(분홍) · 내 일정(연보라) · 종료(회색) */
   .cal {

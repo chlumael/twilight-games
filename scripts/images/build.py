@@ -16,7 +16,6 @@ import io
 import json
 import re
 import sys
-import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -34,7 +33,7 @@ OUT = ROOT / "data" / "images"
 PACK = ROOT / "data" / "banners.json"
 UA = {"User-Agent": "twilight-games-image-builder"}
 ICON = 96
-BANNER_W = 480
+BANNER_W = 1080  # 휴대폰 화면 폭(약 1,000픽셀)에 맞춤 — 480은 흐렸다(사용자 지적 2026-11-27)
 warnings: list[str] = []
 
 
@@ -76,7 +75,7 @@ def save(rel: str, url: str, kind: str) -> bool:
     else:
         if img.width > BANNER_W:
             img = img.resize((BANNER_W, round(img.height * BANNER_W / img.width)), Image.LANCZOS)
-        img, quality = img.convert("RGB"), 72
+        img, quality = img.convert("RGB"), 80
     path.parent.mkdir(parents=True, exist_ok=True)
     img.save(path, "WEBP", quality=quality, method=6)
     return True
@@ -251,8 +250,8 @@ def banners(game: str, pack: dict) -> dict[str, str]:
         url = b.get("image")
         if not url or not url.startswith("https://"):
             continue
-        key = urllib.parse.unquote(url.rsplit("/", 1)[-1])
-        rel = f"{game}/b/{slug(key)}.webp"
+        # 파일 이름은 주소 전체로 만든다(영상 미리보기는 모두 ".../maxresdefault.jpg"라 끝부분만 쓰면 서로 겹쳤다)
+        rel = f"{game}/b/{hashlib.sha1(url.encode()).hexdigest()[:12]}.webp"
         if save(rel, url, "banner"):
             out[b["id"]] = rel
     return out
