@@ -15,8 +15,8 @@ android {
         applicationId = "io.github.chlumael.twilightgames"
         minSdk = 26 // TYPE_APPLICATION_OVERLAY
         targetSdk = 35
-        versionCode = 56
-        versionName = "0.9.18"
+        versionCode = 57
+        versionName = "0.9.19"
     }
 
     signingConfigs {
