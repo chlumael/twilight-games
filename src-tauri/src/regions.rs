@@ -20,8 +20,10 @@ pub struct Probe {
 pub struct FieldDef {
     pub id: String,
     pub rect: Option<Rect>,
-    #[allow(dead_code)]
+    /// "digits"면 숫자 칸 처리(ocr.rs read_field)
     pub kind: String,
+    /// 숫자 칸 글자 사이 벌리기(글자 높이 대비). 없으면 0.25, 0이면 벌리지 않음
+    pub spacing: Option<f64>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -157,78 +159,6 @@ pub fn probe_print(img: &Image, content: (f64, f64, f64, f64), p: &Probe) -> Str
         .unwrap_or_default()
 }
 
-/// 영역을 잘라 BGRA로. scale배(1~4)로 키운다(작은 글자 인식률). 가장 가까운 점 방식.
-/// 잘라 낸 부분을 scale배로 키우고 둘레에 여백을 붙인다.
-/// 글자가 그림 가장자리에 붙어 있으면 윈도우 글자 인식이 아예 못 읽는 일이 있어서(PC 실기 2026-11-27: 재화 칸을 못 읽음)
-/// 키운 높이의 절반만큼 가장자리 색(왼쪽 위 점)으로 채운다.
-pub fn crop(img: &Image, area: (usize, usize, usize, usize), scale: usize) -> (Vec<u8>, usize, usize) {
-    let (x0, y0, x1, y1) = area;
-    let s = scale.clamp(1, 4);
-    let (iw, ih) = ((x1 - x0) * s, (y1 - y0) * s);
-    let pad = ih / 2;
-    let (w, h) = (iw + pad * 2, ih + pad * 2);
-    let edge = {
-        let i = (y0 * img.w + x0) * 4;
-        [img.px[i], img.px[i + 1], img.px[i + 2], 255]
-    };
-    let mut out = vec![0u8; w * h * 4];
-    for px in out.chunks_mut(4) {
-        px.copy_from_slice(&edge);
-    }
-    for y in 0..ih {
-        for x in 0..iw {
-            let si = ((y0 + y / s) * img.w + (x0 + x / s)) * 4;
-            let di = ((y + pad) * w + (x + pad)) * 4;
-            out[di..di + 4].copy_from_slice(&img.px[si..si + 4]);
-        }
-    }
-    (out, w, h)
-}
-
-/// 글자 인식이 잘 읽게 "흰 바탕에 검은 글자"로 바꾼다(crop이 붙인 둘레 여백 `pad`는 흰색으로).
-/// 밝기 대신 세 색 중 가장 큰 값을 써서, 검은 바탕의 빨간 숫자(림버스 광기)도 바탕과 뚜렷하게 갈린다(PC 실기 2026-11-27: 광기를 못 읽음).
-/// 가장 어두운 곳~가장 밝은 곳을 0~255로 늘리고, 칸 안이 대체로 어두우면(어두운 바탕에 밝은 글자) 뒤집는다.
-pub fn to_ink(px: &mut [u8], w: usize, h: usize, pad: usize) {
-    let inner = |x: usize, y: usize| x >= pad && x < w - pad && y >= pad && y < h - pad;
-    let vals: Vec<u8> = px.chunks(4).map(|p| p[0].max(p[1]).max(p[2])).collect();
-    let (mut lo, mut hi, mut sum, mut n) = (255u8, 0u8, 0u64, 0u64);
-    for y in 0..h {
-        for x in 0..w {
-            if inner(x, y) {
-                let v = vals[y * w + x];
-                lo = lo.min(v);
-                hi = hi.max(v);
-                sum += v as u64;
-                n += 1;
-            }
-        }
-    }
-    if n == 0 {
-        return;
-    }
-    // 한 가지 색뿐이면(글자 없음) 칸 안은 흰색으로
-    let invert = hi > lo && (sum / n) < ((lo as u64 + hi as u64) / 2);
-    let span = (hi - lo).max(1) as u32;
-    for y in 0..h {
-        for x in 0..w {
-            let i = y * w + x;
-            let g = if inner(x, y) {
-                let n = ((vals[i] - lo) as u32 * 255 / span).min(255) as u8;
-                if hi == lo { 255 } else if invert { 255 - n } else { n }
-            } else {
-                255
-            };
-            px[i * 4..i * 4 + 3].fill(g);
-        }
-    }
-}
-
-/// 작은 글자일수록 크게: 영역 높이가 90픽셀쯤 되도록(최대 4배). 60이면 1080p 재화 칸(30~40픽셀)이 그대로 1배라 작았다(2026-11-27)
-pub fn scale_for(area: (usize, usize, usize, usize)) -> usize {
-    let h = area.3 - area.1;
-    (90 / h.max(1)).clamp(1, 4)
-}
-
 /// 화면 판단: 판단 부분이 모두 정해져 있고 모두 맞는 첫 화면
 pub fn match_screen<'p>(img: &Image, profiles: &'p [Profile]) -> Option<(&'p Profile, &'p ScreenDef, (f64, f64, f64, f64))> {
     for p in profiles {
@@ -293,36 +223,4 @@ mod tests {
         assert_eq!(hamming("f0f0f0f0f0f0f0f0", "f0f0f0f0f0f0f0f1"), 1);
     }
 
-    #[test]
-    fn crop_scales() {
-        let px = checker(16, 16);
-        let img = Image { w: 16, h: 16, px: &px };
-        let (out, w, h) = crop(&img, (6, 0, 10, 2), 2);
-        // 8×4로 키운 것 + 둘레 여백 2(키운 높이의 절반)
-        assert_eq!((w, h), (12, 8));
-        let at = |x: usize, y: usize| out[(y * w + x) * 4];
-        assert_eq!(at(2, 2), 255);
-        assert_eq!(at(9, 2), 0);
-        // 여백은 가장자리 색(왼쪽 위 점)
-        assert_eq!(at(0, 0), at(2, 2));
-    }
-
-    #[test]
-    fn ink_makes_dark_text_on_white() {
-        // 1×3 칸(여백 0): 검정, 검정, 빨강 → 흰 바탕 + 검은 글자
-        let mut px = vec![0, 0, 0, 255, 0, 0, 0, 255, 40, 40, 220, 255]; // BGRA
-        to_ink(&mut px, 3, 1, 0);
-        assert_eq!(&px[0..3], &[255, 255, 255]);
-        assert_eq!(&px[8..11], &[0, 0, 0]);
-        // 흰 바탕 + 검은 글자는 방향 유지
-        let mut px = vec![250, 250, 250, 255, 250, 250, 250, 255, 10, 10, 10, 255];
-        to_ink(&mut px, 3, 1, 0);
-        assert_eq!(px[0], 255);
-        assert_eq!(px[8], 0);
-        // 여백은 흰색
-        let mut px = vec![0u8; 3 * 3 * 4];
-        px[4 * 4] = 200; // 가운데만 밝음(여백 1)
-        to_ink(&mut px, 3, 3, 1);
-        assert_eq!(px[0], 255);
-    }
 }

@@ -1,6 +1,8 @@
 mod detect;
 mod genshin;
+mod ink;
 mod login;
+mod ocr;
 mod regions;
 mod screen;
 mod storage;

@@ -10,14 +10,8 @@ use tauri::{AppHandle, Emitter, State};
 #[derive(Default, Clone)]
 pub struct ScreenRead(pub Arc<AtomicBool>);
 
-#[derive(Serialize, Clone)]
-pub struct Line {
-    t: String,
-    x: f64,
-    y: f64,
-    w: f64,
-    h: f64,
-}
+/// 글자 인식 결과 한 줄 (ocr.rs — 시험 도구와 같은 코드)
+pub use crate::ocr::Line;
 
 #[derive(Serialize, Clone)]
 pub struct Frame {
@@ -160,13 +154,9 @@ mod imp {
 
 #[cfg(windows)]
 mod imp {
-    use super::{Frame, Line, RegionFrame};
+    use super::{Frame, RegionFrame};
+    use crate::ocr::{engine, ocr, read_def};
     use tauri::{AppHandle, Manager};
-    use windows::core::HSTRING;
-    use windows::Globalization::Language;
-    use windows::Graphics::Imaging::{BitmapPixelFormat, SoftwareBitmap};
-    use windows::Media::Ocr::OcrEngine;
-    use windows::Storage::Streams::DataWriter;
     use windows::Win32::Foundation::{HWND, POINT, RECT};
     use windows::Win32::Graphics::Gdi::{
         BitBlt, SetStretchBltMode, StretchBlt, HALFTONE, ClientToScreen, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits,
@@ -236,28 +226,6 @@ mod imp {
                 buf[i..i + 3].fill(0);
             }
         }
-    }
-
-    thread_local! {
-        /// 글자 인식기는 만드는 데 시간이 걸려서 한 번 만들어 계속 쓴다(예전에는 읽을 때마다 새로 만들었다)
-        static ENGINE: std::cell::RefCell<Option<OcrEngine>> = const { std::cell::RefCell::new(None) };
-    }
-
-    fn engine() -> Result<OcrEngine, String> {
-        if let Some(e) = ENGINE.with(|c| c.borrow().clone()) {
-            return Ok(e);
-        }
-        let e = new_engine()?;
-        ENGINE.with(|c| *c.borrow_mut() = Some(e.clone()));
-        Ok(e)
-    }
-
-    fn new_engine() -> Result<OcrEngine, String> {
-        let lang = Language::CreateLanguage(&HSTRING::from("ko")).map_err(err("언어 설정"))?;
-        if !OcrEngine::IsLanguageSupported(&lang).unwrap_or(false) {
-            return Err("윈도우에 한국어 글자 인식이 설치돼 있지 않습니다 (설정 → 시간 및 언어 → 언어 → 한국어 → 언어 옵션에서 '광학 문자 인식' 추가)".into());
-        }
-        OcrEngine::TryCreateFromLanguage(&lang).map_err(err("글자 인식 준비"))
     }
 
     /// 앞에 떠 있는 창의 안쪽 영역을 찍어 BGRA 바이트로 돌려준다. 우리 창이 앞이면 None.
@@ -334,53 +302,6 @@ mod imp {
         }
     }
 
-    /// BGRA 그림을 글자 인식해 줄 목록으로 (위치는 그림 대비 비율)
-    fn ocr(bytes: &[u8], w: i32, h: i32) -> Result<Vec<Line>, String> {
-        let writer = DataWriter::new().map_err(err("버퍼"))?;
-        writer.WriteBytes(bytes).map_err(err("버퍼"))?;
-        let buffer = writer.DetachBuffer().map_err(err("버퍼"))?;
-        let bitmap = SoftwareBitmap::CreateCopyFromBuffer(&buffer, BitmapPixelFormat::Bgra8, w, h).map_err(err("그림 변환"))?;
-        let result = engine()?
-            .RecognizeAsync(&bitmap)
-            .map_err(err("글자 인식"))?
-            .get()
-            .map_err(err("글자 인식"))?;
-        let mut lines = Vec::new();
-        for line in result.Lines().map_err(err("결과"))? {
-            // 윈도우 글자 인식은 한글을 글자마다 따로 떼어 주는 일이 있다("헤 드 헌 팅").
-            // 그래서 낱말 사이 간격이 글자 높이에 비해 넓을 때만 띄어쓰기로 본다.
-            let (mut l, mut t, mut r, mut b) = (f64::MAX, f64::MAX, 0f64, 0f64);
-            let mut text = String::new();
-            let mut prev_right: Option<f64> = None;
-            let mut prev_ascii = false;
-            for word in line.Words().map_err(err("결과"))? {
-                let rect = word.BoundingRect().map_err(err("결과"))?;
-                let (x, y, ww, hh) = (rect.X as f64, rect.Y as f64, rect.Width as f64, rect.Height as f64);
-                let word_text = word.Text().map_err(err("결과"))?.to_string();
-                if let Some(pr) = prev_right {
-                    // 낱말을 붙이는 것은 한글끼리만. 숫자·영문은 인식기가 나눈 그대로 띄운다
-                    // (엔드필드: 오로베릴 숫자 옆의 세로 구분선이 "1"로 읽혀 "55025"+"1" → "550251"로 붙던 문제, 2026-11-25).
-                    let ascii_pair = prev_ascii && word_text.is_ascii();
-                    if ascii_pair || x - pr > hh * 0.3 {
-                        text.push(' ');
-                    }
-                }
-                prev_ascii = word_text.is_ascii();
-                text.push_str(&word_text);
-                prev_right = Some(x + ww);
-                l = l.min(x);
-                t = t.min(y);
-                r = r.max(x + ww);
-                b = b.max(y + hh);
-            }
-            if r <= l || text.is_empty() {
-                continue;
-            }
-            lines.push(Line { t: text, x: l / w as f64, y: t / h as f64, w: (r - l) / w as f64, h: (b - t) / h as f64 });
-        }
-        Ok(lines)
-    }
-
     fn now_ms() -> u64 {
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -390,7 +311,7 @@ mod imp {
 
     /// 정해진 위치만 잘라 읽기 (DESIGN.md §4.8). 판단된 화면의 칸만 글자 인식한다.
     pub fn read_regions(profiles: &[crate::regions::Profile]) -> Result<Option<RegionFrame>, String> {
-        use crate::regions::{crop, match_screen, probe_matches, probe_print, rect_px, scale_for, Image};
+        use crate::regions::{match_screen, probe_matches, probe_print, rect_px, Image};
         let Some((bytes, w, h, win_w, win_h)) = capture(false)? else { return Ok(None) };
         let img = Image { w: w as usize, h: h as usize, px: &bytes };
         let mut frame = RegionFrame { time: now_ms(), width: win_w, height: win_h, screen: None, fields: Default::default(), tops: vec![], prints: vec![] };
@@ -398,17 +319,8 @@ mod imp {
         frame.screen = Some(screen.id.clone());
         for f in &screen.fields {
             let Some(area) = f.rect.and_then(|r| rect_px(img.w, img.h, content, r)) else { continue };
-            let (mut px, cw, ch) = crop(&img, area, scale_for(area));
-            let pad = (ch - (area.3 - area.1) * scale_for(area)) / 2;
-            crate::regions::to_ink(&mut px, cw, ch, pad);
-            // 한 칸을 못 읽어도 다른 칸은 계속 읽는다(빈칸으로 넘긴다)
-            let Ok(mut lines) = ocr(&px, cw as i32, ch as i32) else {
-                frame.fields.insert(f.id.clone(), String::new());
-                continue;
-            };
-            lines.sort_by(|a, b| a.y.partial_cmp(&b.y).unwrap_or(std::cmp::Ordering::Equal));
-            let text = lines.into_iter().map(|l| l.t).collect::<Vec<_>>().join(" ");
-            frame.fields.insert(f.id.clone(), text);
+            // 자르기 → 흰 바탕 → 글자 인식 (ocr.rs, 시험 도구와 같은 함수). 한 칸을 못 읽어도 다른 칸은 계속 읽는다(빈칸으로 넘긴다)
+            frame.fields.insert(f.id.clone(), read_def(&img, area, f));
         }
         for t in &screen.tops {
             frame.tops.push(matches!(probe_matches(&img, content, t), Some((true, _))));

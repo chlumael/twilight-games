@@ -34,6 +34,24 @@ describe("화면 틀 데이터", () => {
     expect(parseField(f("endfield-chartered-main", "toFeatured"), "의 선물", ef.fixes).ok).toBe(false);
     expect(parseField(f("endfield-chartered-main", "exchange"), "11400", ef.fixes)).toMatchObject({ ok: true, value: 152 });
   });
+  it("윈도우 글자 인식이 실제로 읽은 글자(PC 시험 2026-11-27, 스크린샷 7장 → src-tauri/examples/region_test)", () => {
+    const P = (g: string) => PROFILES.find((p) => p.game === g)!;
+    const f = (g: string, sid: string, fid: string) => P(g).screens.find((s) => s.id === sid)!.fields.find((x) => x.id === fid)!;
+    const read = (g: string, sid: string, fid: string, raw: string) => parseField(f(g, sid, fid), raw, P(g).fixes);
+    // 림버스 광기: 글꼴의 '4'를 'k'로 읽음 → 바꿈 표
+    expect(read("limbus", "limbus-main", "lunacy", "58k1k")).toMatchObject({ ok: true, value: 58414 });
+    expect(read("genshin", "genshin-char-main", "primogem", "419")).toMatchObject({ ok: true, value: 419 });
+    expect(read("genshin", "genshin-weapon-main", "intertwined", "183")).toMatchObject({ ok: true, value: 183 });
+    expect(read("arknights", "arknights-limited-main", "orundum", "170280")).toMatchObject({ ok: true, value: 170280 });
+    expect(read("arknights", "arknights-limited-main", "exchange", "32760")).toMatchObject({ ok: true, value: 182 });
+    expect(read("endfield", "endfield-chartered-main", "charteredPermit", "0")).toMatchObject({ ok: true, value: 0 });
+    expect(read("endfield", "endfield-arsenal-main", "arsenalTicket", "8325")).toMatchObject({ ok: true, value: 8325 });
+    expect(read("endfield", "endfield-refactor-main", "toTop", "37 회의 해드현팅 내 6성 오퍼레이터 확정 획득./")).toMatchObject({ ok: true, value: 37 });
+    expect(read("endfield", "endfield-refactor-main", "toFeatured", "120회의 헤드현팅 내 확정 획득")).toMatchObject({ ok: true, value: 120 });
+    // 고치기 전 읽힌 것: 붙은 "00"을 한 글자로 → 75의 배수가 아니라 버림 / 1을 '그'로 → 숫자 덩어리만 남아도 앞에 한글이 붙어 버림
+    expect(read("endfield", "endfield-chartered-main", "exchange", "114㈀").ok).toBe(false);
+    expect(read("arknights", "arknights-limited-main", "orundum", "그70282").ok).toBe(false);
+  });
   it("판단·칸·등급 표시가 다 채워지면 준비됨", () => {
     const probe = { rect: [0, 0, 0.1, 0.1] as [number, number, number, number], hash: "0".repeat(16), rgb: [0, 0, 0] as [number, number, number] };
     const p: GameProfile = { game: "endfield", aspect: 16 / 9, fixes: [], screens: [

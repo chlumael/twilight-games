@@ -21,6 +21,10 @@ serde_json = "1"
 sysinfo = { version = "0.37", default-features = false, features = ["system"] }
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 
+# 시험 도구(examples/region_test.rs)에서만 스크린샷(PNG·WebP — 캡처 도구가 이름만 .png인 WebP로 저장하기도 함)을 읽는다. 배포 파일에는 들어가지 않는다
+[dev-dependencies]
+image = { version = "0.25", default-features = false, features = ["png", "webp", "jpeg"] }
+
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
 # 화면 읽기: 화면 찍기(GDI)와 윈도우 내장 글자 인식(WinRT)

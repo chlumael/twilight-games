@@ -42,6 +42,8 @@ export interface FieldDef {
   confirm: number;
   /** 화면에 없을 때도 있는 칸(예: 픽업을 이미 받으면 사라지는 '확정 획득' 줄). 못 읽어도 "인식 못 함"으로 치지 않는다 */
   optional?: boolean;
+  /** 숫자 칸 글자 사이 벌리기(글자 높이 대비, PC의 src-tauri/src/ocr.rs). 없으면 0.25, 0이면 벌리지 않음 */
+  spacing?: number;
   note?: string;
 }
 
