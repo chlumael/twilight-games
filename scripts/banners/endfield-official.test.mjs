@@ -184,3 +184,20 @@ describe("엔드필드 공식 공지 해석", () => {
     expect(d.featured[0].ko).toBe("늑대의 혈흔");
   });
 });
+
+describe("배너 그림 (withCovers)", async () => {
+  const { withCovers } = await import("./endfield-official.mjs");
+  it("배너 이름의 「…」와 같은 공지 표지를 붙이고, 재구축 신청은 빼 둔다", () => {
+    const notices = [
+      { title: "「모루, 배낭, 그리고 벌꿀」 특별 허가 헤드헌팅 안내", cover: "https://x/a.png" },
+      { title: "「유영 신청」 기간 한정 판매 설명", cover: "https://x/b.png" },
+      { title: "「표류 신청」 등 안내", cover: "https://x/c.png" },
+    ];
+    const out = withCovers([
+      { name: "「모루, 배낭, 그리고 벌꿀」 특별 허가 헤드헌팅", group: "endfield-chartered" },
+      { name: "「유영 신청」", group: "endfield-arsenal" },
+      { name: "「표류 신청」 재구축 신청", group: "endfield-refactor-arsenal" },
+    ], notices);
+    expect(out.map((b) => b.image)).toEqual(["https://x/a.png", "https://x/b.png", undefined]);
+  });
+});

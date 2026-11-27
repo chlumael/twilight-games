@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Portrait from "./Portrait.svelte";
   import { GAMES } from "../lib/games";
   import { gameStats, luckLabel } from "../lib/stats";
   import type { GameId, GameRecord } from "../lib/types";
@@ -60,7 +61,7 @@
             {#each [...g.hits].reverse().slice(0, 12) as h (h.pull.id)}
               <div class="hit" class:lost={h.pull.featured === false}>
                 <span class="count">{h.at}번째</span><span class="muted">{h.count}뽑</span>
-                <span class="name">{h.pull.name ?? "이름 미입력"}</span>
+                <span class="name"><Portrait {game} name={h.pull.name} size={22} featured={h.pull.featured} />{h.pull.name ?? "이름 미입력"}</span>
                 {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
                 <span class="when">{day(h.pull.time)}</span>
               </div>
@@ -130,7 +131,7 @@
   .hit { display: grid; grid-template-columns: auto auto 1fr auto auto; align-items: center; gap: 6px; padding: 4px 6px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 12%, transparent); }
   .hit.lost { background: color-mix(in srgb, var(--muted) 14%, transparent); }
   .count { font-weight: 700; color: var(--top); text-align: right; white-space: nowrap; }
-  .name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .name { display: flex; align-items: center; gap: 5px; min-width: 0; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .badge { font-size: 10px; padding: 0 5px; border-radius: 3px; background: color-mix(in srgb, var(--muted) 30%, transparent); }
   .badge.win { background: var(--top); color: #000; }
   .brow { display: flex; flex-direction: column; gap: 2px; padding: 5px 0; border-top: 1px solid color-mix(in srgb, var(--muted) 20%, transparent); }

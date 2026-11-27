@@ -1,14 +1,16 @@
 <script lang="ts">
+  import Portrait from "./Portrait.svelte";
   import { activeBanners, bannerLabel, bannerState, daysLeft, itemName, type PackBanner, type PoolEntry } from "../lib/banners";
   import { hitLabel, type GroupStatus, type TopHit } from "../lib/ledger";
-  import type { Exchange, Pull } from "../lib/types";
+  import type { Exchange, GameId, Pull } from "../lib/types";
   import BannerDetail from "./BannerDetail.svelte";
   import PityBar from "./PityBar.svelte";
   import PityRing from "./PityRing.svelte";
   import PullStrip from "./PullStrip.svelte";
 
-  let { status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo, poolOf, freeLabel = "", onFreeTop, share = 0.5, onEditTop, onRemoveTop }: {
+  let { game, status, topLabel, groupLabel = "", recent, hits, gauge, banners = [], onBanner, topNames = [], guessFeatured, onTopAt, chooseOptions = [], chosen = "", onChoose, exchanges = [], onExchange, onRemoveExchange, onPullsTo, poolOf, freeLabel = "", onFreeTop, share = 0.5, onEditTop, onRemoveTop }: {
     groupLabel?: string;
+    game: GameId;
     status: GroupStatus;
     /** Known banners for this group from the data pack. */
     banners?: PackBanner[];
@@ -207,7 +209,7 @@
 {/if}
 {#if current}
   <button class="binfo" onclick={() => (detail = !detail)} aria-expanded={detail}>
-    {#each current.featured as f (f.id)}<span class="feat">{itemName(f)}</span>{/each}
+    {#each current.featured as f (f.id)}<span class="feat"><Portrait {game} name={itemName(f)} size={22} featured />{itemName(f)}</span>{/each}
     {#if daysLeft(current) !== null}<span class="dday">D-{daysLeft(current)}</span>{/if}
     {#if !current.featured.length || !current.featured.every((f) => current.name.includes(itemName(f)))}<span class="bname">{current.name}</span>{/if}
     <span class="more">{detail ? "접기 ▲" : "자세히 ▼"}</span>
@@ -254,7 +256,7 @@
           <!-- 이름 후보: 적은 글자가 들어간 것만(픽업 먼저). 누르면 이름 칸에 들어간다 -->
           <div class="picks">
             {#each picks as n (n)}
-              <button type="button" class="pick" class:on={n === addName.trim()} class:feat={guessFeatured?.(n) === true} onclick={() => (addName = n)}>{n}</button>
+              <button type="button" class="pick" class:on={n === addName.trim()} class:feat={guessFeatured?.(n) === true} onclick={() => (addName = n)}><Portrait {game} name={n} size={22} />{n}</button>
             {/each}
           </div>
         {/if}
@@ -293,6 +295,7 @@
     {#each lastHits as h (h.pull.id)}
       <button type="button" class="hit tap" class:lost={h.pull.featured === false} class:open={editId === h.pull.id} onclick={() => openEdit(h)} disabled={!onEditTop}>
         <span class="count">{h.at}<small>번째</small></span>
+        <Portrait {game} name={h.pull.name} size={30} featured={h.pull.featured} />
         <span class="name">{h.pull.name ?? `${topLabel} (이름 미입력)`}</span>
         <span class="took">{h.count}뽑</span>
         {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
@@ -315,7 +318,7 @@
           {#if editPicks.length}
             <div class="picks">
               {#each editPicks as n (n)}
-                <button type="button" class="pick" class:on={n === editName.trim()} class:feat={guessFeatured?.(n) === true} onclick={() => pickEdit(n)}>{n}</button>
+                <button type="button" class="pick" class:on={n === editName.trim()} class:feat={guessFeatured?.(n) === true} onclick={() => pickEdit(n)}><Portrait {game} name={n} size={22} />{n}</button>
               {/each}
             </div>
           {/if}
@@ -339,7 +342,7 @@
   .aline.end { justify-content: flex-end; }
   .aline .save { font-weight: 700; padding: 6px 16px; }
   .picks { display: flex; flex-wrap: wrap; gap: 6px; }
-  .pick { padding: 6px 10px; font-size: 13px; border-radius: var(--btn-radius); }
+  .pick { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px 3px 3px; font-size: 13px; border-radius: var(--btn-radius); }
   .pick.feat { border-color: var(--top); font-weight: 700; }
   .pick.on { background: var(--top); color: #1a1408; }
   .exch { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
@@ -379,7 +382,7 @@
   .binfo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: -4px; font-size: 11px; width: 100%; padding: 4px 0; background: none; border: 0; text-align: left; box-shadow: none; }
   .tolist { padding: 4px 8px; font-size: 11px; white-space: nowrap; }
   .more { margin-left: auto; color: var(--accent); font-weight: 600; flex: none; }
-  .feat { padding: 1px 7px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 22%, transparent); color: var(--text); font-weight: 600; }
+  .feat { display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px 1px 1px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 22%, transparent); color: var(--text); font-weight: 600; }
   .dday { color: var(--warn); font-weight: 700; }
   .bname { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 

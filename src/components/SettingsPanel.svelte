@@ -290,10 +290,13 @@
     <button class="linkish" onclick={() => (showPrivacy = !showPrivacy)} aria-expanded={showPrivacy}>개인정보 처리 방침 {showPrivacy ? "▲" : "▼"}</button>
     <!-- 앱 안에서 그대로 보이게(휴대폰 앱은 바깥 링크로 나가지 않는다) -->
     {#if showPrivacy}<iframe class="privacy" src="./privacy.html" title="개인정보 처리 방침"></iframe>{/if}
+    <!-- 게임 이미지 출처 (사용자 허용 2026-11-27, 비상업 팬 도구) -->
+    <p class="credit">게임 이미지 © HoYoverse · Hypergryph/Yostar · Gryphline · Project Moon. 모은 곳: 각 게임 공식 공지·홈페이지, paimon.moe, ArknightsGameResource, MaaEnd·Endaxis, LocalizeLimbusCompany·eldritchtools. 비상업 팬 도구이며 요청이 있으면 바로 뺍니다.</p>
   </section>
 </div>
 
 <style>
+  .credit { font-size: 10px; color: var(--muted); line-height: 1.5; margin: 8px 0 0; }
   .settings { display: flex; flex-direction: column; gap: 10px; }
   header { display: flex; justify-content: space-between; align-items: center; }
   h4 { margin: 0 0 4px; font-size: 12px; color: var(--accent); }

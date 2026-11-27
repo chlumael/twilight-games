@@ -1,6 +1,6 @@
 // 달력 (사용자 요청 2026-11-26): 픽업 기간, 게임 안 이벤트, 버전 시작·끝, 외부 행사, 내가 넣은 일정을 한 곳에서 본다.
 // 픽업은 배너 자료에서, 이벤트·버전·외부 소식은 배너 자료 파일의 events(scripts/banners/events.mjs)에서, 내 일정은 설정에서 온다.
-import { bannerLabel, type BannerPack, type PackEvent } from "./banners";
+import { bannerLabel, itemName, type BannerPack, type PackEvent } from "./banners";
 export type { PackEvent };
 import { GAMES } from "./games";
 import type { GameId } from "./types";
@@ -42,6 +42,9 @@ export interface CalItem {
   approx: boolean;
   source?: string;
   url?: string;
+  /** 픽업: 배너 id(배너 그림)와 픽업 이름(아이콘) */
+  bannerId?: string;
+  names?: string[];
 }
 
 const DAY = 864e5;
@@ -80,6 +83,7 @@ export function buildItems(pack: BannerPack | null, mine: MyEvent[] = []): CalIt
         title: `${group ? `${group.name} · ` : ""}${bannerLabel(b)}`,
         start: Date.parse(b.start!), end: b.end ? Date.parse(b.end) : null,
         approx: !!(b.startApprox || b.endApprox), source: b.source,
+        bannerId: b.id, names: b.featured.map(itemName),
       });
     }
   }

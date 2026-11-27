@@ -280,6 +280,24 @@ export function resolveArsenalEnds(arsenal, chartered) {
   });
 }
 
+/**
+ * 배너 그림: 공지 목록의 표지(cover)를 배너 이름의 「…」로 맞춰 붙인다(최신 공지 먼저).
+ * 앱은 줄인 사본(data/images)을 쓴다 — scripts/images.
+ */
+export function withCovers(banners, notices) {
+  const cover = new Map();
+  for (const n of notices) {
+    if (!/^https:\/\//.test(n.cover ?? "")) continue;
+    for (const m of String(n.title ?? "").matchAll(/「([^」]+)」/g)) if (!cover.has(m[1])) cover.set(m[1], n.cover);
+  }
+  return banners.map((b) => {
+    // 재구축 신청(무기 복각)은 공지를 다른 배너와 같이 써서 엉뚱한 표지가 붙는다 → 그림 없음
+    if (b.group === "endfield-refactor-arsenal") return b;
+    const key = b.name.match(/「([^」]+)」/)?.[1];
+    return key && cover.has(key) && !b.image ? { ...b, image: cover.get(key) } : b;
+  });
+}
+
 /** 해석하지 못한 헤드헌팅 공지 제목 (빌드 결과에 경고로 남긴다) */
 export const skippedNotices = [];
 
@@ -325,5 +343,5 @@ export async function endfieldOfficial() {
   const own = new Set(arsenalNotices.map((b) => b.id));
   const extra = arsenal.filter((b) => b.group === "endfield-refactor-arsenal" || !own.has(b.id));
   const timed = resolveArsenalEnds(arsenalNotices, heads.filter((b) => b.group === "endfield-chartered"));
-  return [...heads, ...timed, ...extra];
+  return withCovers([...heads, ...timed, ...extra], notices);
 }

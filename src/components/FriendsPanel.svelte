@@ -2,6 +2,7 @@
   // 친구 탭 (DESIGN.md §8.5, 사용자 2026-11-27: 그룹 없이 한 곳에 모아서). 공유를 켠 사람들의 요약으로
   // 전체 통계(평균 뽑기·픽업 성공)와 운 순위를 보여 준다. 운 = 평균적인 운 기준 상위 몇 %(작을수록 좋음).
   import { untrack } from "svelte";
+  import Portrait from "./Portrait.svelte";
   import { GAMES } from "../lib/games";
   import { currencyIcon } from "../lib/icons";
   import { luckText, poolStats, ranking, type RankRow, type ShareSummary } from "../lib/share";
@@ -131,7 +132,7 @@
           <div class="gl">{GAMES[g as GameId].shortName}</div>
           {#each x.recent as t, i (i)}
             <div class="hit" class:lost={t.featured === false}>
-              <span class="cnt">{t.count}뽑</span><span class="nm">{t.name ?? "이름 미입력"}</span>
+              <span class="cnt">{t.count}뽑</span><Portrait game={g as GameId} name={t.name} size={24} featured={t.featured} /><span class="nm">{t.name ?? "이름 미입력"}</span>
               {#if t.featured !== null}<span class="badge" class:win={t.featured}>{t.featured ? "픽업" : "픽뚫"}</span>{/if}
               <span class="muted d">{t.day.slice(5).replace("-", "/")}</span>
             </div>

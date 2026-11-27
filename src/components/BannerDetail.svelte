@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Portrait from "./Portrait.svelte";
+  import { bannerImageUrl } from "../lib/images.svelte";
+  import type { GameId } from "../lib/types";
   import {
     bannerDays, bannerLabel, bannerProgress, bannerState, formatMoment, itemName, leftText, remainingText,
     type PackBanner, type PackItem, type PoolEntry,
@@ -18,11 +21,14 @@
     onSelect: (id: string) => void;
     onClose: () => void;
   } = $props();
+  const game = $derived(banner.id.split(":")[0] as GameId);
+  const art = $derived(bannerImageUrl(game, banner.id));
+  let artBroken = $state(false);
 
   const STATE = { upcoming: "예정", active: "진행 중", ended: "종료", unknown: "일정 미확인" } as const;
-  const state = $derived(bannerState(banner));
+  const bstate = $derived(bannerState(banner));
   const progress = $derived(bannerProgress(banner));
-  const remaining = $derived(state === "active" ? remainingText(banner) : null);
+  const remaining = $derived(bstate === "active" ? remainingText(banner) : null);
   const days = $derived(bannerDays(banner));
   const schedule = $derived([...banners].sort((a, b) => (b.start ?? "").localeCompare(a.start ?? "")).slice(0, 12));
 
@@ -52,10 +58,11 @@
 
 <section class="detail card">
   <div class="dhead">
-    <span class="state {state}">{STATE[state]}</span>
+    <span class="state {bstate}">{STATE[bstate]}</span>
     <span class="kind">{groupLabel}{banner.version ? ` · ${banner.version} 버전` : ""}</span>
     <button class="close" onclick={onClose} aria-label="닫기">✕</button>
   </div>
+  {#if art && !artBroken}<img class="art" src={art} alt="" loading="lazy" onerror={() => (artBroken = true)} />{/if}
   <h3>{banner.name}</h3>
 
   <div class="block">
@@ -80,10 +87,10 @@
   <div class="block">
     <div class="label">픽업</div>
     {#each banner.featured as f (f.id)}
-      <div class="item"><span class="iname">{itemName(f)}</span><span class="grade top">{gradeLabel(f, true)}</span></div>
+      <div class="item"><Portrait {game} name={itemName(f)} size={30} featured /><span class="iname">{itemName(f)}</span><span class="grade top">{gradeLabel(f, true)}</span></div>
     {/each}
     {#each banner.featuredRare as f (f.id)}
-      <div class="item"><span class="iname">{itemName(f)}</span><span class="grade">{gradeLabel(f, false)}</span></div>
+      <div class="item"><Portrait {game} name={itemName(f)} size={30} /><span class="iname">{itemName(f)}</span><span class="grade">{gradeLabel(f, false)}</span></div>
     {/each}
     {#if !banner.featured.length && !banner.featuredRare.length}<p class="note">픽업 정보가 없습니다.</p>{/if}
   </div>
@@ -93,7 +100,7 @@
       <div class="label">픽뚫로 나올 수 있는 {topLabel}{pool?.byRule ? " (규칙으로 계산)" : ""}</div>
       <div class="pool">
         {#each offBanner as e (e.name)}
-          <span class="pchip" class:lim={e.left != null}>{e.name}{#if leftText(e.left)}<small>{leftText(e.left)}</small>{/if}</span>
+          <span class="pchip" class:lim={e.left != null}><Portrait {game} name={e.name} size={20} />{e.name}{#if leftText(e.left)}<small>{leftText(e.left)}</small>{/if}</span>
         {/each}
       </div>
       {#if upLeft}<p class="note">픽업 {topLabel}: {upLeft}</p>{/if}
@@ -121,6 +128,7 @@
 </section>
 
 <style>
+  .art { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); display: block; background: var(--panel); }
   .detail { display: flex; flex-direction: column; gap: 10px; padding: 12px; font-size: 12px; }
   .dhead { display: flex; align-items: center; gap: 8px; }
   .kind { color: var(--muted); flex: 1; min-width: 0; }
@@ -138,12 +146,12 @@
   .meta { display: flex; gap: 10px; align-items: baseline; color: var(--muted); }
   .meta b { color: var(--warn); font-size: 13px; }
   .pool { display: flex; flex-wrap: wrap; gap: 5px; }
-  .pchip { display: inline-flex; align-items: baseline; gap: 5px; padding: 4px 8px; border-radius: var(--btn-radius); background: var(--panel); border: 1px solid var(--line); }
+  .pchip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 3px; border-radius: var(--btn-radius); background: var(--panel); border: 1px solid var(--line); }
   .pchip.lim { border-color: var(--top); }
   .pchip small { color: var(--top); font-size: 10px; }
   .note { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.4; }
-  .item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 8px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 14%, transparent); }
-  .iname { font-weight: 600; color: var(--text); font-size: 13px; word-break: keep-all; }
+  .item { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 4px; border-radius: var(--btn-radius); background: color-mix(in srgb, var(--top) 14%, transparent); }
+  .iname { flex: 1; font-weight: 600; color: var(--text); font-size: 13px; word-break: keep-all; }
   .grade { flex: none; color: var(--muted); font-size: 11px; }
   .grade.top { color: var(--top); font-weight: 700; }
   .rows > div { display: flex; justify-content: space-between; gap: 8px; }

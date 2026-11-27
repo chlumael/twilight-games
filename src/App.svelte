@@ -30,6 +30,7 @@
   import { gameFingerprint, gamesToPush, mergeRecords, stampChanged } from "./lib/merge";
   import * as sync from "./lib/sync";
   import bundledPack from "../data/banners.json";
+  import { IMAGES_BASE, isImageIndex, setImageIndex } from "./lib/images.svelte";
   import { autoBanner, bannerLabel, bannerPool, groupBanners, isPack, itemName, matchFeatured, newerPack, PACK_URL, type BannerPack } from "./lib/banners";
   import { currencyIcon } from "./lib/icons";
   import { looksLikeGacha, readScreen, type ScreenFrame, type ScreenReading, type SteadyCounts, normalizeFrame, steadyCounts } from "./lib/recognize";
@@ -811,6 +812,22 @@
     }
   }
 
+  /** 게임 이미지 목록: 저장해 둔 것을 먼저 쓰고, 새 목록을 받으면 바꾼다 (그림은 보일 때 받는다) */
+  async function refreshImages() {
+    try {
+      const c = JSON.parse((await api.readStore("images")) ?? "null");
+      if (isImageIndex(c)) setImageIndex(c);
+    } catch { /* 깨진 저장본은 무시 */ }
+    try {
+      const res = await fetch(IMAGES_BASE + "index.json", { cache: "no-store" });
+      const remote = res.ok ? await res.json() : null;
+      if (isImageIndex(remote)) {
+        setImageIndex(remote);
+        await api.writeStore("images", JSON.stringify(remote));
+      }
+    } catch { /* 오프라인: 있는 것으로 */ }
+  }
+
   /** Use the newest of: bundled pack, cached pack, published pack. Offline is fine. */
   async function refreshPack() {
     try {
@@ -940,6 +957,7 @@
         if (a && a.uid !== was) syncNow();
       });
       await refreshPack();
+      void refreshImages();
     })();
     unlisten.push(api.onEvent<api.Detection>("game-detected", (d) => {
       detection = d;
@@ -1144,7 +1162,7 @@
         </nav>
         {/if}
 
-        <GroupPanel {status} groupLabel={group.name} topLabel={def.topLabel} {recent} {hits} gauge={SKINS[game].gauge} {banners} onBanner={setBanner}
+        <GroupPanel {game} {status} groupLabel={group.name} topLabel={def.topLabel} {recent} {hits} gauge={SKINS[game].gauge} {banners} onBanner={setBanner}
           {topNames} guessFeatured={(n) => matchFeatured(currentPackBanner, n)} onTopAt={saveTopAt}
           onEditTop={editTopRecord}
           onRemoveTop={(id) => { update(removeTop(records, game, id)); notify("기록을 지웠습니다 — \"확인할 것\"에서 되돌릴 수 있습니다"); }}

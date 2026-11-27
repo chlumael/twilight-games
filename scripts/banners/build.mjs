@@ -10,6 +10,7 @@ import { applyKoreanNames, applyWishPools, fetchWishAnnouncements, fetchWishDeta
 import { limbusOfficial as limbus } from "./limbus-official.mjs";
 
 const PAIMON = "https://raw.githubusercontent.com/MadeBaruna/paimon-moe/main/src";
+const PAIMON_STATIC = "https://raw.githubusercontent.com/MadeBaruna/paimon-moe/main/static";
 
 async function get(url, type = "text") {
   const res = await fetch(url);
@@ -126,6 +127,8 @@ async function genshin() {
         source: "paimon.moe (팬 정리 자료)",
         featured: featured.map(name),
         featuredRare: (b.featuredRare ?? []).map(name),
+        // 배너 그림 원본(paimon.moe 저장소). 앱은 이것을 줄인 사본(data/images)을 쓴다 — scripts/images
+        ...(b.image ? { image: `${PAIMON_STATIC}/images/banners/${encodeURIComponent(`${b.name} ${b.image}`)}.png` } : {}),
       });
     }
   };

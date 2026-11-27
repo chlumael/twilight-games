@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Portrait from "./Portrait.svelte";
+  import { bannerImageUrl } from "../lib/images.svelte";
   // 달력 (사용자 요청 2026-11-26). 화면 방식은 사용자가 보여 준 예시처럼: 칸마다 그날 시작하는 일정 이름을 적고,
   // 넘치면 "+N", 날짜를 누르면 아래에 그날 일정 전체(시작하는 것 + 진행 중인 것).
   import { untrack } from "svelte";
@@ -120,7 +122,7 @@
         <span class="dn" class:sun={new Date(c.day).getDay() === 0}>{new Date(c.day).getDate()}{#if isToday}<em>오늘</em>{/if}</span>
         {#each c.entries.slice(0, 4) as e (e.item.id + e.ending)}
           <span class="ent {tagClass(e.item, e.ending)}">
-            {#if icon(e.item.game)}<img src={icon(e.item.game)} alt="" />{/if}
+            {#if e.item.names?.length && e.item.game}<Portrait game={e.item.game} name={e.item.names[0]} size={14} />{:else if icon(e.item.game)}<img src={icon(e.item.game)} alt="" />{/if}
             <span class="nm">{e.item.short}</span>
             <span class="tag {tagClass(e.item, e.ending)}">{e.ending ? "종료" : e.item.tag}</span>
           </span>
@@ -181,6 +183,12 @@
         <span class="tag {tagClass(it, ending)}">{ending ? "종료" : it.tag}</span>
         {#if it.url}<a href={it.url} target="_blank" rel="noopener noreferrer">{it.title}</a>{:else}<span>{it.title}</span>{/if}
       </div>
+      {#if it.bannerId && it.game && bannerImageUrl(it.game, it.bannerId)}
+        <img class="rart" src={bannerImageUrl(it.game, it.bannerId)} alt="" loading="lazy" onerror={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")} />
+      {/if}
+      {#if it.names?.length && it.game}
+        <div class="rnames">{#each it.names as n (n)}<Portrait game={it.game} name={n} size={26} />{/each}</div>
+      {/if}
       <div class="rmeta">
         <span>{periodText(it)}{it.approx ? " · 일부 추정" : ""}</span>
         {#if edge === "end" && !ending}<span class="endmark">오늘 종료</span>{/if}
@@ -193,6 +201,8 @@
 {/snippet}
 
 <style>
+  .rart { width: 100%; max-width: 360px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius); margin: 4px 0 2px; display: block; background: var(--panel); }
+  .rnames { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0; }
   /* 종류별 색: 픽업(보라) · 복각(보라 테두리) · 이벤트(청록) · 업데이트(주황) · 행사(분홍) · 내 일정(연보라) · 종료(회색) */
   .cal {
     --c-pickup: #7c6cf0; --c-event: #26a69a; --c-version: #e0972a; --c-offline: #e0679a; --c-mine: #a98bf5;

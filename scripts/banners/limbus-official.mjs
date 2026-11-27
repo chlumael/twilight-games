@@ -243,5 +243,33 @@ export async function limbusOfficial() {
     .then((t) => JSON.parse(t).games?.limbus ?? []).catch(() => []);
   const dates = new Set([...entries.map((e) => e.date), ...walpurgis.filter((w) => !w.start).map((w) => w.date)]);
   const periods = await readPeriods(events, dates, knownPeriods(previous));
-  return buildBanners(entries, walpurgis, names, periods);
+  const images = eventImages(events);
+  return buildBanners(entries, walpurgis, names, periods).map((b) => (images[b.id] ? { ...b, image: images[b.id] } : b));
+}
+
+/** 2025년 12월 전 공지가 모두 쓰던 공통 표지(게임 로고) — 배너 그림이 아니다 */
+const GENERIC_CAPSULE = "62e63adbc551470064256668df2ba6cae5138cad.png";
+const CLAN0 = 103582791429521408n;
+
+/**
+ * 배너 그림: 공지마다 그 배너의 표지(capsule)가 있으면 그것을, 없으면 공지 속 소개 영상의 미리보기 그림을 쓴다.
+ * 같은 배너의 공지가 여럿이면 가장 이른 것. 앱은 줄인 사본(data/images)을 쓴다 — scripts/images
+ */
+export function eventImages(events) {
+  const out = {};
+  for (const e of [...events].sort((a, b) => a.rtime32_start_time - b.rtime32_start_time)) {
+    const n = String(e.event_name ?? "");
+    const w = n.match(/^\s*\d{4}\.\d{2}\.\d{2} \(KST\) 제(\d+)회 발푸르기스의 밤/);
+    const m = n.match(/^\s*(\d{4})\.(\d{2})\.(\d{2}) \(KST\).*특정 추출/);
+    const key = w ? `limbus:official:walpurgis-${w[1]}` : m ? `limbus:official:${m[1]}-${m[2]}-${m[3]}` : null;
+    if (!key || out[key]) continue;
+    let json = {};
+    try { json = typeof e.jsondata === "string" ? JSON.parse(e.jsondata) : e.jsondata ?? {}; } catch { /* 깨진 칸 */ }
+    const cap = json.localized_capsule_image?.[0];
+    const yt = String(e.announcement_body?.body ?? "").match(/\[previewyoutube=([\w-]{6,20})/);
+    if (cap && cap !== GENERIC_CAPSULE && /^[\w.]+$/.test(cap) && e.clan_steamid) {
+      out[key] = `https://clan.akamai.steamstatic.com/images/${BigInt(e.clan_steamid) - CLAN0}/${cap}`;
+    } else if (yt) out[key] = `https://i.ytimg.com/vi/${yt[1]}/maxresdefault.jpg`;
+  }
+  return out;
 }

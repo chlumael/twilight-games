@@ -33,7 +33,7 @@ export const android = androidBridge ?? null;
 /** "app" = full-screen app, "overlay" = floating window over a game, null = not Android. */
 export const androidMode = android ? android.mode() : null;
 
-export type StoreName = "records" | "settings" | "banners";
+export type StoreName = "records" | "settings" | "banners" | "images";
 
 export async function readStore(name: StoreName): Promise<string | null> {
   if (!inTauri) return localStorage.getItem(`tg-${name}`);

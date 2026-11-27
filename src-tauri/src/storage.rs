@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_dialog::DialogExt;
 
-const ALLOWED: &[&str] = &["records", "settings", "banners"];
+const ALLOWED: &[&str] = &["records", "settings", "banners", "images"];
 const BACKUPS_KEPT: usize = 7;
 
 fn data_dir(app: &AppHandle) -> Result<PathBuf, String> {

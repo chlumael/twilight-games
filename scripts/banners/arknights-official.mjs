@@ -91,6 +91,8 @@ export function buildBanner(notice, lines, override = {}) {
     featured,
     featuredRare: override.featuredRare ?? names.featuredRare,
     ...(needsReview ? { needsReview: true } : {}),
+    // 공지의 배너 그림(공식). 앱은 줄인 사본(data/images)을 쓴다 — scripts/images
+    ...(/^https:\/\//.test(notice.bannerImageUrl ?? "") ? { image: notice.bannerImageUrl } : {}),
   };
 }
 
@@ -126,7 +128,11 @@ export async function arknightsOfficial() {
       const notice = await get(`bulletin/${item.cid}`);
       const pool = poolId(notice.jumpLink);
       const known = previous.find((b) => b.id === `arknights:official:${pool}`);
-      if (known && !known.needsReview && !overrides[pool]) continue; // 이미 제대로 읽은 배너
+      if (known && !known.needsReview && !overrides[pool]) {
+        // 이미 제대로 읽은 배너: 배너 그림 주소만 채운다
+        if (!known.image && /^https:\/\//.test(notice.bannerImageUrl ?? "")) known.image = notice.bannerImageUrl;
+        continue;
+      }
       let lines = [];
       try {
         const img = await fetch(notice.bannerImageUrl);
