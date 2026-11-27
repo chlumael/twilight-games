@@ -11,6 +11,9 @@ export interface LimbusRow {
   top: boolean;
 }
 
+/** E.G.O 등급 글자 (읽기 오차 조금 허용: ZAYlN, TETh 등) */
+const EGO_GRADE = /^(ZAY[I1l]N|TETH|HE|WAW|ALEPH)$/i;
+
 const SINNERS = ["이상", "파우스트", "돈키호테", "료슈", "뫼르소", "홍루", "히스클리프", "이스마엘", "로쟈", "싱클레어", "오티스", "그레고르"];
 
 function distance(a: string, b: string): number {
@@ -58,7 +61,8 @@ export function parseLimbusHistory(frame: ScreenFrame, known: string[] = []): Li
   if (!head || !foot) return null;
   // 목록 칸: 수감자 이름이 있는 줄들의 x를 기준으로
   const inList = lines.filter((l) => l.y > head.y + 0.05 && l.y < foot.y && l.x > 0.25 && l.x < 0.6);
-  const isGrade = (t: string) => /^0{1,3}$/.test(t.trim().replace(/[oO]/g, "0"));
+  // 등급 표시: 인격은 0·00·000, E.G.O는 ZAYIN·TETH·HE·WAW·ALEPH(사용자 2026-11-27) — 제목으로 잘못 잡지 않게
+  const isGrade = (t: string) => /^0{1,3}$/.test(t.trim().replace(/[oO]/g, "0")) || EGO_GRADE.test(t.trim());
   // 인격 이름 목록(배너 자료 + 이미지 목록 + 기본 인격 "LCB 수감자 X"): 수감자 이름이 잘못 읽혀도 앞부분으로 찾는다
   const names = [...new Set([...known, ...SINNERS.map((x) => `LCB 수감자 ${x}`)])];
   const rows: LimbusRow[] = [];

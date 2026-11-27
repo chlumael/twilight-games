@@ -61,3 +61,32 @@ export function limbusBannerOnScreen(reading: Pick<ScreenReading, "until" | "sin
     && (!reading.sinner || b.featured.some((f) => (f.ko ?? "").endsWith(` ${reading.sinner}`))));
   return hit.length === 1 ? hit[0] : null;
 }
+
+/** 추출 확인 창: 무엇을 얼마나 써서 어느 배너를 뽑는지 */
+export interface LimbusConfirm {
+  /** 이번에 뽑는 횟수 */
+  pulls: number;
+  /** "광기" / "추출 티켓" 등 */
+  item: string;
+  amount: number;
+  /** 창에 적힌 배너 이름 부분(예: "히스클리프") */
+  target: string;
+}
+
+/**
+ * 추출 확인 창 읽기 (실제 화면 문구, 2026-11-27): "광기 1300을(를) 소비하여 특정 추출 / 히스클리프을(를) 진행합니다."
+ * 결과 화면의 "재추출"에서도 같은 창이 뜬다 → 연속 뽑기도 매번 센다.
+ * 광기 1300 = 10회, 130(할인 13) = 1회. 티켓은 장수만큼(10회 추출 티켓은 장당 10회).
+ * 화면 글자가 조금 틀려도("을(롤)", 띄어쓰기) 알아보게 넉넉하게 맞춘다 — 휴대폰 실기 글자 확인 대기.
+ */
+export function parseLimbusConfirm(lines: { t: string; x: number; y: number }[]): LimbusConfirm | null {
+  const text = [...lines].sort((a, b) => a.y - b.y || a.x - b.x).map((l) => l.t).join(" ").replace(/\s+/g, " ");
+  const m = text.match(/(광기|10회\s*추출\s*티켓|추출\s*티켓|티켓)\s*(\d{1,5})\s*을.{0,4}?소비\s*하여\s*(?:특정\s*추출|일반\s*추출)?\s*(.{1,40}?)\s*을.{0,4}?진행/);
+  if (!m) return null;
+  const item = m[1].replace(/\s+/g, " ");
+  const amount = Number(m[2]);
+  if (!amount) return null;
+  const pulls = item === "광기" ? Math.max(1, Math.round(amount / 130)) : /10회/.test(item) ? amount * 10 : amount;
+  if (pulls > 10) return null; // 한 번에 10회까지
+  return { pulls, item, amount, target: m[3].trim() };
+}

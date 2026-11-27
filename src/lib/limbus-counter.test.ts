@@ -55,3 +55,19 @@ describe("화면의 배너 알아내기", () => {
     expect(limbusBannerOnScreen({ until: null, sinner: "그레고르" }, banners)).toBeNull();
   });
 });
+
+describe("추출 확인 창 읽기", async () => {
+  const { parseLimbusConfirm } = await import("./limbus-counter");
+  const L = (t: string, y: number, x = 0.5) => ({ t, x, y });
+  it("실제 화면 문구(두 줄): 광기 1300 = 10회, 배너 이름", () => {
+    expect(parseLimbusConfirm([L("추출 진행", 0.17), L("광기 1300을(를) 소비하여 특정 추출", 0.32), L("히스클리프을(를) 진행합니다.", 0.35), L("16183", 0.44), L("14883", 0.44, 0.6)]))
+      .toEqual({ pulls: 10, item: "광기", amount: 1300, target: "히스클리프" });
+  });
+  it("1회·할인·티켓, 글자가 조금 틀려도", () => {
+    expect(parseLimbusConfirm([L("광기 130을(롤) 소비하여 특정 추출 그레고르을(를) 진행합니다", 0.3)])?.pulls).toBe(1);
+    expect(parseLimbusConfirm([L("광기 13을(를) 소비하여 특정 추출", 0.3), L("그레고르을(를) 진행합니다", 0.33)])?.pulls).toBe(1);
+    expect(parseLimbusConfirm([L("추출 티켓 1을(를) 소비하여 특정 추출", 0.3), L("그레고르을(를) 진행합니다", 0.33)])).toMatchObject({ pulls: 1, item: "추출 티켓" });
+    expect(parseLimbusConfirm([L("10회 추출 티켓 1을(를) 소비하여 특정 추출 그레고르을(를) 진행합니다", 0.3)])?.pulls).toBe(10);
+    expect(parseLimbusConfirm([L("추출 이력", 0.1), L("LCB 수감자", 0.3)])).toBeNull();
+  });
+});

@@ -219,3 +219,47 @@ describe("림버스 이상: 교환과 20회 넘는 경우 (flows/screen)", async
     expect(flow.autoLog.at(-1)?.uncertain).toBe(true);
   });
 });
+
+describe("림버스 추출 확인 창 + 이상 숫자로 맞춰 보기 (flows/screen)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { parseFrameText } = await import("../recognize");
+  const { ScreenFlow } = await import("./screen.svelte");
+  const text = readFileSync(new URL("../fixtures/limbus-main-phone2.txt", import.meta.url), "utf8");
+  const main = (n: number) => JSON.stringify(parseFrameText(text.replace("10/200", `${n}/200`)));
+  // 메인 화면 위에 뜬 확인 창(창 뒤 숫자도 같이 읽힌다)
+  const dialogOnMain = (n: number, item = "광기 1300") => JSON.stringify(parseFrameText(text.replace("10/200", `${n}/200`)
+    + `\n0.40,0.32 0.30x0.04 ${item}을(를) 소비하여 특정 추출\n0.42,0.35 0.25x0.04 그레고르을(를) 진행합니다.`));
+  const dialogOnResult = (item = "광기 1300") => JSON.stringify(parseFrameText(`0.40,0.17 0.1x0.04 추출 진행\n0.40,0.32 0.30x0.04 ${item}을(를) 소비하여 특정 추출\n0.42,0.35 0.25x0.04 그레고르을(를) 진행합니다.\n0.35,0.9 0.1x0.04 돌아가기\n0.6,0.9 0.1x0.04 재추출`));
+  const result = JSON.stringify(parseFrameText("0.35,0.9 0.1x0.04 돌아가기\n0.6,0.9 0.1x0.04 재추출"));
+  const setup = () => {
+    app.game = "limbus";
+    app.pack = { schemaVersion: 1, games: { genshin: [], arknights: [], endfield: [], limbus: [{
+      id: "lb-pick", group: "limbus-extraction", name: "pick", start: "2026-11-26T03:00:00.000Z", end: "2026-12-10T01:00:00.000Z", version: null,
+      featured: [{ id: "a", ko: "오트쿠튀르::르루주 B2F 타래둥지 그레고르" }], featuredRare: [],
+    }] } } as never;
+    app.records.games.limbus.currentBanner["limbus-extraction"] = "lb-pick";
+    app.records.games.limbus.currency = { ticket: 5 };
+    const flow = new ScreenFlow(() => {});
+    for (const f of [main(10), main(10)]) flow.onScreenText(f);
+    return flow;
+  };
+  it("연속 뽑기: 확인 창마다 바로 기록, 메인으로 돌아와 이상이 맞으면 그대로", () => {
+    const flow = setup();
+    for (const f of [dialogOnMain(10), dialogOnMain(10), result, dialogOnResult(), result, dialogOnResult("추출 티켓 1"), result, main(31), main(31)]) flow.onScreenText(f);
+    expect(app.records.games.limbus.pulls).toHaveLength(21);
+    expect(app.records.games.limbus.currency.ticket).toBe(4);
+  });
+  it("확인 창에서 취소하면 다음에 이상 숫자를 보고 지운다(창 뒤의 숫자로 지우지 않음)", () => {
+    const flow = setup();
+    for (const f of [dialogOnMain(10), dialogOnMain(10)]) flow.onScreenText(f);
+    expect(app.records.games.limbus.pulls).toHaveLength(10);
+    for (const f of [main(10), main(10)]) flow.onScreenText(f);
+    expect(app.records.games.limbus.pulls).toHaveLength(0);
+    expect(app.toast).toContain("취소한 10회");
+  });
+  it("확인 창을 못 읽은 뽑기는 이상 숫자로 채운다", () => {
+    const flow = setup();
+    for (const f of [dialogOnResult(), result, result, main(30), main(30)]) flow.onScreenText(f);
+    expect(app.records.games.limbus.pulls).toHaveLength(20);
+  });
+});

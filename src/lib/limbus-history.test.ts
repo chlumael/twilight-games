@@ -80,3 +80,14 @@ describe("이력 조각 이어 붙이기 실패 알아내기", () => {
     expect(joinSequence([], [r("가")])?.length).toBe(1);
   });
 });
+
+describe("E.G.O 줄 (등급이 ZAYIN·TETH 등)", () => {
+  it("등급 글자를 제목으로 잡지 않고, 000이 아니다", async () => {
+    const { parseLimbusHistory: parse } = await import("./limbus-history");
+    const { parseFrameText: pf } = await import("./recognize");
+    const f = pf(["0.46,0.08 0.08x0.04 추출 이력", "0.41,0.27 0.04x0.02 TETH", "0.41,0.31 0.06x0.03 입주 신고", "0.41,0.35 0.04x0.02 그레고르",
+      "0.41,0.42 0.04x0.02 TETH", "0.41,0.47 0.04x0.02 그레고르", "0.39,0.63 0.22x0.02 지난 15일간 이력이 최대 20건 표기됩니다."].join("\n"));
+    // 두 번째는 제목이 잘린 줄 → "TETH 그레고르"로 잘못 만들지 않고 건너뛴다
+    expect(parse(f, ["입주 신고 그레고르"])).toEqual([{ name: "입주 신고 그레고르", top: false }]);
+  });
+});
