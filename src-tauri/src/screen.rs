@@ -52,9 +52,10 @@ pub fn set_screen_profiles(state: State<'_, ScreenProfiles>, profiles: Vec<crate
     Ok(())
 }
 
-/// 가챠 화면이 보이면 그 뒤 20초 동안 1초마다, 아니면 2.5초마다 읽는다 (휴대폰판과 같음).
-const SLOW: Duration = Duration::from_millis(2500);
-const FAST: Duration = Duration::from_millis(1000);
+/// 가챠 화면이 보이면 그 뒤 20초 동안 0.6초마다, 아니면 1.5초마다 읽는다.
+/// (사용자 PC 실기 2026-11-27: 재화가 너무 늦게 바뀜 → 간격을 줄이고, 아래에서 글자 인식 자체도 빠르게 했다)
+const SLOW: Duration = Duration::from_millis(1500);
+const FAST: Duration = Duration::from_millis(600);
 const FAST_WINDOW: Duration = Duration::from_secs(20);
 /// 반복 간격. 새 방식의 화면 판단(작은 부분 모양 비교)은 이 간격마다 한다(글자 인식은 판단된 화면의 칸만).
 const PROBE: Duration = Duration::from_millis(250);
@@ -187,7 +188,21 @@ mod imp {
         engine().map(|_| ())
     }
 
+    thread_local! {
+        /// 글자 인식기는 만드는 데 시간이 걸려서 한 번 만들어 계속 쓴다(예전에는 읽을 때마다 새로 만들었다)
+        static ENGINE: std::cell::RefCell<Option<OcrEngine>> = const { std::cell::RefCell::new(None) };
+    }
+
     fn engine() -> Result<OcrEngine, String> {
+        if let Some(e) = ENGINE.with(|c| c.borrow().clone()) {
+            return Ok(e);
+        }
+        let e = new_engine()?;
+        ENGINE.with(|c| *c.borrow_mut() = Some(e.clone()));
+        Ok(e)
+    }
+
+    fn new_engine() -> Result<OcrEngine, String> {
         let lang = Language::CreateLanguage(&HSTRING::from("ko")).map_err(err("언어 설정"))?;
         if !OcrEngine::IsLanguageSupported(&lang).unwrap_or(false) {
             return Err("윈도우에 한국어 글자 인식이 설치돼 있지 않습니다 (설정 → 시간 및 언어 → 언어 → 한국어 → 언어 옵션에서 '광학 문자 인식' 추가)".into());
@@ -229,7 +244,9 @@ mod imp {
             let screen = GetDC(None);
             let mem = CreateCompatibleDC(Some(screen));
             // 작은 글자는 글자 인식이 자주 틀리므로("헤드헌팅" → "해드현팅") 창이 작으면 2배로 키워서 찍는다.
-            let scale = if upscale && h < 1500 { 2 } else { 1 };
+            // 1080p 창까지 2배로 키우면(3840×2160) 글자 인식이 몇 초씩 걸려 재화가 아주 늦게 바뀌었다(사용자 PC 실기 2026-11-27)
+            // → 작은 창(세로 900 미만)만 키운다. 재화 같은 작은 칸은 잘라 읽기(read_regions)가 그 부분만 키워 읽는다.
+            let scale = if upscale && h < 900 { 2 } else { 1 };
             let (cw, ch) = (w * scale, h * scale);
             let bmp = CreateCompatibleBitmap(screen, cw, ch);
             let old = SelectObject(mem, bmp.into());

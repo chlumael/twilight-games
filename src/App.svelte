@@ -26,7 +26,7 @@
   import * as sync from "./lib/sync";
   import { bannerLabel, bannerPool, groupBanners, itemName, matchFeatured } from "./lib/banners";
   import { gameIcon } from "./lib/icons";
-  import { pickDetectedGame, type Settings } from "./lib/settings";
+  import { gameByTitle, pickDetectedGame, type Settings } from "./lib/settings";
   import type { GameId } from "./lib/types";
   import { app } from "./lib/store.svelte";
   import { ScreenFlow, genshinItems, sixStars } from "./lib/flows/screen.svelte";
@@ -194,7 +194,9 @@
     })();
     unlisten.push(api.onEvent<api.Detection>("game-detected", (d) => {
       detection = d;
-      if (!manualGame && (d.foreground || d.running.length)) app.game = pickDetectedGame(d.running, d.foreground, app.game);
+      // 실행 파일 이름으로 못 잡아도 창 이름이 게임 이름이면 그 게임으로(사용자 PC 실기 2026-11-27)
+      const fg = d.foreground ?? gameByTitle(d.foregroundTitle);
+      if (!manualGame && (fg || d.running.length)) app.game = pickDetectedGame(d.running, fg, app.game);
     }));
     unlisten.push(api.onEvent<boolean>("click-through", (on) => (clickThrough = on)));
     // PC판: 같은 처리기를 Tauri 이벤트에 연결하고, 켤 때 화면 읽기를 함께 시작한다
@@ -295,7 +297,7 @@
     <div class="body" bind:this={bodyEl}>
       {#if view === "settings"}
         <SettingsPanel
-          {settings} {game} {web} record={rec}
+          {settings} {game} {web} record={rec} foregroundApp={detection.foregroundExe ? `${detection.foregroundExe}${detection.foregroundTitle ? ` (창 이름: ${detection.foregroundTitle})` : ""}` : ""}
           onSettings={changeSettings} onBaseline={act.setBaseline}
           onExport={act.exportData} onImport={act.importData} onClose={() => (view = "main")}
           syncConfigured={sync.syncConfigured} account={acct.account} syncState={acct.syncState} lastSync={acct.lastSync}

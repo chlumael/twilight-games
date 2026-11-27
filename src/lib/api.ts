@@ -93,6 +93,9 @@ export async function resizeWindow(width: number, height: number): Promise<void>
 export interface Detection {
   running: GameId[];
   foreground: GameId | null;
+  /** 맨 앞 창의 실행 파일 이름·창 이름(우리 창이 앞이면 그 전 창). 게임이 안 잡힐 때 설정에서 보여 준다 */
+  foregroundExe?: string | null;
+  foregroundTitle?: string | null;
 }
 
 export function onEvent<T>(name: string, handler: (payload: T) => void): Promise<UnlistenFn> {

@@ -12,8 +12,10 @@
   let {
     settings, game, web = false, record, onSettings, onBaseline, onExport, onImport, onClose,
     syncConfigured = false, account = null, syncState = "idle", lastSync = null, onSignIn, onSignOut, onSync, onDeleteAccount, shareSection,
-    onGenshinWishes, genshinWishBusy = false, genshinWishMsg = "",
+    onGenshinWishes, genshinWishBusy = false, genshinWishMsg = "", foregroundApp = "",
   }: {
+    /** PC판: 맨 앞에 있던 프로그램 이름(게임이 안 잡힐 때 확인용) */
+    foregroundApp?: string;
     settings: Settings;
     game: GameId;
     /** Web app: hide desktop-only options (overlay, hotkeys, process detection). */
@@ -194,6 +196,7 @@
   {#if !web}
   <section>
     <h4>게임 감지 (실행 파일 이름)</h4>
+    <p class="muted hint">방금 앞에 있던 프로그램: {foregroundApp || "아직 없음"}{#if foregroundApp} — 게임이 안 잡히면 이 이름을 아래 칸에 넣거나 알려 주세요{/if}</p>
     <button onclick={async () => (processes = await listProcesses())}>실행 중인 프로그램 불러오기</button>
     {#each GAME_IDS as id (id)}
       <div class="proc">

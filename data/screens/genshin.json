@@ -10,16 +10,31 @@
    "shot": "G1",
    "detect": [
     {
-     "rect": null,
-     "hash": null,
-     "rgb": null,
-     "note": "캐릭터 이벤트 기원 화면에만 있는 작은 부분"
+     "rect": [
+      0.1604,
+      0.1981,
+      0.1156,
+      0.0333
+     ],
+     "hash": "0000ffffff6e0900",
+     "rgb": [
+      213,
+      173,
+      119
+     ],
+     "maxDistance": 6,
+     "note": "왼쪽 위 주황 표 '캐릭터 이벤트 기원' (PC 스크린샷 2026-11-27, 1920×1080)"
     }
    ],
    "fields": [
     {
      "id": "primogem",
-     "rect": null,
+     "rect": [
+      0.7891,
+      0.0278,
+      0.0443,
+      0.0333
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -32,7 +47,12 @@
     },
     {
      "id": "intertwined",
-     "rect": null,
+     "rect": [
+      0.888,
+      0.0278,
+      0.0349,
+      0.0333
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -52,16 +72,31 @@
    "shot": "G2",
    "detect": [
     {
-     "rect": null,
-     "hash": null,
-     "rgb": null,
-     "note": "무기 이벤트 기원 화면에만 있는 작은 부분"
+     "rect": [
+      0.1604,
+      0.1981,
+      0.1156,
+      0.0333
+     ],
+     "hash": "00017ffff7091303",
+     "rgb": [
+      231,
+      174,
+      118
+     ],
+     "maxDistance": 6,
+     "note": "왼쪽 위 주황 표 '무기 이벤트 기원' (캐릭터 표와 같은 자리, 지문 거리 13이라 6 이하만 같은 화면으로 봄)"
     }
    ],
    "fields": [
     {
      "id": "primogem",
-     "rect": null,
+     "rect": [
+      0.7891,
+      0.0278,
+      0.0443,
+      0.0333
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -74,7 +109,12 @@
     },
     {
      "id": "intertwined",
-     "rect": null,
+     "rect": [
+      0.888,
+      0.0278,
+      0.0349,
+      0.0333
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",

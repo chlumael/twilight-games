@@ -20,16 +20,30 @@
    "shot": "E1, E2",
    "detect": [
     {
-     "rect": null,
-     "hash": null,
-     "rgb": null,
-     "note": "한정 헤드헌팅 화면에만 있는 작은 부분(예: 배너 탭·버튼 모양)"
+     "rect": [
+      0.5443,
+      0.0278,
+      0.0193,
+      0.0231
+     ],
+     "hash": "0074f0f0f0f0f400",
+     "rgb": [
+      139,
+      138,
+      110
+     ],
+     "note": "오른쪽 위 맨 왼쪽 허가증 아이콘(한정 헤드헌팅에만 칸이 두 개라 이 자리에 있음, PC 스크린샷 2026-11-27)"
     }
    ],
    "fields": [
     {
      "id": "oroberyl",
-     "rect": null,
+     "rect": [
+      0.8516,
+      0.0259,
+      0.0641,
+      0.0278
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -42,7 +56,12 @@
     },
     {
      "id": "exchange",
-     "rect": null,
+     "rect": [
+      0.75,
+      0.0259,
+      0.0625,
+      0.0278
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -56,7 +75,12 @@
     },
     {
      "id": "charteredPermit",
-     "rect": null,
+     "rect": [
+      0.5651,
+      0.0259,
+      0.0469,
+      0.0278
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -65,11 +89,16 @@
      "min": 0,
      "max": 99999,
      "confirm": 2,
-     "note": "특별 허가 헤드헌팅 허가증 칸"
+     "note": "특별 허가 헤드헌팅 허가증 칸 — 왼쪽 칸(재구축 화면에도 있는 아이콘). 어느 칸이 어느 허가증인지는 추정"
     },
     {
      "id": "limitedPermit",
-     "rect": null,
+     "rect": [
+      0.6458,
+      0.0259,
+      0.0469,
+      0.0278
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -78,11 +107,16 @@
      "min": 0,
      "max": 99999,
      "confirm": 2,
-     "note": "기간 한정 허가증 칸"
+     "note": "기간 한정 허가증 칸 — 오른쪽 칸(한정 화면에만 있는 아이콘). 추정"
     },
     {
      "id": "toTop",
-     "rect": null,
+     "rect": [
+      0.6771,
+      0.2537,
+      0.2969,
+      0.0213
+     ],
      "kind": "text",
      "use": {
       "type": "toTop"
@@ -91,11 +125,16 @@
      "max": 80,
      "confirm": 3,
      "note": "'N회의 헤드헌팅 내 6성 오퍼레이터 확정' 줄 (스택 = 80 − N, 사용자 확인)",
-     "template": null
+     "template": "{n}회의헤드헌팅내6성오퍼레이터확정획득"
     },
     {
      "id": "toFeatured",
-     "rect": null,
+     "rect": [
+      0.7115,
+      0.5037,
+      0.1739,
+      0.0278
+     ],
      "kind": "text",
      "use": {
       "type": "toFeatured"
@@ -103,8 +142,8 @@
      "min": 1,
      "max": 120,
      "confirm": 3,
-     "note": "'N회의 헤드헌팅 내 확정 획득' 줄 (120회 픽업 확정, 최초 1회)",
-     "template": null
+     "note": "'N회의 헤드헌팅 내 확정 획득' 줄 (120회 픽업 확정, 최초 1회) — 위치는 재구축 화면(같은 배치)에서 잡음. 이미 받았으면 줄이 없어 읽지 않음",
+     "template": "{n}회의헤드헌팅내확정획득"
     }
    ]
   },
@@ -115,16 +154,30 @@
    "shot": "E3",
    "detect": [
     {
-     "rect": null,
-     "hash": null,
-     "rgb": null,
-     "note": "재구축 헤드헌팅 화면에만 있는 작은 부분"
+     "rect": [
+      0.8385,
+      0.0741,
+      0.1,
+      0.0241
+     ],
+     "hash": "7f00240001ee79ff",
+     "rgb": [
+      212,
+      162,
+      151
+     ],
+     "note": "오른쪽 위 흰 표 '재구축 헤드헌팅' (PC 스크린샷 2026-11-27)"
     }
    ],
    "fields": [
     {
      "id": "oroberyl",
-     "rect": null,
+     "rect": [
+      0.8516,
+      0.0259,
+      0.0641,
+      0.0278
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -137,7 +190,12 @@
     },
     {
      "id": "exchange",
-     "rect": null,
+     "rect": [
+      0.75,
+      0.0259,
+      0.0625,
+      0.0278
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -151,7 +209,12 @@
     },
     {
      "id": "toTop",
-     "rect": null,
+     "rect": [
+      0.6771,
+      0.2537,
+      0.2969,
+      0.0213
+     ],
      "kind": "text",
      "use": {
       "type": "toTop"
@@ -160,11 +223,16 @@
      "max": 80,
      "confirm": 3,
      "note": "6성 확정까지 남은 횟수 줄(있다면)",
-     "template": null
+     "template": "{n}회의헤드헌팅내6성오퍼레이터확정획득"
     },
     {
      "id": "toFeatured",
-     "rect": null,
+     "rect": [
+      0.7115,
+      0.5037,
+      0.1739,
+      0.0278
+     ],
      "kind": "text",
      "use": {
       "type": "toFeatured"
@@ -173,11 +241,16 @@
      "max": 120,
      "confirm": 3,
      "note": "픽업 확정까지 남은 횟수 줄(있다면)",
-     "template": null
+     "template": "{n}회의헤드헌팅내확정획득"
     },
     {
      "id": "bannerName",
-     "rect": null,
+     "rect": [
+      0.8385,
+      0.0741,
+      0.1354,
+      0.0241
+     ],
      "kind": "text",
      "use": {
       "type": "bannerName"
@@ -185,8 +258,8 @@
      "min": 0,
      "max": 0,
      "confirm": 2,
-     "note": "배너 이름(시리즈 이름이 붙음 — 시리즈별 이월에 사용)",
-     "template": null
+     "note": "배너 이름(시리즈 이름이 붙음 — 시리즈별 이월에 사용) — '재구축 헤드헌팅「#1」' 줄 전체(아직 쓰지 않음)",
+     "template": "{s}"
     }
    ]
   },
@@ -197,16 +270,30 @@
    "shot": "E4",
    "detect": [
     {
-     "rect": null,
-     "hash": null,
-     "rgb": null,
-     "note": "무기고 화면에만 있는 작은 부분"
+     "rect": [
+      0.3958,
+      0.0722,
+      0.1135,
+      0.0444
+     ],
+     "hash": "7e7fa18081b4ff7e",
+     "rgb": [
+      208,
+      205,
+      206
+     ],
+     "note": "구매 센터 위쪽 탭에서 '무기고 거래소'가 골라진 흰 단추 (PC 스크린샷 2026-11-27)"
     }
    ],
    "fields": [
     {
      "id": "arsenalTicket",
-     "rect": null,
+     "rect": [
+      0.8516,
+      0.0259,
+      0.0641,
+      0.0296
+     ],
      "kind": "digits",
      "use": {
       "type": "currency",
@@ -216,32 +303,6 @@
      "max": 9999999,
      "confirm": 2,
      "note": "무기고 증표"
-    },
-    {
-     "id": "toTop",
-     "rect": null,
-     "kind": "text",
-     "use": {
-      "type": "toTop"
-     },
-     "min": 1,
-     "max": 40,
-     "confirm": 3,
-     "note": "6성 무기 확정까지 남은 횟수 줄(있다면, 40 기준)",
-     "template": null
-    },
-    {
-     "id": "toFeatured",
-     "rect": null,
-     "kind": "text",
-     "use": {
-      "type": "toFeatured"
-     },
-     "min": 1,
-     "max": 80,
-     "confirm": 3,
-     "note": "픽업 무기 확정까지 남은 횟수 줄(있다면, 80 기준)",
-     "template": null
     }
    ]
   },

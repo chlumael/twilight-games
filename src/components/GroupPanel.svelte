@@ -122,7 +122,8 @@
   {#if gauge === "bar" && status.hardPity}
     <PityBar value={status.pity} max={status.hardPity} soft={status.softFrom} />
   {:else if ringCounter}
-    <PityRing value={ringCounter.at - ringCounter.remaining} max={ringCounter.at} label={String(status.pity)}
+    <!-- 교환 카운터(림버스 이상)는 가운데 큰 숫자도 그 재화 수. 000 이후 횟수를 크게 쓰면 000이 나올 때 "이상이 0"처럼 보였다(사용자 2026-11-27) -->
+    <PityRing value={ringCounter.at - ringCounter.remaining} max={ringCounter.at} label={String(ringCounter.held ?? status.pity)}
       sub={`${ringCounter.label}까지 ${ringCounter.remaining}`} size={100} />
   {:else}
     <PityRing value={status.pity} max={status.hardPity} soft={status.softFrom} sub={status.hardPity ? `/ ${status.hardPity}` : undefined} size={100} />
@@ -140,6 +141,9 @@
       </select>
     {/if}
     {#if inSoft}<span class="chip hot">확률 상승 중</span>{/if}
+    {#if ringCounter?.held !== undefined}
+      <span class="hint">{topLabel} 이후 {status.pity}회</span>
+    {/if}
     {#if status.hardPity}
       <span class="hint">천장까지 {Math.max(0, status.hardPity - status.pity)}회{#if !inSoft && toSoft !== null}{" · "}확률 상승까지 {toSoft}회{/if}</span>
     {/if}

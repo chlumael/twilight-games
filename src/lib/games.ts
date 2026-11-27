@@ -106,6 +106,8 @@ export interface GameDef {
   groups: PityGroup[];
   /** Default executable names for auto-detection (editable in settings). */
   processNames: string[];
+  /** 창 이름이 이것과 똑같으면 실행 파일 이름이 달라도 이 게임으로 본다(사용자 PC 실기 2026-11-27: 명일방주가 안 잡힘). 이름은 추정 */
+  windowTitles?: string[];
 }
 
 // 인연 → 원석 → (원석이 모자라면) 창세의 결정을 원석으로 교환.
@@ -171,6 +173,7 @@ export const GAMES: Record<GameId, GameDef> = {
       },
     ],
     processNames: ["GenshinImpact.exe", "YuanShen.exe"],
+    windowTitles: ["원신", "Genshin Impact"],
   },
   arknights: {
     id: "arknights",
@@ -239,7 +242,8 @@ export const GAMES: Record<GameId, GameDef> = {
       },
     ],
     // Unconfirmed: the PC client's executable name must be verified.
-    processNames: ["Arknights.exe"], // 공식 PC 클라이언트(사용자 2026-11-27). 실행 파일 이름은 추정 — 실제 이름 확인 대기
+    processNames: ["Arknights.exe"],
+    windowTitles: ["명일방주", "Arknights"], // 공식 PC 클라이언트(사용자 2026-11-27). 실행 파일 이름은 추정 — 실제 이름 확인 대기
   },
   endfield: {
     id: "endfield",
@@ -341,6 +345,7 @@ export const GAMES: Record<GameId, GameDef> = {
     ],
     // Unconfirmed: verify on a real install.
     processNames: ["Endfield.exe"],
+    windowTitles: ["명일방주: 엔드필드", "Arknights: Endfield"],
   },
   limbus: {
     id: "limbus",
@@ -373,6 +378,7 @@ export const GAMES: Record<GameId, GameDef> = {
       },
     ],
     processNames: ["LimbusCompany.exe"],
+    windowTitles: ["LimbusCompany", "Limbus Company"],
   },
 };
 

@@ -18,10 +18,21 @@ describe("화면 틀 데이터", () => {
       expect(new Set(ids).size).toBe(ids.length);
     }
   });
-  it("지금은 스크린샷 전이라 모두 빈칸 → 새 방식은 꺼져 있다", () => {
-    expect(PROFILES.every((p) => p.screens.every((s) => !screenReady(s)))).toBe(true);
-    expect(resultCountingReady("endfield")).toBe(false);
-    expect(profileGaps().length).toBe(PROFILES.reduce((n, p) => n + p.screens.length, 0));
+  it("PC 스크린샷(2026-11-27)으로 채운 뽑기 메인 화면만 준비됨, 결과 화면은 아직 → 뽑기는 예전 방식(재화 차이)으로 센다", () => {
+    const ready = PROFILES.flatMap((p) => p.screens.filter(screenReady).map((s) => s.id)).sort();
+    expect(ready).toEqual(["endfield-arsenal-main", "endfield-chartered-main", "endfield-refactor-main", "genshin-char-main", "genshin-weapon-main"]);
+    for (const g of ["genshin", "endfield", "arknights", "limbus"] as const) expect(resultCountingReady(g)).toBe(false);
+    expect(profileGaps().length).toBe(PROFILES.reduce((n, p) => n + p.screens.length, 0) - ready.length);
+  });
+  it("PC 스크린샷 문구 틀: 실제 화면 글자(엔드필드 6성·픽업 확정 줄)", () => {
+    const ef = PROFILES.find((p) => p.game === "endfield")!;
+    const f = (sid: string, fid: string) => ef.screens.find((s) => s.id === sid)!.fields.find((x) => x.id === fid)!;
+    expect(parseField(f("endfield-chartered-main", "toTop"), "77 회의 헤드헌팅 내 6성 오퍼레이터 확정 획득./", ef.fixes)).toMatchObject({ ok: true, value: 77 });
+    expect(parseField(f("endfield-refactor-main", "toTop"), "37 회의 헤드헌팅 내 6성 오퍼레이터 확정 획득./", ef.fixes)).toMatchObject({ ok: true, value: 37 });
+    expect(parseField(f("endfield-refactor-main", "toFeatured"), "120 회의 헤드헌팅 내 확정 획득", ef.fixes)).toMatchObject({ ok: true, value: 120 });
+    // 한정 화면에서 픽업을 이미 받았으면 그 자리에 다른 글자(증표의 선물) → 읽지 않음
+    expect(parseField(f("endfield-chartered-main", "toFeatured"), "의 선물", ef.fixes).ok).toBe(false);
+    expect(parseField(f("endfield-chartered-main", "exchange"), "11400", ef.fixes)).toMatchObject({ ok: true, value: 152 });
   });
   it("판단·칸·등급 표시가 다 채워지면 준비됨", () => {
     const probe = { rect: [0, 0, 0.1, 0.1] as [number, number, number, number], hash: "0".repeat(16), rgb: [0, 0, 0] as [number, number, number] };

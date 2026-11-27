@@ -49,6 +49,14 @@ export function normalizeSettings(raw: unknown): Settings {
   };
 }
 
+/** 창 이름으로 게임 알아보기: 공백·대소문자만 무시하고 통째로 같아야 한다(영상 제목 등에 게임 이름이 들어 있다고 바뀌지 않게) */
+export function gameByTitle(title: string | null | undefined): GameId | null {
+  const norm = (s: string) => s.replace(/\s+/g, "").toLowerCase();
+  const t = norm(title ?? "");
+  if (!t) return null;
+  return GAME_IDS.find((id) => (GAMES[id].windowTitles ?? []).some((w) => norm(w) === t)) ?? null;
+}
+
 /** Choose the game to show from a detection result. */
 export function pickDetectedGame(running: GameId[], foreground: GameId | null, current: GameId): GameId {
   if (foreground) return foreground;
