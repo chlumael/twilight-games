@@ -35,6 +35,29 @@ describe("엔드필드 공식 기록 읽기", () => {
     ]);
   });
 
+  it("PC 실기(2026-11-28): 콜론이 빠진 시각·'NEW! 케르 (6*)'도 읽는다", async () => {
+    const { normalizeFrame } = await import("./recognize");
+    const pc = normalizeFrame(parseFrameText(readFileSync(new URL("./fixtures/endfield-history-pc.txt", import.meta.url), "utf8")));
+    const p = parseEndfieldHistory(pc)!;
+    expect(p.page).toBe(1);
+    // "0541刀9"는 콜론 자리를 알 수 없어 버린다(틀린 시각을 넣지 않음)
+    expect(p.rows.map((r) => [r.name, r.time, r.rarity ?? null])).toEqual([
+      ["에스텔라", "2026-11-26T22:11:41.000Z", null],
+      ["카치르", "2026-11-25T21:41:06.000Z", null],
+      ["케르", "2026-11-25T14:24:46.000Z", 6],
+      ["플루라이트", "2026-11-25T14:24:44.000Z", null],
+    ]);
+    expect(p.rows.every((r) => r.banner === "모루, 배낭, 그리고 벌꿀")).toBe(true);
+  });
+
+  it("콜론이 다르게 읽힌 시각", () => {
+    expect(parseRecordTime("2026. 11. 27 0611141", 8)).toBe("2026-11-26T22:11:41.000Z");
+    expect(parseRecordTime("2026. 11. 26 05141109", 8)).toBe("2026-11-25T21:41:09.000Z");
+    expect(parseRecordTime("2026. 11. 26 05!41!06", 8)).toBe("2026-11-25T21:41:06.000Z");
+    expect(parseRecordTime("2026. 11. 25 2T24꽤6", 8)).toBeNull();
+    expect(parseRecordTime("2026. 11. 26 0541刀9", 8)).toBeNull();
+  });
+
   it("같은 쪽을 여러 번 읽어도 한 번, 같은 시각 같은 이름 두 줄은 둘 다", () => {
     const p = parseEndfieldHistory(phone)!;
     let store = mergePages({}, p);

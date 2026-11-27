@@ -31,11 +31,43 @@ const digits = (s: string) => s.replace(/[lI|]/g, "1").replace(/[Oo]/g, "0");
 
 /** "2026. 11. 07 07:49:25" (+ 시간대) → ISO */
 export function parseRecordTime(text: string, utcOffset: number): string | null {
-  const m = digits(text).match(/(\d{4})\s*[.,]\s*(\d{1,2})\s*[.,]\s*(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})/);
-  if (!m) return null;
-  const [y, mo, d, h, mi, s] = m.slice(1).map(Number);
+  const t = digits(text);
+  const m = t.match(/(\d{4})\s*[.,]\s*(\d{1,2})\s*[.,]\s*(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})/);
+  const date = m ? null : t.match(/(\d{4})\s*[.,]\s*(\d{1,2})\s*[.,]\s*(\d{1,2})\s+(\S+)/);
+  const clock = date ? looseClock(date[4]) : null;
+  if (!m && !clock) return null;
+  const [y, mo, d, h, mi, s] = m ? m.slice(1).map(Number) : [...date!.slice(1, 4).map(Number), ...clock!];
   if (mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59 || s > 59) return null;
   return new Date(Date.UTC(y, mo - 1, d, h - utcOffset, mi, s)).toISOString();
+}
+
+/**
+ * 콜론이 빠지거나 다른 글자로 읽힌 시각 "hh:mm:ss" → [시, 분, 초]. PC 윈도우 글자 인식(엔드필드 기록 화면, 2026-11-28 실기)은
+ * "06:11:41"을 "061141"·"0611141"·"05141109"·"05!41!06"처럼 읽었다. 콜론 자리(2·5번째, 하나가 빠졌으면 2 또는 4번째)는
+ * 숫자가 아니거나 "1"이어야 하고, 어느 자리가 콜론인지에 따라 값이 달라지면(애매하면) 버린다.
+ */
+function looseClock(raw: string): [number, number, number] | null {
+  const sep = (c: string) => !/\d/.test(c) || c === "1";
+  const ok = (s: string): [number, number, number] | null => {
+    if (!/^\d{6}$/.test(s)) return null;
+    const v: [number, number, number] = [Number(s.slice(0, 2)), Number(s.slice(2, 4)), Number(s.slice(4))];
+    return v[0] <= 23 && v[1] <= 59 && v[2] <= 59 ? v : null;
+  };
+  if (raw.length === 6) return ok(raw);
+  if (raw.length === 8) return sep(raw[2]) && sep(raw[5]) ? ok(raw.slice(0, 2) + raw.slice(3, 5) + raw.slice(6)) : null;
+  if (raw.length === 7) {
+    const tries = [2, 4].filter((i) => sep(raw[i])).map((i) => ok(raw.slice(0, i) + raw.slice(i + 1))).filter((v): v is [number, number, number] => !!v);
+    const same = tries.every((v) => v.join() === tries[0]?.join());
+    return tries.length && same ? tries[0] : null;
+  }
+  return null;
+}
+
+/** 이름 칸 정리: "NEW!" 떼기, "(6★)"·"(6*)"는 등급으로 (PC 실기 2026-11-28: "NEW! 케르 (6*)") */
+function cleanName(raw: string): { name: string; rarity: number | null } {
+  const r = raw.match(/\(\s*(\d)\s*[*★☆]?\s*\)/);
+  const name = raw.replace(/\(\s*\d\s*[*★☆]?\s*\)/, "").replace(/NEW!?/gi, "").replace(/^[^가-힣A-Za-z]+/, "").trim();
+  return { name, rarity: r ? Number(r[1]) : null };
 }
 
 const near = (a: ScreenLine, b: ScreenLine) => Math.abs(a.y - b.y) < 0.02;
@@ -58,11 +90,13 @@ export function parseEndfieldHistory(frame: ScreenFrame): HistoryPage | null {
     const name = lines.find((n) => n !== l && near(n, l) && n.x >= 0.5 && n.x < header.x - 0.02 && /[가-힣]/.test(n.t));
     if (!banner || !name) continue;
     const emergency = /긴급\s*모집/.test(banner.t);
+    const nm = cleanName(name.t);
     rows.push({
       banner: banner.t.replace(/^.*긴급\s*모집\s*[-–]\s*/, "").trim(),
-      name: name.t.trim(),
+      name: nm.name,
       time,
       emergency,
+      ...(nm.rarity ? { rarity: nm.rarity } : {}),
     });
   }
   const prev = lines.find((l) => /^이전$/.test(l.t.trim()));
