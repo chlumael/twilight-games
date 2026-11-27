@@ -99,11 +99,17 @@
     </div>
   {/if}
 
-  {#if rows.length}
+  {#if members?.length}
+    <!-- 게임 고르기 줄은 늘 보인다(고른 게임에 순위가 없어도 다른 게임으로 돌아갈 수 있게, 사용자 지적 2026-11-27) -->
     <nav class="seg" aria-label="순위 보기">
       <button class:on={tab === "all"} onclick={() => (tab = "all")}>종합</button>
       {#each games as g (g)}<button class:on={tab === g} onclick={() => (tab = g)}>{GAMES[g].shortName}</button>{/each}
     </nav>
+  {/if}
+  {#if members?.length && !rows.length}
+    <p class="muted empty">{gameOf ? `${GAMES[gameOf].shortName}은(는) 아직 공유한 사람이 없습니다.` : "아직 순위를 낼 기록이 없습니다."}</p>
+  {/if}
+  {#if rows.length}
     <div class="rank card">
       <table>
         <thead><tr><th></th><th class="l">닉네임</th><th>뽑기</th><th>{gameOf ? GAMES[gameOf].topLabel : "최고"}</th><th>운</th></tr></thead>
@@ -162,6 +168,7 @@
   .v { color: var(--muted); white-space: nowrap; }
   .v b { color: var(--text); font-size: 13px; }
   .v.me { color: var(--top); font-weight: 700; text-align: right; }
+  .empty { margin: 4px 2px; }
   .seg { display: flex; gap: 2px; padding: 3px; background: rgba(0, 0, 0, 0.2); border-radius: var(--radius); overflow-x: auto; }
   .seg button { flex: 1; border: 0; background: none; color: var(--muted); padding: 5px 8px; font-size: 12px; white-space: nowrap; border-radius: calc(var(--radius) * 0.7); }
   .seg button.on { background: var(--tab-active-bg); color: var(--tab-active-fg); font-weight: 700; }
