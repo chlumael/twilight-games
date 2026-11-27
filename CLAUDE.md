@@ -20,7 +20,8 @@
 - 이 클라우드 환경에서는 휴대폰 실기, 윈도우 전용 기능(캡처, OCR, 단축키)을 실행해 볼 수 없다. 테스트하지 못한 부분은 분명히 적고 사용자 확인으로 넘긴다.
 
 ## 구조
-- `src/` Svelte 화면 (웹앱·PC·안드로이드 공용). 규칙 데이터 `src/lib/games.ts`, 계산 `src/lib/ledger.ts`, 배너 `src/lib/banners.ts`, 스킨 `src/lib/themes.ts` + `src/skins.css`, 동기화 `src/lib/sync.ts` + `src/lib/merge.ts`
+- `src/` Svelte 화면 (웹앱·PC·안드로이드 공용). 규칙 데이터 `src/lib/games.ts`, 계산 `src/lib/ledger.ts`(→ `ledger-core`·`ledger-screen`·`ledger-edit`), 배너 `src/lib/banners.ts`, 스킨 `src/lib/themes.ts` + `src/skins.css`, 동기화 `src/lib/sync.ts` + `src/lib/merge.ts`, 게임 이미지 `src/lib/images.svelte.ts`
+  - **앱 구조(정리 2026-11-27)**: 공용 상태(기록·설정·배너 자료·보고 있는 게임·알림)는 `src/lib/store.svelte.ts`의 `app` 하나. 하는 일은 `src/lib/flows/`: 화면 읽기·공식 기록 `screen.svelte.ts`, 계정·친구 공유 `account.svelte.ts`, 저장·자료 받기·배너 따라가기 `data.svelte.ts`, 홈 기록 조작 `records.ts`. `App.svelte`는 화면을 잇기만 한다 — **새 기능의 일은 App.svelte가 아니라 flows/나 lib/에 넣는다.**
 - `android/` Kotlin 앱: WebView로 화면을 띄우고 게임 위 막대/창(오버레이), 자동 업데이트, 구글 로그인
 - `src-tauri/` PC 오버레이 (Tauri 2)
 - `data/banners.json` 배너 데이터 팩, `scripts/banners/` 생성·검증
@@ -37,7 +38,8 @@
 - 인식한 뽑기는 **바로 기록한다**(사용자 요청 2026-11-25: 매번 누르는 것은 불편). 확실하지 않은 것은 "확인"의 자동 기록 목록에 표시해 취소할 수 있게 한다. 기록 화면에서 읽은 공식 기록도 화면을 떠나면 자동 반영한다.
 - 기록 출처 우선순위: 공식 기록 > 수동 입력 > 화면 인식.
 - 외부에서 받은 코드는 실행하지 않는다(데이터로만 파싱).
-- 천장 계산, 기록 병합, 저장 같은 순수 로직은 단위 테스트를 붙인다.
+- 천장 계산, 기록 병합, 저장 같은 순수 로직은 단위 테스트를 붙인다. `flows/`의 일도 `flows/flows.test.ts`에 시험을 붙인다(휴대폰·서버는 가짜로).
+- **파일이 커지면 나눈다**(사용자 2026-11-27: 기능만 붙이다 엉키지 않게): 한 파일이 500줄을 넘거나, 한 파일에 서로 관계없는 일이 섞이면 기능을 더 붙이기 전에 나눈다. 나눈 뒤 `npm test`·`npm run check`와 화면 스크린샷으로 겉모습이 그대로인지 확인한다.
 
 ## 버전 번호 (사용자 지시 2026-11-26)
 - **사용자가 "업데이트해", "올려", "배포해"처럼 업데이트를 하라고 말했을 때만 버전을 올린다(사용자 지시 2026-11-26: 업데이트가 너무 잦다).** 그 전까지는 버전 번호를 그대로 두고 커밋·푸시만 한다(버전이 같으면 새 설치 파일이 게시되지 않아 사용자 기기에 업데이트 알림이 뜨지 않는다). 고친 내용은 `android/RELEASE_NOTES.md` 맨 위에 `<!-- 다음 업데이트에 들어갈 것 … -->` 주석으로 쌓아 두고(버전을 올릴 때는 주석을 지우고 새 버전 제목 아래 목록으로 옮긴다 — 이 파일이 앱의 업데이트 안내문으로 그대로 보인다), 답변에서 "다음 업데이트 때 들어간다"고 알린다.
