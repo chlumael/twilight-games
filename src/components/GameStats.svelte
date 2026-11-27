@@ -48,6 +48,7 @@
         <div class="rows">
           <div><span>가장 빨리 / 가장 늦게</span><b>{g.best ?? "–"} / {g.worst ?? "–"}뽑</b></div>
           <div><span>마지막 {def.topLabel} 이후</span><b>{g.since}뽑</b></div>
+          {#if g.perFeatured !== null}<div><span>픽업 1개당 평균 (픽뚫 포함)</span><b>{g.perFeatured.toFixed(1)}뽑</b></div>{/if}
 
         </div>
         {#if g.rare.length}
@@ -60,7 +61,7 @@
           <div class="hits">
             {#each [...g.hits].reverse().slice(0, 12) as h (h.pull.id)}
               <div class="hit" class:lost={h.pull.featured === false}>
-                <span class="count">{h.at}번째</span><span class="muted">{h.count}뽑</span>
+                <span class="count">{h.count}뽑</span>{#if h.toFeatured !== null && h.toFeatured !== h.count}<span class="muted">픽업까지 {h.toFeatured}뽑</span>{/if}
                 <span class="name"><Portrait {game} name={h.pull.name} size={22} featured={h.pull.featured} />{h.pull.name ?? "이름 미입력"}</span>
                 {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
                 <span class="when">{day(h.pull.time)}</span>

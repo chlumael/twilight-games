@@ -216,8 +216,13 @@ export interface TopHit {
   pull: Pull;
   /** Pulls it took, counting the top pull itself (e.g. 74). */
   count: number;
-  /** 그 배너에서 몇 번째 뽑기였는지 (배너 누적). 화면에는 이 숫자를 크게 보여 준다(사용자 2026-11-26) */
+  /** 그 배너에서 몇 번째 뽑기였는지 (배너 누적). 고치기 창에서만 쓴다 — 화면에 크게 보여 주는 것은 count(사용자 2026-11-27) */
   at: number;
+  /**
+   * 픽업이면: 직전 픽업 이후 이 픽업까지 뽑은 횟수(사이의 픽뚫 횟수를 더한 것, 사용자 2026-11-27: 67뽑 픽뚫 → 72뽑 픽업 = 139).
+   * 픽업이 아니거나, 사이에 픽업인지 모르는 기록이 있으면 null
+   */
+  toFeatured: number | null;
   /**
    * 천장으로 얻었는지 (사용자 2026-11-26). half = 반천(확률 상승 구간~최고 등급 확정 천장에서 나옴),
    * full = 확천(픽업 확정 천장: 엔드필드 120회·무기 80개, 원신은 확정 상태에서 천장). 천장이 아니면 null
@@ -245,6 +250,8 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
   let since = perBanner ? 0 : base.pity;
   let lastBanner: string | null = null;
   let seen = 0; // 직전 최고 등급 이후 기록된 뽑기 수
+  // 직전 픽업 이후 픽뚫에 쓴 뽑기 수(픽업인지 모르는 것이 끼면 null). 시작 상태가 '확정'이면 그 전 픽뚫 횟수를 모른다
+  let lost: number | null = base.guaranteed ? null : 0;
   let state: FeaturedState = { guaranteed: base.guaranteed, losses: 0, radiant: false };
   const onBanner = new Map<string, number>(base.banner ? [[base.banner, base.bannerPulls]] : []);
   const hits: TopHit[] = [];
@@ -252,6 +259,7 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
     if (perBanner && p.banner !== lastBanner) {
       since = p.banner === base.banner ? base.pity : 0;
       lastBanner = p.banner;
+      lost = 0;
     }
     since++;
     seen++;
@@ -276,7 +284,10 @@ export function topHistory(rec: GameRecord, groupId: string): TopHit[] {
       if (byCounter) ceiling = "full";
       else if (atHard) ceiling = group?.featuredRule !== "none" && state.guaranteed ? "full" : "half";
       // 기준값이 음수라(화면 값에 맞추느라 뺀 뒤 기록을 지운 경우) 횟수가 0 이하로 나오면, 기록된 뽑기 수로 센다
-      hits.push({ pull: p, count: up(since > 0 ? since : seen), at: up(n), ceiling });
+      const count = up(since > 0 ? since : seen);
+      const toFeatured = p.featured === true && lost !== null ? lost + count : null;
+      hits.push({ pull: p, count, at: up(n), ceiling, toFeatured });
+      lost = p.featured === true ? 0 : p.featured === false && lost !== null ? lost + count : null;
       since = 0;
       seen = 0;
       if (group && group.featuredRule !== "none") state = afterTop(state, p.featured, group.lossStreakGuarantee);

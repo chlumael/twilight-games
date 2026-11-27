@@ -135,6 +135,20 @@ describe("history", () => {
     r = recordSession(r, "genshin", "genshin-char", 10, new Map([[3, { name: "A", featured: false }]]), t(0));
     r = recordSession(r, "genshin", "genshin-char", 10, new Map([[9, { name: "B", featured: true }]]), t(1));
     expect(topHistory(r.games.genshin, "genshin-char").map((h) => h.count)).toEqual([74, 16]);
+    // 픽업까지: 74뽑 픽뚫 + 16뽑 픽업 = 90 (사용자 2026-11-27)
+    expect(topHistory(r.games.genshin, "genshin-char").map((h) => h.toFeatured)).toEqual([null, 90]);
+  });
+  it("픽업까지 횟수: 바로 픽업이면 그 횟수, 픽업인지 모르는 기록이 끼면 모름, 시작이 확정 상태면 모름", () => {
+    let r = emptyRecords();
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map([[4, { name: "A", featured: true }]]), t(0));
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map([[2, { name: null, featured: null }]]), t(1));
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map([[1, { name: "B", featured: true }]]), t(2));
+    r = recordSession(r, "genshin", "genshin-char", 10, new Map([[0, { name: "C", featured: true }]]), t(3));
+    expect(topHistory(r.games.genshin, "genshin-char").map((h) => [h.count, h.toFeatured])).toEqual([[5, 5], [8, null], [9, null], [9, 9]]);
+    let g = emptyRecords();
+    g.games.genshin.baseline["genshin-char"] = { ...emptyBaseline(), pity: 10, guaranteed: true };
+    g = recordSession(g, "genshin", "genshin-char", 10, new Map([[4, { name: "B", featured: true }]]), t(0));
+    expect(topHistory(g.games.genshin, "genshin-char")[0].toFeatured).toBeNull();
   });
 });
 

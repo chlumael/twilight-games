@@ -21,6 +21,8 @@ export interface GroupStats {
   featuredWon: number;
   featuredLost: number;
   /** 평균 뽑기 수 ÷ 천장. 낮을수록 운이 좋다. 천장이 없으면 null */
+  /** 픽업 1개당 평균 뽑기(사이의 픽뚫 포함) */
+  perFeatured: number | null;
   pityRatio: number | null;
   hits: TopHit[];
   /** 화면에서 읽어 이름이 남은 한 단계 아래 등급(원신 4성) — 최근 것부터 */
@@ -58,6 +60,8 @@ export function groupStats(rec: GameRecord, game: GameId, groupId: string): Grou
   const counts = hits.map((h) => h.count);
   const average = mean(counts);
   const won = hits.filter((h) => h.pull.featured === true).length;
+  // 픽업 하나 얻는 데 든 뽑기(사이의 픽뚫 포함, 사용자 2026-11-27)
+  const perFeatured = mean(hits.flatMap((h) => (h.toFeatured === null ? [] : [h.toFeatured])));
   const lost = hits.filter((h) => h.pull.featured === false).length;
   const sorted = [...pulls].sort((a, b) => a.time.localeCompare(b.time) || a.indexInSession - b.indexInSession);
   const lastTop = sorted.map((p) => p.top).lastIndexOf(true);
@@ -75,6 +79,7 @@ export function groupStats(rec: GameRecord, game: GameId, groupId: string): Grou
     featuredRate: won + lost > 0 ? won / (won + lost) : null,
     featuredWon: won,
     featuredLost: lost,
+    perFeatured,
     pityRatio: average !== null && group.hardPity ? average / group.hardPity : null,
     hits,
     rare: sorted.filter((p) => !p.top && p.rarity === 4 && p.name).reverse(),

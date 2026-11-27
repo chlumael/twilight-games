@@ -96,10 +96,10 @@ const contexts = {
     await page.click("[aria-label=설정]"); await page.waitForTimeout(200); await shot("settings");
     await page.click("[aria-label=설정]");
     // 통계 화면: 내용 전체를 찍는다
-    if (await page.locator("button[title="내 통계"]").count()) {
-      await page.click("button[title="내 통계"]"); await page.waitForTimeout(200);
+    if (await page.locator('button[title="내 통계"]').count()) {
+      await page.click('button[title="내 통계"]'); await page.waitForTimeout(200);
       await page.locator("section.stats").screenshot({ path: path.join(outDir, `${mode}-stats.png`) });
-      await page.click("button[title="내 통계"]");
+      await page.click('button[title="내 통계"]');
     }
   }
   console.log(`saved ${mode} screenshots to ${outDir}`, errors.length ? `\nconsole errors:\n${errors.join("\n")}` : "");

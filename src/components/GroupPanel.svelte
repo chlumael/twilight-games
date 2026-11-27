@@ -298,10 +298,11 @@
   <section class="hits">
     {#each lastHits as h (h.pull.id)}
       <button type="button" class="hit tap" class:lost={h.pull.featured === false} class:open={editId === h.pull.id} onclick={() => openEdit(h)} disabled={!onEditTop}>
-        <span class="count">{h.at}<small>번째</small></span>
+        <!-- 큰 숫자 = 0스택부터 몇 뽑 만에 나왔는지(사용자 2026-11-27: 배너 몇 번째보다 이것이 중요). 픽뚫 뒤 픽업이면 둘을 더한 횟수도 -->
+        <span class="count">{h.count}<small>뽑</small></span>
         <Portrait {game} name={h.pull.name} size={30} featured={h.pull.featured} />
         <span class="name">{h.pull.name ?? `${topLabel} (이름 미입력)`}</span>
-        <span class="took">{h.count}뽑</span>
+        {#if h.toFeatured !== null && h.toFeatured !== h.count}<span class="took">픽업까지 {h.toFeatured}뽑</span>{/if}
         {#if hitLabel(h)}<span class="badge" class:win={h.pull.featured === true}>{hitLabel(h)}</span>{/if}
       </button>
       {#if editId === h.pull.id}
