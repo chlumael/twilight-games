@@ -2,7 +2,7 @@
   // 화면 틀: 머리줄·게임 줄·아래 탭과 각 화면을 잇는다 (정리 2026-11-27).
   // 상태는 lib/store.svelte.ts(app), 하는 일은 lib/flows/*에 있다. 여기에는 화면 하나에만 쓰는 상태만 둔다.
   import { onMount } from "svelte";
-  import { isNewer, latestRelease } from "./lib/version";
+  import { latestRelease, pcUpdateKind } from "./lib/version";
   import CurrencyBar from "./components/CurrencyBar.svelte";
   import GroupPanel from "./components/GroupPanel.svelte";
   import PityRing from "./components/PityRing.svelte";
@@ -210,7 +210,10 @@
       // 켤 때 새 버전을 확인하고, 있으면 창을 펼쳐 알린다
       void api.pcVersion().then(async (cur) => {
         const r = cur ? await latestRelease() : null;
-        if (cur && r && r.hasPc && isNewer(r.version, cur)) { newVersion = r.version; collapsed = false; }
+        const kind = pcUpdateKind(r, cur, __BUILD_TIME__);
+        // 같은 버전 번호라도 고친 설치 파일이 새로 올라왔으면 알린다(사용자 2026-11-27)
+        if (kind === "new") { newVersion = `새 버전 ${r!.version}이 있습니다`; collapsed = false; }
+        else if (kind === "fix") { newVersion = "고친 내용이 새로 올라왔습니다"; collapsed = false; }
       });
     }
     unlisten.push(api.onEvent<string>("hotkey", (action) => {
@@ -253,7 +256,7 @@
         {#if updating}
           <span>새 버전을 받는 중… 곧 설치가 시작됩니다</span>
         {:else}
-          <span>{updateError ?? `새 버전 ${newVersion}이 있습니다`}</span>
+          <span>{updateError ?? newVersion}</span>
           <button onclick={runUpdate}>{updateError ? "다시 시도" : "업데이트"}</button>
           {#if updateError}<button onclick={() => api.openPcDownload()}>직접 받기</button>{/if}
           <button class="later" onclick={() => (newVersion = null)}>나중에</button>

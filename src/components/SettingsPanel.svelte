@@ -4,7 +4,7 @@
   import { gameIcon } from "../lib/icons";
   import { emptyBaseline } from "../lib/ledger";
   import { android, androidMode, inTauri, installPcUpdate, listProcesses, openPcDownload, pcVersion } from "../lib/api";
-  import { isNewer, latestRelease } from "../lib/version";
+  import { latestRelease, pcUpdateKind } from "../lib/version";
   import { profileOf, screenReady } from "../lib/screen-profile";
   import { moveGame, shownGames, type Settings } from "../lib/settings";
   import type { Baseline, GameId, GameRecord } from "../lib/types";
@@ -70,7 +70,7 @@
   }
   // PC판 버전 확인: 설정을 열 때 한 번 확인하고, 버튼으로 다시 확인할 수 있다
   let pcVer = $state<string | null>(null);
-  let pcUpdate = $state<"" | "checking" | "latest" | "new" | "wait" | "fail">("");
+  let pcUpdate = $state<"" | "checking" | "latest" | "new" | "fix" | "wait" | "fail">("");
   let pcLatest = $state("");
   let pcInstalling = $state(false);
   let pcInstallError = $state("");
@@ -85,7 +85,7 @@
     const r = await latestRelease();
     if (!r) { pcUpdate = "fail"; return; }
     pcLatest = r.version;
-    pcUpdate = !isNewer(r.version, pcVer) ? "latest" : r.hasPc ? "new" : "wait";
+    pcUpdate = pcUpdateKind(r, pcVer, __BUILD_TIME__);
   }
   if (inTauri) void pcVersion().then((v) => { pcVer = v; void checkPcUpdate(); });
 
@@ -229,9 +229,9 @@
         <span class="muted">버전 {pcVer}</span>
         <button onclick={checkPcUpdate} disabled={pcUpdate === "checking"}>업데이트 확인</button>
       </div>
-      {#if pcUpdate === "new"}
+      {#if pcUpdate === "new" || pcUpdate === "fix"}
         <div class="row">
-          <span>새 버전 {pcLatest}이 있습니다.</span>
+          <span>{pcUpdate === "new" ? `새 버전 ${pcLatest}이 있습니다.` : "고친 내용이 새로 올라왔습니다."}</span>
           <button onclick={runPcUpdate} disabled={pcInstalling}>{pcInstalling ? "받는 중…" : "업데이트"}</button>
         </div>
         {#if pcInstallError}
