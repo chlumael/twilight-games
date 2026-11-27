@@ -6204,7 +6204,7 @@
     "group": "endfield-chartered",
     "name": "「격정의 색채」 특별 허가 헤드헌팅",
     "start": "2026-02-24T04:00:00.000Z",
-    "end": "2026-03-11T04:30:00.000Z",
+    "end": "2026-03-12T04:00:00.000Z",
     "featured": [
      {
       "id": "ko:이본",
@@ -6251,7 +6251,7 @@
     "id": "endfield:official:1338",
     "group": "endfield-chartered",
     "name": "「강에서 태어난 소녀」 특별 허가 헤드헌팅",
-    "start": "2026-03-11T04:30:00.000Z",
+    "start": "2026-03-12T04:00:00.000Z",
     "end": "2026-03-29T03:59:00.000Z",
     "featured": [
      {
@@ -6292,7 +6292,6 @@
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
-    "startApprox": true,
     "image": "https://web-static.hg-cdn.com/upload/image/20260310/e2a6ddf1c51ad073e243e0b212ff86b7.jpg"
    },
    {
@@ -6300,7 +6299,7 @@
     "group": "endfield-chartered",
     "name": "「울프펄」 특별 허가 헤드헌팅",
     "start": "2026-03-29T04:00:00.000Z",
-    "end": "2026-04-16T04:00:00.000Z",
+    "end": "2026-04-17T04:00:00.000Z",
     "featured": [
      {
       "id": "ko:로시",
@@ -6347,7 +6346,7 @@
     "id": "endfield:official:9579",
     "group": "endfield-chartered",
     "name": "「봄의 천둥, 만물의 소생」 특별 허가 헤드헌팅",
-    "start": "2026-04-16T04:00:00.000Z",
+    "start": "2026-04-17T04:00:00.000Z",
     "end": "2026-05-22T03:59:00.000Z",
     "featured": [
      {
@@ -6388,14 +6387,13 @@
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
-    "startApprox": true,
     "image": "https://web-static.hg-cdn.com/upload/image/20260415/5aba109a239d346b27c3bf8e7e6bfb60.jpg"
    },
    {
     "id": "endfield:official:0759",
     "group": "endfield-chartered",
     "name": "「후회 없는 주먹」 특별 허가 헤드헌팅",
-    "start": "2026-06-03T04:00:00.000Z",
+    "start": "2026-06-05T04:00:00.000Z",
     "end": "2026-06-26T03:59:00.000Z",
     "featured": [
      {
@@ -6436,7 +6434,6 @@
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
-    "startApprox": true,
     "image": "https://web-static.hg-cdn.com/upload/image/20260602/91ef6d7323d4c0aad2c9ab94fcb99faa.png"
    },
    {
@@ -6444,7 +6441,7 @@
     "group": "endfield-chartered",
     "name": "「죄를 쫓는 자」 특별 허가 헤드헌팅",
     "start": "2026-06-26T04:00:00.000Z",
-    "end": "2026-07-15T10:00:00.000Z",
+    "end": "2026-07-16T04:00:00.000Z",
     "featured": [
      {
       "id": "ko:카뮤",
@@ -6491,7 +6488,7 @@
     "id": "endfield:official:2656",
     "group": "endfield-chartered",
     "name": "「벼랑 끝, 북쪽을 향한 시선」 특별 허가 헤드헌팅",
-    "start": "2026-07-15T10:00:00.000Z",
+    "start": "2026-07-16T04:00:00.000Z",
     "end": "2026-08-09T03:59:00.000Z",
     "featured": [
      {
@@ -6532,7 +6529,6 @@
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
-    "startApprox": true,
     "image": "https://web-static.hg-cdn.com/upload/image/20260713/173d26a9607f950e3b7227cb4f10aeff.jpg"
    },
    {
@@ -6540,7 +6536,7 @@
     "group": "endfield-chartered",
     "name": "「빛나는 새벽의 별」 특별 허가 헤드헌팅",
     "start": "2026-08-09T04:00:00.000Z",
-    "end": "2026-09-01T04:00:00.000Z",
+    "end": "2026-09-02T04:00:00.000Z",
     "featured": [
      {
       "id": "ko:리노",
@@ -6587,7 +6583,7 @@
     "id": "endfield:official:6172",
     "group": "endfield-chartered",
     "name": "「겨울 사냥」 특별 허가 헤드헌팅",
-    "start": "2026-09-01T04:00:00.000Z",
+    "start": "2026-09-02T04:00:00.000Z",
     "end": "2026-09-30T03:59:00.000Z",
     "featured": [
      {
@@ -6628,7 +6624,6 @@
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
-    "startApprox": true,
     "image": "https://web-static.hg-cdn.com/upload/image/20260831/b9b60689c5b3a9e3dda9fd55d94b2e3f.jpg"
    },
    {
@@ -6636,7 +6631,7 @@
     "group": "endfield-refactor",
     "name": "「찬란한 색채」 재구축 헤드헌팅",
     "start": "2026-09-24T04:00:00.000Z",
-    "end": "2026-10-14T10:00:00.000Z",
+    "end": "2026-10-15T04:00:00.000Z",
     "featured": [
      {
       "id": "ko:이본",
@@ -6653,7 +6648,7 @@
     "id": "endfield:official:4489",
     "group": "endfield-chartered",
     "name": "「만물의 재구성」 특별 허가 헤드헌팅",
-    "start": "2026-10-14T10:00:00.000Z",
+    "start": "2026-10-15T04:00:00.000Z",
     "end": "2026-11-05T03:59:00.000Z",
     "featured": [
      {
@@ -6694,7 +6689,6 @@
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
-    "startApprox": true,
     "image": "https://web-static.hg-cdn.com/upload/image/20261012/05eaeab7bb74086aa7cb25163b173149.jpg"
    },
    {
@@ -6719,7 +6713,7 @@
     "group": "endfield-chartered",
     "name": "「은하수를 부르는 불꽃」 특별 허가 헤드헌팅",
     "start": "2026-11-05T04:00:00.000Z",
-    "end": "2026-11-24T04:00:00.000Z",
+    "end": "2026-11-25T04:00:00.000Z",
     "featured": [
      {
       "id": "ko:명하",
@@ -6766,7 +6760,7 @@
     "id": "endfield:official:5204",
     "group": "endfield-chartered",
     "name": "「모루, 배낭, 그리고 벌꿀」 특별 허가 헤드헌팅",
-    "start": "2026-11-24T04:00:00.000Z",
+    "start": "2026-11-25T04:00:00.000Z",
     "end": "2026-12-23T03:59:00.000Z",
     "featured": [
      {
@@ -6807,14 +6801,13 @@
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
-    "startApprox": true,
     "image": "https://web-static.hg-cdn.com/upload/image/20261123/f31cdfc79cb3c9563ca75548a1f920a7.png"
    },
    {
     "id": "endfield:official:8992",
     "group": "endfield-refactor",
     "name": "「떠도는 모든 소망에게」 재구축 헤드헌팅",
-    "start": "2026-11-24T05:00:00.000Z",
+    "start": "2026-11-25T04:00:00.000Z",
     "end": "2026-12-16T03:59:00.000Z",
     "featured": [
      {
@@ -6847,7 +6840,6 @@
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지",
     "featuredRare": [],
-    "startApprox": true,
     "image": "https://web-static.hg-cdn.com/upload/image/20261123/e062bc698c0b51dc130cbebb8739a62d.png"
    },
    {
@@ -6856,7 +6848,7 @@
     "name": "「용조 신청」",
     "start": "2026-01-21T05:00:00.000Z",
     "startApprox": true,
-    "end": "2026-03-11T04:30:00.000Z",
+    "end": "2026-03-12T04:00:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
     "featured": [
@@ -6943,7 +6935,7 @@
     "group": "endfield-arsenal",
     "name": "「화도 신청」",
     "start": "2026-02-24T04:00:00.000Z",
-    "end": "2026-04-16T04:00:00.000Z",
+    "end": "2026-04-17T04:00:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
     "featured": [
@@ -6986,8 +6978,7 @@
     "id": "endfield:arsenal:신아 신청",
     "group": "endfield-arsenal",
     "name": "「신아 신청」",
-    "start": "2026-03-11T05:00:00.000Z",
-    "startApprox": true,
+    "start": "2026-03-12T04:00:00.000Z",
     "end": "2026-05-22T03:59:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
@@ -7073,9 +7064,8 @@
     "id": "endfield:arsenal:항해 신청",
     "group": "endfield-arsenal",
     "name": "「항해 신청」",
-    "start": "2026-04-16T04:30:00.000Z",
-    "startApprox": true,
-    "end": "2026-07-15T10:00:00.000Z",
+    "start": "2026-04-17T04:00:00.000Z",
+    "end": "2026-07-16T04:00:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
     "featured": [
@@ -7119,7 +7109,7 @@
     "group": "endfield-arsenal",
     "name": "「질풍 신청」",
     "start": "2026-05-14T04:00:00.000Z",
-    "end": "2026-06-03T04:00:00.000Z",
+    "end": "2026-06-05T04:00:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
     "featured": [
@@ -7163,7 +7153,7 @@
     "group": "endfield-arsenal",
     "name": "「용작 신청」",
     "start": "2026-05-14T04:00:00.000Z",
-    "end": "2026-06-03T04:00:00.000Z",
+    "end": "2026-06-05T04:00:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
     "featured": [
@@ -7206,8 +7196,7 @@
     "id": "endfield:arsenal:붉은 결속 신청",
     "group": "endfield-arsenal",
     "name": "「붉은 결속 신청」",
-    "start": "2026-06-03T04:15:00.000Z",
-    "startApprox": true,
+    "start": "2026-06-05T04:00:00.000Z",
     "end": "2026-08-09T03:59:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
@@ -7251,7 +7240,7 @@
     "group": "endfield-arsenal",
     "name": "「적색화 신청」",
     "start": "2026-06-26T04:00:00.000Z",
-    "end": "2026-09-01T04:00:00.000Z",
+    "end": "2026-09-02T04:00:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
     "featured": [
@@ -7294,8 +7283,7 @@
     "id": "endfield:arsenal:제대 신청",
     "group": "endfield-arsenal",
     "name": "「제대 신청」",
-    "start": "2026-07-15T10:30:00.000Z",
-    "startApprox": true,
+    "start": "2026-07-16T04:00:00.000Z",
     "end": "2026-09-30T03:59:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
@@ -7381,9 +7369,8 @@
     "id": "endfield:arsenal:한기 신청",
     "group": "endfield-arsenal",
     "name": "「한기 신청」",
-    "start": "2026-09-01T04:30:00.000Z",
-    "startApprox": true,
-    "end": "2026-11-24T04:00:00.000Z",
+    "start": "2026-09-02T04:00:00.000Z",
+    "end": "2026-11-25T04:00:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
     "featured": [
@@ -7426,8 +7413,7 @@
     "id": "endfield:arsenal:전옥 신청",
     "group": "endfield-arsenal",
     "name": "「전옥 신청」",
-    "start": "2026-10-14T10:30:00.000Z",
-    "startApprox": true,
+    "start": "2026-10-15T04:00:00.000Z",
     "end": "2026-12-23T03:59:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
@@ -7513,8 +7499,7 @@
     "id": "endfield:arsenal:유영 신청",
     "group": "endfield-arsenal",
     "name": "「유영 신청」",
-    "start": "2026-11-24T04:30:00.000Z",
-    "startApprox": true,
+    "start": "2026-11-25T04:00:00.000Z",
     "end": null,
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(무기고 신청 설명)",
@@ -7557,7 +7542,7 @@
     "id": "endfield:arsenal:표류 신청",
     "group": "endfield-refactor-arsenal",
     "name": "「표류 신청」 재구축 신청",
-    "start": "2026-11-26T03:47:07.718Z",
+    "start": "2026-11-25T04:00:00.000Z",
     "end": "2026-12-16T03:59:00.000Z",
     "version": null,
     "source": "엔드필드 한국어 공식 홈페이지 공지(확률 상세 안내)",
@@ -7593,8 +7578,7 @@
       "id": "ko:모범",
       "ko": "모범"
      }
-    ],
-    "startApprox": true
+    ]
    }
   ],
   "limbus": [

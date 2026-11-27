@@ -4,7 +4,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import JSON5 from "json5";
 import { arknightsOfficial as arknights, arknightsPoolGroups } from "./arknights-official.mjs";
-import { collectedSixStars, endfieldOfficial, mergeArsenal, skippedNotices } from "./endfield-official.mjs";
+import { alignToVersions, collectedSixStars, endfieldOfficial, mergeArsenal, skippedNotices } from "./endfield-official.mjs";
 import { collectEvents } from "./events.mjs";
 import { applyKoreanNames, applyWishPools, fetchWishAnnouncements, fetchWishDetails } from "./genshin-official.mjs";
 import { limbusOfficial as limbus } from "./limbus-official.mjs";
@@ -234,6 +234,8 @@ const previousEvents = await readFile(new URL("../../data/banners.json", import.
   .then((t) => JSON.parse(t).events ?? {}).catch(() => ({}));
 const { events, errors: eventErrors } = await collectEvents(previousEvents);
 for (const [g, e] of Object.entries(eventErrors)) errors[`events:${g}`] = e;
+// 엔드필드: "버전 업데이트 후"라 공지 게시 시각으로 둔 시작일을 버전 시작으로 맞춘다
+games.endfield = alignToVersions(games.endfield, events.endfield ?? []);
 const pack = { schemaVersion: 1, generatedAt: new Date().toISOString(), games, events, errors, ...(Object.keys(warnings).length ? { warnings } : {}) };
 const outFile = process.argv[2] ?? new URL("../../data/banners.json", import.meta.url);
 await writeFile(outFile, JSON.stringify(pack, null, 1) + "\n");

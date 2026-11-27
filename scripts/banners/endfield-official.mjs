@@ -298,6 +298,29 @@ export function withCovers(banners, notices) {
   });
 }
 
+/**
+ * 시작일 맞추기 (사용자 지적 2026-11-27: 케르·질베르타·무기 배너가 버전 업데이트 날이 아니라 하루 전으로 나옴).
+ * 공지에 "「X」 버전 업데이트 후"라고만 적혀 시작일을 공지 게시 시각(또는 처음 본 시각)으로 둔 배너(startApprox)는,
+ * 그 시각에서 앞뒤 3일 안에 시작하는 버전이 있으면 그 버전 시작(점검이 끝나는 시각)으로 바꾼다.
+ * 그런 배너의 시작을 끝으로 이어받은 배너(endApprox, "다음 버전 업데이트 전까지")의 끝도 함께 옮긴다.
+ * versions: 달력 일정의 엔드필드 버전({ kind: "version", start })
+ */
+export function alignToVersions(banners, versions) {
+  const starts = versions.filter((v) => v.kind === "version" && v.start && !v.startApprox).map((v) => Date.parse(v.start));
+  const moved = new Map();
+  const out = banners.map((b) => {
+    if (!b.startApprox) return b;
+    const t = Date.parse(b.start);
+    const near = starts.filter((v) => Math.abs(v - t) <= 3 * 864e5).sort((x, y) => Math.abs(x - t) - Math.abs(y - t))[0];
+    if (near === undefined) return b;
+    const start = new Date(near).toISOString();
+    moved.set(b.start, start);
+    const { startApprox: _a, ...rest } = b;
+    return { ...rest, start };
+  });
+  return out.map((b) => (b.endApprox && b.end && moved.has(b.end) ? { ...b, end: moved.get(b.end) } : b));
+}
+
 /** 해석하지 못한 헤드헌팅 공지 제목 (빌드 결과에 경고로 남긴다) */
 export const skippedNotices = [];
 

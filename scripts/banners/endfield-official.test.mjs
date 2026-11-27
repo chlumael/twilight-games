@@ -201,3 +201,22 @@ describe("배너 그림 (withCovers)", async () => {
     expect(out.map((b) => b.image)).toEqual(["https://x/a.png", "https://x/b.png", undefined]);
   });
 });
+
+describe("시작일을 버전 시작에 맞추기 (alignToVersions)", async () => {
+  const { alignToVersions } = await import("./endfield-official.mjs");
+  it("\"버전 업데이트 후\"로 공지 시각을 쓴 배너는 가까운 버전 시작으로, 그 시작을 끝으로 쓴 배너도 같이", () => {
+    const v = [{ kind: "version", start: "2026-11-25T04:00:00.000Z" }];
+    const out = alignToVersions([
+      { id: "명하", start: "2026-11-05T04:00:00.000Z", end: "2026-11-24T04:00:00.000Z", endApprox: true },
+      { id: "케르", start: "2026-11-24T04:00:00.000Z", end: "2026-12-23T03:59:00.000Z", startApprox: true },
+      { id: "표류", start: "2026-11-26T03:47:07.718Z", end: "2026-12-16T03:59:00.000Z", startApprox: true },
+      { id: "멀리", start: "2026-12-10T00:00:00.000Z", end: null, startApprox: true },
+    ], v);
+    expect(out.map((b) => [b.id, b.start.slice(0, 13), b.end?.slice(0, 13) ?? null, !!b.startApprox])).toEqual([
+      ["명하", "2026-11-05T04", "2026-11-25T04", false],
+      ["케르", "2026-11-25T04", "2026-12-23T03", false],
+      ["표류", "2026-11-25T04", "2026-12-16T03", false],
+      ["멀리", "2026-12-10T00", null, true],
+    ]);
+  });
+});
