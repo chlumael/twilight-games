@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PackBanner } from "./banners";
-import { importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, parseRecordTime } from "./history";
+import { fixKnownName, importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, parseRecordTime } from "./history";
 import { emptyRecords, recordDetected, recordSession, topHistory } from "./ledger";
 import { parseFrameText } from "./recognize";
 
@@ -49,6 +49,14 @@ describe("엔드필드 공식 기록 읽기", () => {
       ["플루라이트", "2026-11-25T14:24:44.000Z", null],
     ]);
     expect(p.rows.every((r) => r.banner === "모루, 배낭, 그리고 벌꿀")).toBe(true);
+  });
+
+  it("한 글자 틀린 이름 바로잡기 (PC 실기 2026-11-28: 케로 → 케르)", () => {
+    const known = ["케르", "카치르", "에스텔라", "로시", "리노"];
+    expect(fixKnownName("케로", known)).toBe("케르");
+    expect(fixKnownName("카치르", known)).toBe("카치르");
+    expect(fixKnownName("로노", known)).toBe("로노"); // 로시·리노 둘 다 한 글자 차이 → 애매해서 그대로
+    expect(fixKnownName("모르는이름", known)).toBe("모르는이름");
   });
 
   it("콜론이 다르게 읽힌 시각", () => {

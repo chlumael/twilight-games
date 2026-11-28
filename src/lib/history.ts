@@ -63,6 +63,22 @@ function looseClock(raw: string): [number, number, number] | null {
   return null;
 }
 
+/**
+ * 한 글자 틀리게 읽힌 이름을 아는 이름으로 바로잡는다(PC 실기 2026-11-28: "케르" → "케로").
+ * 아는 이름에 그대로 있으면 그대로, 길이가 같고 한 글자만 다른 이름이 딱 하나면 그 이름. 둘 이상이거나 없으면 그대로 둔다.
+ */
+export function fixKnownName(name: string, known: Iterable<string>): string {
+  const t = name.replace(/\s+/g, "");
+  const list = [...new Set([...known].filter(Boolean))];
+  if (list.some((k) => k.replace(/\s+/g, "") === t)) return name;
+  const chars = [...t];
+  const hits = list.filter((k) => {
+    const kc = [...k.replace(/\s+/g, "")];
+    return kc.length === chars.length && chars.length >= 2 && kc.filter((c, i) => c !== chars[i]).length === 1;
+  });
+  return hits.length === 1 ? hits[0] : name;
+}
+
 /** 이름 칸 정리: "NEW!" 떼기, "(6★)"·"(6*)"는 등급으로 (PC 실기 2026-11-28: "NEW! 케르 (6*)") */
 function cleanName(raw: string): { name: string; rarity: number | null } {
   const r = raw.match(/\(\s*(\d)\s*[*★☆]?\s*\)/);

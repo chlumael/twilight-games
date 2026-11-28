@@ -18,7 +18,7 @@ import { emptyDetectState, step as detectStep, type Detection, type ItemTable } 
 import { LimbusPulls } from "./limbus.svelte";
 import { readLocal, writeLocal } from "./local";
 import { applyLimbusHistory, joinSequence, mergeSequence, parseLimbusHistory, type LimbusRow } from "../limbus-history";
-import { importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow } from "../history";
+import { fixKnownName, importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow } from "../history";
 import type { GameId, Records } from "../types";
 import genshinItemsFile from "../../../data/genshin-items.json";
 import endfieldSixFile from "../../../data/names/endfield-6star.json";
@@ -355,6 +355,16 @@ export class ScreenFlow {
 
   private readHistory(f: ScreenFrame) {
     const page = parseEndfieldHistory(f) ?? parseGenshinHistory(f, (n) => genshinItems[n]?.rarity ?? null) ?? parseArknightsHistory(f);
+    // 엔드필드: 한 글자 틀리게 읽힌 이름을 아는 이름(6성 목록·배너 픽업·이미지 목록)으로 바로잡는다("케로" → "케르", PC 실기 2026-11-28)
+    if (page?.game === "endfield") {
+      const six = [...(sixStars.endfield ?? [])];
+      const known = [...six, ...(app.pack?.games.endfield ?? []).flatMap((b) => [...b.featured, ...b.featuredRare].map((x) => x.ko ?? "")), ...itemNames("endfield")];
+      // 6성 이름으로 고치는 것은 그 줄에 "(6★)"가 함께 읽혔을 때만(두 글자 이름이 많아 4·5성이 6성으로 바뀌지 않게)
+      page.rows = page.rows.map((r) => {
+        const fixed = fixKnownName(r.name, known);
+        return { ...r, name: six.includes(fixed) && fixed !== r.name && r.rarity !== 6 ? r.name : fixed };
+      });
+    }
     if (page?.rows.length) { this.saveHistory(page.game, mergePages(this.historyStore[page.game] ?? {}, page)); this.lastHistoryAt = Date.now(); }
     // 아는 인격 이름: 배너 자료의 픽업 + 이미지 목록의 인격·E.G.O 전체(수감자 이름이 잘못 읽힌 줄도 찾게, 2026-11-27)
     const known = [...(app.pack?.games.limbus ?? []).flatMap((b) => [...b.featured, ...b.featuredRare].map((x) => x.ko ?? "")), ...itemNames("limbus")].filter(Boolean);
