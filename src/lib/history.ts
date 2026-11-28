@@ -103,7 +103,10 @@ export function parseEndfieldHistory(frame: ScreenFrame): HistoryPage | null {
     .sort((a, b) => a.l.y - b.l.y);
   for (const { l, time } of timeLines) {
     const banner = lines.find((b) => b !== l && near(b, l) && b.x > 0.25 && b.x < 0.5 && /[가-힣]/.test(b.t));
-    const name = lines.find((n) => n !== l && near(n, l) && n.x >= 0.5 && n.x < header.x - 0.02 && /[가-힣]/.test(n.t));
+    // 이름 칸에 같은 줄로 읽힌 조각을 모두 이어 붙인다: 6성 줄은 "NEW!" 표시와 이름·"(6★)"이 따로 읽혔다
+    // (PC 실기 2026-11-28: "NEW!"만 집어 이름이 빈칸이 되고 6성을 놓침 → 천장 73으로 보임)
+    const parts = lines.filter((n) => n !== l && near(n, l) && n.x >= 0.5 && n.x < header.x - 0.02).sort((a, b) => a.x - b.x);
+    const name = parts.length && parts.some((n) => /[가-힣]/.test(n.t)) ? { t: parts.map((n) => n.t).join(" ") } : null;
     if (!banner || !name) continue;
     // "헤드헌팅 정보서-<배너>" 줄은 60회 보상(다음 한정 10회 허가증)이지 뽑기가 아니다(PC 실기 2026-11-28, 13쪽)
     if (/정보서/.test(name.t) || /정보서/.test(banner.t)) continue;

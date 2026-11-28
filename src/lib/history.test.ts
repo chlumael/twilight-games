@@ -64,6 +64,16 @@ describe("엔드필드 공식 기록 읽기", () => {
     ]);
   });
 
+  it("6성 줄의 'NEW!'와 이름이 따로 읽혀도 이어 붙인다 (PC 실기 2026-11-28: 이름이 빈칸이 되어 6성을 놓침)", async () => {
+    const { normalizeFrame } = await import("./recognize");
+    const text = readFileSync(new URL("./fixtures/endfield-history-pc.txt", import.meta.url), "utf8")
+      .replace(/^(\S+) (\S+) NEW! 케르 \(6\*\)$/m, "0.54,0.61 0.02x0.02 NEW!\n0.56,0.61 0.04x0.02 케르 (6*)");
+    expect(text).toContain("\n0.56,0.61 0.04x0.02 케르 (6*)");
+    const p = parseEndfieldHistory(normalizeFrame(parseFrameText(text)))!;
+    const ker = p.rows.find((r) => r.time === "2026-11-25T14:24:46.000Z");
+    expect([ker?.name, ker?.rarity]).toEqual(["케르", 6]);
+  });
+
   it("한 글자 틀린 이름 바로잡기 (PC 실기 2026-11-28: 케로 → 케르)", () => {
     const known = ["케르", "카치르", "에스텔라", "로시", "리노"];
     expect(fixKnownName("케로", known)).toBe("케르");

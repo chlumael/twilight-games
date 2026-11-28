@@ -296,7 +296,10 @@ pub fn reread_name_cells(img: &crate::regions::Image, lines: &mut Vec<Line>) {
     let (w, h) = (img.w as f64, img.h as f64);
     for d in dates {
         let cx = head.x + head.w / 2.0;
-        let filled = lines.iter().any(|l| (l.y - d.y).abs() < 0.02 && l.x < d.x - 0.02 && l.x + l.w > cx - 0.06 && l.x < cx + 0.06);
+        // 한글이 있는 조각이 있어야 채워진 것("NEW!"만 읽힌 6성 줄은 비어 있는 것으로 보고 다시 읽는다)
+        let filled = lines.iter().any(|l| {
+            (l.y - d.y).abs() < 0.02 && l.x < d.x - 0.02 && l.x + l.w > cx - 0.06 && l.x < cx + 0.06 && l.t.chars().any(|c| ('가'..='힣').contains(&c))
+        });
         if filled {
             continue;
         }
