@@ -134,6 +134,7 @@ fn main() {
             let started = std::time::Instant::now();
             let mut lines = ocr::ocr(&buf, bw as i32, bh as i32).unwrap_or_default();
             ocr::reread_time_lines(&Image { w: bw, h: bh, px: &buf }, &mut lines);
+            ocr::reread_name_cells(&Image { w: bw, h: bh, px: &buf }, &mut lines);
             println!("\n== 화면 전체 {name} ({}ms) ==", started.elapsed().as_millis());
             // src/lib/fixtures/*.txt 와 같은 형식("x,y wxh 글자")
             for l in lines {

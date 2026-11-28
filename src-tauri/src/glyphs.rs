@@ -95,6 +95,15 @@ pub fn is_slashed_zero(px: &[u8], w: usize, h: usize, x0: usize, x1: usize) -> b
     hits * 10 >= band.len() * 6
 }
 
+/// 콜론(:)인지: 덩어리 폭이 `digit_w`(숫자 폭)의 60% 이하이고, 위아래로 떨어진 두 점(잉크 줄 사이가 비어 있음)
+pub fn is_colon(px: &[u8], w: usize, h: usize, x0: usize, x1: usize, digit_w: usize) -> bool {
+    let rows: Vec<usize> = (0..h).filter(|&y| (x0..x1).any(|x| px[(y * w + x) * 4] < 128)).collect();
+    if rows.len() < 2 || (x1 - x0) * 10 > digit_w * 6 {
+        return false;
+    }
+    rows.windows(2).any(|p| p[1] - p[0] > 2)
+}
+
 /// 고른 덩어리들(열 범위)만 왼쪽부터 붙여 놓고, 그 묶음을 `times`번 이어 붙인 그림. 덩어리 사이는 `gap`, 묶음 사이는 `group_gap` 열.
 /// 윈도우 글자 인식은 숫자가 한두 개뿐인 그림은 아예 못 읽어서(PC 실기 2026-11-27) 세 번 이어 붙여 읽는다.
 pub fn compose(px: &[u8], w: usize, h: usize, cols: &[(usize, usize)], times: usize, gap: usize, group_gap: usize) -> (Vec<u8>, usize, usize) {

@@ -105,6 +105,8 @@ export function parseEndfieldHistory(frame: ScreenFrame): HistoryPage | null {
     const banner = lines.find((b) => b !== l && near(b, l) && b.x > 0.25 && b.x < 0.5 && /[가-힣]/.test(b.t));
     const name = lines.find((n) => n !== l && near(n, l) && n.x >= 0.5 && n.x < header.x - 0.02 && /[가-힣]/.test(n.t));
     if (!banner || !name) continue;
+    // "헤드헌팅 정보서-<배너>" 줄은 60회 보상(다음 한정 10회 허가증)이지 뽑기가 아니다(PC 실기 2026-11-28, 13쪽)
+    if (/정보서/.test(name.t) || /정보서/.test(banner.t)) continue;
     const emergency = /긴급\s*모집/.test(banner.t);
     const nm = cleanName(name.t);
     rows.push({

@@ -51,6 +51,19 @@ describe("엔드필드 공식 기록 읽기", () => {
     expect(p.rows.every((r) => r.banner === "모루, 배낭, 그리고 벌꿀")).toBe(true);
   });
 
+  it("PC 실기 13쪽(2026-11-28): 한 글자 이름 '판', 콜론과 0이 붙은 22:23:07, 정보서 줄은 뽑기가 아님", async () => {
+    const { normalizeFrame } = await import("./recognize");
+    const pc = normalizeFrame(parseFrameText(readFileSync(new URL("./fixtures/endfield-history-pc-13.txt", import.meta.url), "utf8")));
+    const p = parseEndfieldHistory(pc)!;
+    expect(p.page).toBe(13);
+    expect(p.rows.map((r) => [r.name, r.time])).toEqual([
+      ["펠리카", "2026-11-25T14:23:36.000Z"],
+      ["아케쿠리", "2026-11-25T14:23:36.000Z"],
+      ["판", "2026-11-25T14:23:36.000Z"],
+      ["안탈", "2026-11-25T14:23:07.000Z"],
+    ]);
+  });
+
   it("한 글자 틀린 이름 바로잡기 (PC 실기 2026-11-28: 케로 → 케르)", () => {
     const known = ["케르", "카치르", "에스텔라", "로시", "리노"];
     expect(fixKnownName("케로", known)).toBe("케르");

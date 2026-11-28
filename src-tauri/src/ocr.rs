@@ -243,9 +243,87 @@ pub fn reread_time_lines(img: &crate::regions::Image, lines: &mut [Line]) {
         if x1 <= x0 + 4 || y1 <= y0 + 4 {
             continue;
         }
+        // 1) 줄 끝의 "hh:mm:ss"를 글자 덩어리로 나눠 콜론 둘을 빼고 숫자 6개만 붙여 읽는다(콜론과 0이 붙어 "2223•℃7"로 읽히던 것)
+        if let Some(clock) = read_clock(img, (x0, y0, x1, y1)) {
+            let date = l.t.trim_end().rsplit_once(char::is_whitespace).map(|(d, _)| d.to_string()).unwrap_or_default();
+            if has_date(&date) {
+                l.t = format!("{date} {clock}");
+                continue;
+            }
+        }
+        // 2) 안 되면 그 줄을 크게 키워 통째로 다시 읽는다
         let t = read_field(img, (x0, y0, x1, y1), false, DEFAULT_SPACING);
         if usable(&t) && has_date(&t) {
             l.t = t;
+        }
+    }
+}
+
+/// 줄 끝의 시각 "hh:mm:ss": 마지막 덩어리 8개 중 3·6번째가 콜론이면 나머지 숫자 6개만 붙여 읽는다. 숫자 6개로 읽힐 때만 "hh:mm:ss"
+fn read_clock(img: &crate::regions::Image, area: (usize, usize, usize, usize)) -> Option<String> {
+    use crate::glyphs::{compose, glyph_columns, is_colon};
+    let scale = crate::ink::scale_for(area).max(3);
+    let (px, cw, ch) = prepare_field(img, area, scale, true);
+    let cols = glyph_columns(&px, cw, ch);
+    if cols.len() < 8 {
+        return None;
+    }
+    let last = &cols[cols.len() - 8..];
+    let digit_w = [0, 1, 3, 4, 6, 7].iter().map(|&i| last[i].1 - last[i].0).max().unwrap_or(1);
+    if !is_colon(&px, cw, ch, last[2].0, last[2].1, digit_w) || !is_colon(&px, cw, ch, last[5].0, last[5].1, digit_w) {
+        return None;
+    }
+    let digits: Vec<(usize, usize)> = [0, 1, 3, 4, 6, 7].iter().map(|&i| last[i]).collect();
+    let (g, gw, gh) = compose(&px, cw, ch, &digits, 1, (digit_w / 4).max(2), 0);
+    let t: String = ocr(&g, gw as i32, gh as i32).map(join_lines).unwrap_or_default().chars().filter(|c| !c.is_whitespace()).collect();
+    let d: Vec<u32> = t.chars().filter_map(|c| c.to_digit(10)).collect();
+    if t.chars().count() != 6 || d.len() != 6 {
+        return None;
+    }
+    let (hh, mm, ss) = (d[0] * 10 + d[1], d[2] * 10 + d[3], d[4] * 10 + d[5]);
+    (hh <= 23 && mm <= 59 && ss <= 59).then(|| format!("{hh:02}:{mm:02}:{ss:02}"))
+}
+
+/// 엔드필드 헤드헌팅 기록: 날짜 줄은 있는데 같은 줄의 이름 칸("이름" 머리글 아래)이 비었으면 그 칸을 잘라 다시 읽는다.
+/// 윈도우 글자 인식은 한 글자 이름("판")을 못 읽어서(PC 실기 2026-11-28) 한 덩어리면 세 번 이어 붙여 읽고 셋이 같을 때만 받는다.
+pub fn reread_name_cells(img: &crate::regions::Image, lines: &mut Vec<Line>) {
+    let Some(head) = lines.iter().find(|l| l.t.trim() == "이름").cloned() else { return };
+    let dates: Vec<Line> = lines
+        .iter()
+        .filter(|l| l.y > head.y + 0.02 && l.x > head.x + 0.05 && l.t.chars().take(4).all(|c| c.is_ascii_digit()))
+        .cloned()
+        .collect();
+    let (w, h) = (img.w as f64, img.h as f64);
+    for d in dates {
+        let cx = head.x + head.w / 2.0;
+        let filled = lines.iter().any(|l| (l.y - d.y).abs() < 0.02 && l.x < d.x - 0.02 && l.x + l.w > cx - 0.06 && l.x < cx + 0.06);
+        if filled {
+            continue;
+        }
+        let (x0, x1) = (((cx - 0.08) * w).max(0.0) as usize, (((cx + 0.08) * w) as usize).min(img.w));
+        // 날짜 줄은 글자가 작아(높이 0.01) 이름 칸 높이는 화면 높이의 3.5%로 잡는다(이름 글자 0.02 + 여유)
+        let mid = d.y + d.h / 2.0;
+        let (y0, y1) = (((mid - 0.0175) * h).max(0.0) as usize, (((mid + 0.0175) * h) as usize).min(img.h));
+        if x1 <= x0 + 4 || y1 <= y0 + 4 {
+            continue;
+        }
+        // 한 덩어리(한 글자)면 세 번 이어 붙여 읽는다. 배율에 따라 읽혔다 안 읽혔다 해서(1배 화면 "판" 성공, 1.5배 실패) 몇 가지 배율로 시도
+        let mut t = String::new();
+        for scale in [2usize, 3, 4, 5, 1] {
+            let (px, cw, ch) = prepare_field(img, (x0, y0, x1, y1), scale, false);
+            t = match crate::ink::repeat_single_glyph(&px, cw, ch) {
+                Some((rp, rw, rh)) => {
+                    let r: Vec<char> = ocr(&rp, rw as i32, rh as i32).map(join_lines).unwrap_or_default().chars().filter(|c| !c.is_whitespace()).collect();
+                    if r.len() == 3 && r[0] == r[1] && r[1] == r[2] && ('가'..='힣').contains(&r[0]) { r[0].to_string() } else { String::new() }
+                }
+                None => ocr(&px, cw as i32, ch as i32).map(join_lines).unwrap_or_default(),
+            };
+            if t.chars().any(|c| ('가'..='힣').contains(&c)) {
+                break;
+            }
+        }
+        if t.chars().any(|c| ('가'..='힣').contains(&c)) {
+            lines.push(Line { t, x: cx - 0.02, y: d.y, w: 0.04, h: d.h });
         }
     }
 }
