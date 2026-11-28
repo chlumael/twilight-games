@@ -168,6 +168,26 @@ export function resetGroup(records: Records, game: GameId, groupId: string): Rec
   return next;
 }
 
+/**
+ * 배너 하나의 기록만 지운다(사용자 2026-11-28: "해당 배너 한정 기록 초기화"). 같은 종류의 다른 배너 기록과 천장 시작 스택은 그대로,
+ * 그 배너의 누적 횟수 시작값(픽업 확정 120회 등)과 그 배너의 교환·무료 기록은 비운다. 뽑기는 되돌리기로 복구할 수 있다.
+ */
+export function resetBanner(records: Records, game: GameId, groupId: string, bannerId: string): Records {
+  const next = structuredClone(records);
+  const rec = next.games[game];
+  const gone = rec.pulls.filter((p) => p.group === groupId && p.banner === bannerId);
+  const base = rec.baseline[groupId];
+  const baseOnBanner = !!base && base.banner === bannerId && (base.bannerPulls !== 0 || base.bannerFeaturedGot);
+  const ex = (rec.exchanges ?? []).filter((e) => e.group === groupId && e.banner === bannerId);
+  if (!gone.length && !baseOnBanner && !ex.length) return records;
+  rec.pulls = rec.pulls.filter((p) => !(p.group === groupId && p.banner === bannerId));
+  if (base && baseOnBanner) rec.baseline[groupId] = { ...base, bannerPulls: 0, bannerFeaturedGot: false };
+  rec.exchanges = (rec.exchanges ?? []).filter((e) => !(e.group === groupId && e.banner === bannerId));
+  rec.updatedAt = new Date().toISOString();
+  pushUndo(next, { game, label: `${GAMES[game].shortName} ${findGroup(game, groupId).name} 배너 기록 지우기 (${gone.length}회)`, addedPullIds: [], replacedPulls: gone, prevCurrency: { ...rec.currency } });
+  return next;
+}
+
 /** 두 상태의 차이를 되돌리기 한 번으로 묶는다 (중간에 쌓인 되돌리기는 버린다) */
 function squashUndo(orig: Records, out: Records, game: GameId, label: string): Records {
   const before = new Map(orig.games[game].pulls.map((p) => [p.id, p]));

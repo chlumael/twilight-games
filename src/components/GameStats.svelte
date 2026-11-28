@@ -6,7 +6,7 @@
   import { hitLabel, pathText, pullBatches } from "../lib/ledger";
 
   // 게임 하나의 자세한 통계 (전체 통계 화면 StatsPanel에서 "자세히"로 펼친다)
-  let { game, record, bannerName, onRemove, onReset }: {
+  let { game, record, bannerName, onRemove, onReset, onResetBanner }: {
     game: GameId;
     record: GameRecord;
     /** 배너 ID → 보여 줄 이름 (팩에 없으면 입력한 이름 그대로) */
@@ -15,7 +15,18 @@
     onRemove?: (keys: string[], label: string) => void;
     /** 한 종류를 전부 지우고 시작 상태도 비우기 */
     onReset?: (groupId: string) => void;
+    /** 배너 하나의 기록만 지우기 */
+    onResetBanner?: (groupId: string, bannerId: string) => void;
   } = $props();
+  // 종류별로 기록이 있는 배너와 뽑기 수(최근 배너 먼저)
+  const bannersOf = (gid: string) => {
+    const m = new Map<string, { n: number; last: string }>();
+    for (const p of record.pulls) if (p.group === gid && p.banner) {
+      const v = m.get(p.banner) ?? { n: 0, last: "" };
+      m.set(p.banner, { n: v.n + 1, last: p.time > v.last ? p.time : v.last });
+    }
+    return [...m.entries()].sort((a, b) => b[1].last.localeCompare(a[1].last)).map(([id, v]) => ({ id, n: v.n }));
+  };
 
   // 기록 정리: 묶음별로 보고 잘못 들어간 것을 지운다
   let tidy = $state(false);
@@ -88,6 +99,19 @@
                   {confirmReset === g.id ? `한 번 더 누르면 ${g.name} 기록을 전부 지웁니다` : `${g.name} 처음부터 다시`}</button>
               {/each}
             </div>
+          {/if}
+          {#if onResetBanner}
+            <!-- 배너 하나의 기록만 지우기(사용자 2026-11-28). 같은 종류의 다른 배너 기록은 그대로 -->
+            {#each def.groups as g (g.id)}
+              {#each bannersOf(g.id) as b (b.id)}
+                {@const key = `${g.id}|${b.id}`}
+                <div class="trow">
+                  <span>{g.name}</span><span class="bnames">{bannerName(b.id)}</span><b>{b.n}회</b>
+                  <button onclick={() => { if (confirmReset === key) { onResetBanner(g.id, b.id); confirmReset = ""; } else confirmReset = key; }}>
+                    {confirmReset === key ? "한 번 더 누르면 지웁니다" : "이 배너 기록 지우기"}</button>
+                </div>
+              {/each}
+            {/each}
           {/if}
           {#each batches.slice(0, 80) as b (b.sessionId)}
             <div class="trow">

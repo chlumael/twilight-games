@@ -614,6 +614,22 @@ describe("종류 초기화", () => {
     expect(recordTopAt(r, "endfield", G, 52, { name: "가", featured: false }, t(1)).records.games.endfield.pulls).toHaveLength(52);
     expect(undo(r).records.games.endfield.pulls).toHaveLength(322);
   });
+  it("배너 하나만: 그 배너 뽑기·누적 시작값만 지우고 다른 배너 기록은 그대로, 되돌리기 가능 (사용자 2026-11-28)", async () => {
+    const { resetBanner } = await import("./ledger");
+    const G = "endfield-chartered";
+    let r = emptyRecords();
+    r.games.endfield.currentBanner[G] = "A";
+    r = recordSession(r, "endfield", G, 30, new Map([[9, { name: "가", featured: false }]]), t(0));
+    r.games.endfield.currentBanner[G] = "B";
+    r = recordSession(r, "endfield", G, 20, new Map(), t(1));
+    r.games.endfield.baseline[G] = { ...emptyBaseline(), banner: "B", bannerPulls: 5 };
+    const out = resetBanner(r, "endfield", G, "B");
+    expect(out.games.endfield.pulls.filter((p) => p.banner === "B")).toHaveLength(0);
+    expect(out.games.endfield.pulls.filter((p) => p.banner === "A")).toHaveLength(30);
+    expect(out.games.endfield.baseline[G]).toMatchObject({ banner: "B", bannerPulls: 0 });
+    expect(undo(out).records.games.endfield.pulls).toHaveLength(50);
+    expect(resetBanner(out, "endfield", G, "B")).toBe(out); // 지울 것이 없으면 그대로
+  });
 });
 
 describe("바꿔서 쓰는 재화도 가능 횟수에 포함", () => {

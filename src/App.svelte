@@ -21,7 +21,7 @@
   import { dropPrompt, pushPrompt, type Prompt } from "./lib/prompts";
   import * as api from "./lib/api";
   import { GAMES, findGroup } from "./lib/games";
-  import { availablePulls, pullsFrom, groupStatus, recentPulls, topHistory, removeBatches, removeExchange, resetGroup, setCurrency } from "./lib/ledger";
+  import { availablePulls, pullsFrom, groupStatus, recentPulls, topHistory, removeBatches, removeExchange, resetBanner, resetGroup, setCurrency } from "./lib/ledger";
   import { SKINS, skinStyle } from "./lib/themes";
   import * as sync from "./lib/sync";
   import { bannerLabel, bannerPool, groupBanners, itemName, matchFeatured } from "./lib/banners";
@@ -334,6 +334,7 @@
         <StatsPanel {records} games={myGames} {game}
           {bannerName}
           onReset={(g, gid) => { app.update(resetGroup(records, g, gid)); app.lastApply = `${findGroup(g, gid).name} 기록 전부 지우기`; app.notify(`${findGroup(g, gid).name} 기록을 지웠습니다. 뽑기는 "확인할 것"에서 되돌릴 수 있습니다`); }}
+          onResetBanner={(g, gid, bid) => { app.update(resetBanner(records, g, gid, bid)); app.lastApply = `${findGroup(g, gid).name} 배너 기록 지우기`; app.notify(`${findGroup(g, gid).name}의 이 배너 기록을 지웠습니다. "확인할 것"에서 되돌릴 수 있습니다`); }}
           onRemove={(g, keys, label) => { app.update(removeBatches(records, g, keys, label)); app.lastApply = label; app.notify(`${label} — "확인할 것"에서 되돌릴 수 있습니다`); }} />
       {:else if view === "review"}
         <ReviewPanel flow={screen} onClose={() => (view = "main")} />

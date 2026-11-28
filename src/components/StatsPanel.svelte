@@ -8,7 +8,7 @@
   import type { GameId, Records } from "../lib/types";
   import GameStats from "./GameStats.svelte";
 
-  let { records, games, game, bannerName, onRemove, onReset }: {
+  let { records, games, game, bannerName, onRemove, onReset, onResetBanner }: {
     records: Records;
     /** 보여 줄 게임 (설정의 "내 게임") */
     games: GameId[];
@@ -17,6 +17,7 @@
     bannerName: (game: GameId, id: string) => string;
     onRemove?: (game: GameId, keys: string[], label: string) => void;
     onReset?: (game: GameId, groupId: string) => void;
+    onResetBanner?: (game: GameId, groupId: string, bannerId: string) => void;
   } = $props();
 
   const all = $derived(games.map((g) => ({ g, s: gameStats(records.games[g], g) })));
@@ -83,7 +84,8 @@
         {#if open === g}
           <GameStats game={g} record={records.games[g]} bannerName={(id) => bannerName(g, id)}
             onRemove={onRemove ? (keys, label) => onRemove(g, keys, label) : undefined}
-            onReset={onReset ? (gid) => onReset(g, gid) : undefined} />
+            onReset={onReset ? (gid) => onReset(g, gid) : undefined}
+            onResetBanner={onResetBanner ? (gid, bid) => onResetBanner(g, gid, bid) : undefined} />
         {/if}
       </div>
     {/each}
