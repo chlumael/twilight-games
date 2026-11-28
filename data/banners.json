@@ -1,6 +1,6 @@
 {
  "schemaVersion": 1,
- "generatedAt": "2026-11-26T23:25:38.442Z",
+ "generatedAt": "2026-11-28T13:42:51.691Z",
  "games": {
   "genshin": [
    {
@@ -5594,6 +5594,7 @@
      }
     ],
     "nameEn": "Harmonious Abundance",
+    "image": "https://sdk.hoyoverse.com/upload/ann/2026/11/10/21995c3a1bfd9b8db3fed2b9b95e9e66_2210200271569249249_transformed.png",
     "pool": [
      {
       "id": "ko:유메미즈키 미즈키",
@@ -5627,8 +5628,7 @@
       "id": "ko:진",
       "ko": "진"
      }
-    ],
-    "image": "https://sdk.hoyoverse.com/upload/ann/2026/11/10/21995c3a1bfd9b8db3fed2b9b95e9e66_2210200271569249249_transformed.png"
+    ]
    },
    {
     "id": "genshin:genshin-char:2026-11-24 18:00:00:2",
@@ -5663,6 +5663,7 @@
      }
     ],
     "nameEn": "Ya-hoho! Compendium",
+    "image": "https://sdk.hoyoverse.com/upload/ann/2026/11/10/d9f2def9fda6beb8c0a0d8eecaa7c303_6974861869674236406_transformed.png",
     "pool": [
      {
       "id": "ko:유메미즈키 미즈키",
@@ -5696,8 +5697,7 @@
       "id": "ko:진",
       "ko": "진"
      }
-    ],
-    "image": "https://sdk.hoyoverse.com/upload/ann/2026/11/10/d9f2def9fda6beb8c0a0d8eecaa7c303_6974861869674236406_transformed.png"
+    ]
    },
    {
     "id": "genshin:genshin-weapon:2026-11-24 18:00:00:1",
@@ -5747,6 +5747,7 @@
      }
     ],
     "nameEn": "Epitome Invocation",
+    "image": "https://sdk.hoyoverse.com/upload/ann/2026/11/10/c393696f9b9bd63bacf13f64196d0239_8032238527439595217_transformed.png",
     "pool": [
      {
       "id": "ko:천공의 검",
@@ -5788,8 +5789,7 @@
       "id": "ko:천공의 날개",
       "ko": "천공의 날개"
      }
-    ],
-    "image": "https://sdk.hoyoverse.com/upload/ann/2026/11/10/c393696f9b9bd63bacf13f64196d0239_8032238527439595217_transformed.png"
+    ]
    },
    {
     "id": "genshin:genshin-chronicled:2026-11-24 18:00:00:1",
