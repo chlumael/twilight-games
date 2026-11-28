@@ -132,7 +132,8 @@ fn main() {
         let big_bgra: Vec<u8> = big.as_raw().chunks(4).flat_map(|p| [p[2], p[1], p[0], 255]).collect();
         for (name, buf, bw, bh) in [("1배", px.clone(), w, h), ("1.5배", big_bgra, w * 3 / 2, h * 3 / 2)] {
             let started = std::time::Instant::now();
-            let lines = ocr::ocr(&buf, bw as i32, bh as i32).unwrap_or_default();
+            let mut lines = ocr::ocr(&buf, bw as i32, bh as i32).unwrap_or_default();
+            ocr::reread_time_lines(&Image { w: bw, h: bh, px: &buf }, &mut lines);
             println!("\n== 화면 전체 {name} ({}ms) ==", started.elapsed().as_millis());
             // src/lib/fixtures/*.txt 와 같은 형식("x,y wxh 글자")
             for l in lines {

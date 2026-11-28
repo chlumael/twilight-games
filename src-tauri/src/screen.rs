@@ -347,7 +347,9 @@ mod imp {
 
     pub fn read_once() -> Result<Option<Frame>, String> {
         let Some((bytes, w, h, win_w, win_h)) = capture(true)? else { return Ok(None) };
-        let lines = ocr(&bytes, w, h)?;
+        let mut lines = ocr(&bytes, w, h)?;
+        // 기록 화면: 시각이 깨져 읽힌 줄만 그 자리를 잘라 다시 읽는다(엔드필드 "05:41:09" → "0541刀9", PC 실기 2026-11-28)
+        crate::ocr::reread_time_lines(&crate::regions::Image { w: w as usize, h: h as usize, px: &bytes }, &mut lines);
         let time = now_ms();
         // 띄엄띄엄 본 점들이 거의 같은 색이면 화면이 제대로 안 찍힌 것(전체 화면 전용 모드 등)
         let step = (bytes.len() / 4 / 400).max(1) * 4;

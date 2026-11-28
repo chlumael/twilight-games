@@ -209,6 +209,47 @@ fn read_digits_per_glyph(img: &crate::regions::Image, area: (usize, usize, usize
     known.into_iter().map(|k| k.or_else(|| it.next()).unwrap_or('?')).collect()
 }
 
+/// 화면 전체 글자 중 "날짜는 있는데 시각(hh:mm:ss)이 깨진" 줄만 그 자리를 잘라 크게 키워 다시 읽는다.
+/// PC 실기(2026-11-28, 엔드필드 헤드헌팅 기록): 화면 전체 읽기가 "05:41:09"를 매번 "0541刀9"로 읽어 그 기록 줄이 계속 빠졌다.
+/// 다시 읽은 글자에 시각이 제대로 있을 때만 바꾼다.
+pub fn reread_time_lines(img: &crate::regions::Image, lines: &mut [Line]) {
+    let has_date = |t: &str| {
+        let d: String = t.chars().filter(|c| !c.is_whitespace()).collect();
+        let b = d.as_bytes();
+        b.len() >= 10 && b[..4].iter().all(u8::is_ascii_digit) && (b[4] == b'.' || b[4] == b',')
+    };
+    let good_time = |t: &str| {
+        let c: Vec<char> = t.chars().collect();
+        c.windows(8).any(|w| w[2] == ':' && w[5] == ':' && [0, 1, 3, 4, 6, 7].iter().all(|&i| w[i].is_ascii_digit()))
+    };
+    // 다시 읽은 글자는 시각 조각(마지막 낱말)이 숫자 6개 + 콜론 대신 읽힌 기호(숫자 아닌 글자 0~2개)면 받는다
+    // (예: "0541!09" — 화면 쪽 규칙 history.ts looseClock이 시·분·초로 나눈다)
+    let usable = |t: &str| {
+        good_time(t) || t.split_whitespace().last().is_some_and(|w| {
+            let n = w.chars().count();
+            (6..=8).contains(&n) && w.chars().filter(|c| c.is_ascii_digit()).count() == 6 && w.chars().filter(|c| !c.is_ascii_digit()).count() == n - 6
+        })
+    };
+    for l in lines.iter_mut() {
+        if !has_date(&l.t) || good_time(&l.t) {
+            continue;
+        }
+        // 줄 자리(비율) → 픽셀, 위아래로 조금 넓혀서
+        let (w, h) = (img.w as f64, img.h as f64);
+        let x0 = ((l.x - 0.005) * w).max(0.0) as usize;
+        let x1 = (((l.x + l.w + 0.005) * w) as usize).min(img.w);
+        let y0 = ((l.y - l.h * 0.3) * h).max(0.0) as usize;
+        let y1 = (((l.y + l.h * 1.3) * h) as usize).min(img.h);
+        if x1 <= x0 + 4 || y1 <= y0 + 4 {
+            continue;
+        }
+        let t = read_field(img, (x0, y0, x1, y1), false, DEFAULT_SPACING);
+        if usable(&t) && has_date(&t) {
+            l.t = t;
+        }
+    }
+}
+
 /// 글자 인식에 넘길 그림: 자르기(scale배 + 여백) → 흰 바탕·검은 글자 (`digits` = 숫자 칸: 밝기 재는 방식을 칸마다 고름)
 pub fn prepare_field(img: &crate::regions::Image, area: (usize, usize, usize, usize), scale: usize, digits: bool) -> (Vec<u8>, usize, usize) {
     use crate::ink::{crop, drop_edge_glyphs, to_ink};

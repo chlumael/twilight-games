@@ -40,9 +40,10 @@ describe("엔드필드 공식 기록 읽기", () => {
     const pc = normalizeFrame(parseFrameText(readFileSync(new URL("./fixtures/endfield-history-pc.txt", import.meta.url), "utf8")));
     const p = parseEndfieldHistory(pc)!;
     expect(p.page).toBe(1);
-    // "0541刀9"는 콜론 자리를 알 수 없어 버린다(틀린 시각을 넣지 않음)
+    // 화면 전체 읽기가 "0541刀9"로 깨뜨린 줄은 앱(Rust)이 그 자리만 잘라 다시 읽어 "0541!09"가 된다 → 같은 캐릭터 두 줄 모두
     expect(p.rows.map((r) => [r.name, r.time, r.rarity ?? null])).toEqual([
       ["에스텔라", "2026-11-26T22:11:41.000Z", null],
+      ["카치르", "2026-11-25T21:41:09.000Z", null],
       ["카치르", "2026-11-25T21:41:06.000Z", null],
       ["케르", "2026-11-25T14:24:46.000Z", 6],
       ["플루라이트", "2026-11-25T14:24:44.000Z", null],
