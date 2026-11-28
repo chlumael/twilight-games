@@ -18,7 +18,7 @@ import { emptyDetectState, step as detectStep, type Detection, type ItemTable } 
 import { LimbusPulls } from "./limbus.svelte";
 import { readLocal, writeLocal } from "./local";
 import { applyLimbusHistory, joinSequence, mergeSequence, parseLimbusHistory, type LimbusRow } from "../limbus-history";
-import { fixKnownName, importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow } from "../history";
+import { chooseName, importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, type HistoryRow } from "../history";
 import type { GameId, Records } from "../types";
 import genshinItemsFile from "../../../data/genshin-items.json";
 import endfieldSixFile from "../../../data/names/endfield-6star.json";
@@ -343,7 +343,13 @@ export class ScreenFlow {
 
   // ───────── 공식 기록 화면 (엔드필드 헤드헌팅 기록, 원신 기원 기록, 명일방주 요스타 가챠 기록, 림버스 추출 이력) ─────────
 
-  historyRowsOf = (g: GameId) => Object.values(this.historyStore[g] ?? {});
+  /** 읽어 둔 기록 줄. 쪽·줄 자리를 아는 줄은 화면 순서(1쪽 맨 위부터)로 — 같은 초에 찍힌 줄의 앞뒤를 화면 순서로 정한다 */
+  historyRowsOf = (g: GameId) => {
+    const pos = (k: string) => { const [p, s] = k.split("|"); return s?.startsWith("@") ? [Number(p) || 0, Number(s.slice(1))] : null; };
+    const entries = Object.entries(this.historyStore[g] ?? {});
+    const keyed = entries.filter(([k]) => pos(k)).sort(([a], [b]) => { const [pa, sa] = pos(a)!, [pb, sb] = pos(b)!; return pa - pb || sa - sb; });
+    return [...keyed, ...entries.filter(([k]) => !pos(k))].map(([, r]) => r);
+  };
   isTopRow = (g: GameId) => (r: HistoryRow) => (r.rarity != null ? r.rarity >= topRarityOf(g) : !!sixStars[g]?.has(r.name));
   manualPulls = (g: GameId) => app.records.games[g].pulls.filter((p) => p.source === "manual").length;
 
@@ -359,11 +365,8 @@ export class ScreenFlow {
     if (page?.game === "endfield") {
       const six = [...(sixStars.endfield ?? [])];
       const known = [...six, ...(app.pack?.games.endfield ?? []).flatMap((b) => [...b.featured, ...b.featuredRare].map((x) => x.ko ?? "")), ...itemNames("endfield")];
-      // 6성 이름으로 고치는 것은 그 줄에 "(6★)"가 함께 읽혔을 때만(두 글자 이름이 많아 4·5성이 6성으로 바뀌지 않게)
-      page.rows = page.rows.map((r) => {
-        const fixed = fixKnownName(r.name, known);
-        return { ...r, name: six.includes(fixed) && fixed !== r.name && r.rarity !== 6 ? r.name : fixed };
-      });
+      // 화면 전체 읽기·칸 다시 읽기 두 후보 중 아는 이름 쪽(PC 실기 2026-11-28: "안탈"→"아다", "펠리카"→"필리카"를 한쪽씩 틀림)
+      page.rows = page.rows.map(({ altName: _alt, ...r }) => ({ ...r, name: chooseName({ ...r, altName: _alt }, known, six) }));
     }
     if (page?.rows.length) { this.saveHistory(page.game, mergePages(this.historyStore[page.game] ?? {}, page)); this.lastHistoryAt = Date.now(); }
     // 아는 인격 이름: 배너 자료의 픽업 + 이미지 목록의 인격·E.G.O 전체(수감자 이름이 잘못 읽힌 줄도 찾게, 2026-11-27)

@@ -18,6 +18,14 @@ export interface HistoryRow {
   group?: string | null;
   /** 화면에서 바로 알 수 있는 등급(원신 "이름(4)"). 없으면 이름 목록으로 판단 */
   rarity?: number | null;
+  /** 쪽 안의 줄 자리(세로 위치 ×100). 있으면 같은 쪽·같은 자리는 한 줄로 보고 여러 번 읽은 것 중 많이 나온 것을 쓴다(mergePages) */
+  slot?: number;
+  /** 이름 칸을 따로 다시 읽은 두 번째 후보(PC). 아는 이름 목록으로 name과 둘 중 하나를 고른다 */
+  altName?: string;
+  /** 같은 자리를 읽은 결과별 횟수(다수결용, mergePages가 채움) */
+  votes?: Record<string, number>;
+  /** 같은 자리를 읽은 결과들(다수결로 고를 후보) */
+  alts?: Record<string, HistoryRow>;
 }
 
 export interface HistoryPage {
@@ -76,13 +84,70 @@ export function fixKnownName(name: string, known: Iterable<string>): string {
     const kc = [...k.replace(/\s+/g, "")];
     return kc.length === chars.length && chars.length >= 2 && kc.filter((c, i) => c !== chars[i]).length === 1;
   });
-  return hits.length === 1 ? hits[0] : name;
+  if (hits.length === 1) return hits[0];
+  if (hits.length > 1) return name;
+  // 자모로 나눠 가장 가까운 아는 이름(글자 수 같고, 차이 2 이하, 두 번째로 가까운 이름보다 1 이상 가까울 때만).
+  // 글자 인식이 자주 헷갈리는 차이(받침이 빠짐·생김, ㄷ↔ㅌ 같은 비슷한 자모)는 0.5로 센다.
+  // PC 실기 2026-11-28: "안탈"을 두 방법 모두 "아다"로 읽음 → 안탈 1.5, 용사 2.5, 카뮤 3
+  const jt = jamo(t);
+  const scored = list
+    .filter((k) => [...k.replace(/\s+/g, "")].length === chars.length && chars.length >= 2)
+    .map((k) => ({ k, d: editDistance(jt, jamo(k.replace(/\s+/g, ""))) }))
+    .sort((a, b) => a.d - b.d);
+  if (scored.length && scored[0].d <= 2 && (scored.length === 1 || scored[1].d >= scored[0].d + 1)) return scored[0].k;
+  return name;
+}
+
+/** 모양이 비슷해 글자 인식이 헷갈리는 자모 짝(초성 c, 중성 v 번호) */
+const LOOKALIKE = new Set(["c3|c16", "c0|c15", "c7|c17", "c12|c14", "c9|c10", "c0|c1", "c3|c4", "c7|c8", "c12|c13", "v0|v2", "v0|v1", "v4|v6", "v4|v5", "v8|v12", "v13|v17", "v18|v20"]);
+function swapCost(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a[0] !== b[0]) return 1.5;
+  return LOOKALIKE.has(`${a}|${b}`) || LOOKALIKE.has(`${b}|${a}`) ? 0.5 : 1;
+}
+/** 받침(j)은 빠지거나 생겨도 0.5 */
+const gapCost = (x: string) => (x[0] === "j" ? 0.5 : 1);
+
+/** 한글 음절을 자모(초성·중성·종성)로 나눈다. 한글이 아닌 글자는 그대로 */
+function jamo(s: string): string[] {
+  const out: string[] = [];
+  for (const ch of s) {
+    const c = ch.charCodeAt(0) - 0xac00;
+    if (c < 0 || c > 11171) { out.push(ch); continue; }
+    out.push(`c${Math.floor(c / 588)}`, `v${Math.floor((c % 588) / 28)}`);
+    if (c % 28) out.push(`j${c % 28}`);
+  }
+  return out;
+}
+
+function editDistance(a: string[], b: string[]): number {
+  const d: number[][] = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+  for (let i = 1; i <= a.length; i++) d[i][0] = d[i - 1][0] + gapCost(a[i - 1]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = d[0][j - 1] + gapCost(b[j - 1]);
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) {
+    d[i][j] = Math.min(d[i - 1][j] + gapCost(a[i - 1]), d[i][j - 1] + gapCost(b[j - 1]), d[i - 1][j - 1] + swapCost(a[i - 1], b[j - 1]));
+  }
+  return d[a.length][b.length];
+}
+
+/**
+ * 엔드필드 기록 줄의 이름 고르기: 화면 전체 읽기(name)와 칸 다시 읽기(altName) 중 아는 이름 목록에 있는 쪽.
+ * 둘 다 없으면 한 글자 틀린 이름 바로잡기(fixKnownName)를 거친 name. 6성 이름으로 바꾸는 것은 "(6★)"가 함께 읽혔을 때만.
+ */
+export function chooseName(row: HistoryRow, known: string[], six: string[]): string {
+  const fix = (c: string) => {
+    const f = fixKnownName(c, known);
+    return six.includes(f) && f !== c && row.rarity !== 6 ? c : f;
+  };
+  const cands = [row.name, row.altName].filter((c): c is string => !!c && /[가-힣]/.test(c)).map(fix);
+  return cands.find((c) => known.includes(c)) ?? cands[0] ?? row.name;
 }
 
 /** 이름 칸 정리: "NEW!" 떼기, "(6★)"·"(6*)"는 등급으로 (PC 실기 2026-11-28: "NEW! 케르 (6*)") */
 function cleanName(raw: string): { name: string; rarity: number | null } {
   const r = raw.match(/\(\s*(\d)\s*[*★☆]?\s*\)/);
-  const name = raw.replace(/\(\s*\d\s*[*★☆]?\s*\)/, "").replace(/NEW!?/gi, "").replace(/^[^가-힣A-Za-z]+/, "").trim();
+  // "NEW!"는 "NEWI"·"NEW1"처럼도 읽혔다(PC 실기 2026-11-28)
+  const name = raw.replace(/\(\s*\d\s*[*★☆]?\s*\)/, "").replace(/NEW[!I1l|]?/gi, "").replace(/^[^가-힣A-Za-z]+/, "").trim();
   return { name, rarity: r ? Number(r[1]) : null };
 }
 
@@ -105,7 +170,10 @@ export function parseEndfieldHistory(frame: ScreenFrame): HistoryPage | null {
     const banner = lines.find((b) => b !== l && near(b, l) && b.x > 0.25 && b.x < 0.5 && /[가-힣]/.test(b.t));
     // 이름 칸에 같은 줄로 읽힌 조각을 모두 이어 붙인다: 6성 줄은 "NEW!" 표시와 이름·"(6★)"이 따로 읽혔다
     // (PC 실기 2026-11-28: "NEW!"만 집어 이름이 빈칸이 되고 6성을 놓침 → 천장 73으로 보임)
-    const parts = lines.filter((n) => n !== l && near(n, l) && n.x >= 0.5 && n.x < header.x - 0.02).sort((a, b) => a.x - b.x);
+    const cell = lines.filter((n) => n !== l && near(n, l) && n.x >= 0.5 && n.x < header.x - 0.02).sort((a, b) => a.x - b.x);
+    // "※"로 시작하는 조각은 앱(PC)이 이름 칸을 따로 다시 읽은 두 번째 후보 — 아는 이름 목록으로 고른다(flows/screen.svelte.ts)
+    const alt = cell.find((n) => n.t.startsWith("※"))?.t.slice(1);
+    const parts = cell.filter((n) => !n.t.startsWith("※"));
     const name = parts.length && parts.some((n) => /[가-힣]/.test(n.t)) ? { t: parts.map((n) => n.t).join(" ") } : null;
     if (!banner || !name) continue;
     // "헤드헌팅 정보서-<배너>" 줄은 60회 보상(다음 한정 10회 허가증)이지 뽑기가 아니다(PC 실기 2026-11-28, 13쪽)
@@ -118,6 +186,8 @@ export function parseEndfieldHistory(frame: ScreenFrame): HistoryPage | null {
       time,
       emergency,
       ...(nm.rarity ? { rarity: nm.rarity } : {}),
+      ...(alt ? { altName: cleanName(alt).name } : {}),
+      slot: Math.round(l.y * 100),
     });
   }
   const prev = lines.find((l) => /^이전$/.test(l.t.trim()));
@@ -202,6 +272,21 @@ export function mergePages(store: Record<string, HistoryRow>, page: HistoryPage)
   const next = { ...store };
   const seen = new Map<string, number>();
   for (const r of page.rows) {
+    // 줄 자리를 알면: 같은 쪽·같은 자리는 한 줄. 읽을 때마다 결과를 세어 가장 많이 나온 것을 쓴다
+    // (PC 실기 2026-11-28: 한 번 "판"을 "아다"로 읽은 것이 따로 한 줄로 쌓여 기록이 섞였다)
+    if (r.slot != null && page.page != null) {
+      // 위치가 1~2 차이 나게 읽힐 수 있어 가까운 자리를 같은 자리로 본다
+      const near = [r.slot, r.slot - 1, r.slot + 1, r.slot - 2, r.slot + 2].map((s) => `${page.page}|@${s}`).find((k) => k in next);
+      const key = near ?? `${page.page}|@${r.slot}`;
+      const old = next[key];
+      const sig = `${r.time}|${r.banner}|${r.name}|${r.emergency}|${r.rarity ?? ""}`;
+      const votes = { ...(old?.votes ?? {}), [sig]: (old?.votes?.[sig] ?? 0) + 1 };
+      const { votes: _v, alts: _a, ...plain } = r;
+      const alts = { ...(old?.alts ?? {}), [sig]: plain };
+      const best = Object.entries(votes).sort((a, b) => b[1] - a[1])[0][0];
+      next[key] = { ...alts[best], votes, alts };
+      continue;
+    }
     const base = `${page.page ?? "?"}|${r.time}|${r.banner}|${r.name}|${r.emergency}`;
     const k = seen.get(base) ?? 0;
     seen.set(base, k + 1);

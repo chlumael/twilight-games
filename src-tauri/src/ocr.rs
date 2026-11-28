@@ -296,13 +296,8 @@ pub fn reread_name_cells(img: &crate::regions::Image, lines: &mut Vec<Line>) {
     let (w, h) = (img.w as f64, img.h as f64);
     for d in dates {
         let cx = head.x + head.w / 2.0;
-        // 한글이 있는 조각이 있어야 채워진 것("NEW!"만 읽힌 6성 줄은 비어 있는 것으로 보고 다시 읽는다)
-        let filled = lines.iter().any(|l| {
-            (l.y - d.y).abs() < 0.02 && l.x < d.x - 0.02 && l.x + l.w > cx - 0.06 && l.x < cx + 0.06 && l.t.chars().any(|c| ('가'..='힣').contains(&c))
-        });
-        if filled {
-            continue;
-        }
+        // 이 줄의 이름 칸에 읽힌 조각들(다시 읽기에 성공하면 이것들을 바꾼다)
+        let in_cell = |l: &Line| (l.y - d.y).abs() < 0.02 && l.x < d.x - 0.02 && l.x + l.w > cx - 0.06 && l.x < cx + 0.06;
         let (x0, x1) = (((cx - 0.08) * w).max(0.0) as usize, (((cx + 0.08) * w) as usize).min(img.w));
         // 날짜 줄은 글자가 작아(높이 0.01) 이름 칸 높이는 화면 높이의 3.5%로 잡는다(이름 글자 0.02 + 여유)
         let mid = d.y + d.h / 2.0;
@@ -310,23 +305,28 @@ pub fn reread_name_cells(img: &crate::regions::Image, lines: &mut Vec<Line>) {
         if x1 <= x0 + 4 || y1 <= y0 + 4 {
             continue;
         }
-        // 한 덩어리(한 글자)면 세 번 이어 붙여 읽는다. 배율에 따라 읽혔다 안 읽혔다 해서(1배 화면 "판" 성공, 1.5배 실패) 몇 가지 배율로 시도
+        // 이름 칸의 잉크 전체(글자 조각이 여럿이어도 — "판"은 ㅍ과 ㅏ·ㄴ이 떨어져 있다)를 세 번 이어 붙여 읽고,
+        // 세 묶음이 똑같을 때만 받는다(한 번 그냥 읽었더니 "판"을 "아다"로 읽은 일이 있었다, PC 실기 2026-11-28).
+        // 배율에 따라 읽혔다 안 읽혔다 해서 몇 가지 배율로 시도
         let mut t = String::new();
         for scale in [2usize, 3, 4, 5, 1] {
             let (px, cw, ch) = prepare_field(img, (x0, y0, x1, y1), scale, false);
-            t = match crate::ink::repeat_single_glyph(&px, cw, ch) {
-                Some((rp, rw, rh)) => {
-                    let r: Vec<char> = ocr(&rp, rw as i32, rh as i32).map(join_lines).unwrap_or_default().chars().filter(|c| !c.is_whitespace()).collect();
-                    if r.len() == 3 && r[0] == r[1] && r[1] == r[2] && ('가'..='힣').contains(&r[0]) { r[0].to_string() } else { String::new() }
-                }
-                None => ocr(&px, cw as i32, ch as i32).map(join_lines).unwrap_or_default(),
-            };
-            if t.chars().any(|c| ('가'..='힣').contains(&c)) {
+            let cols = crate::glyphs::glyph_columns(&px, cw, ch);
+            let (Some(first), Some(last)) = (cols.first(), cols.last()) else { continue };
+            let span = (first.0, last.1);
+            let (rp, rw, rh) = crate::glyphs::compose(&px, cw, ch, &[span], 3, 0, ((span.1 - span.0) / 2).max(ch / 3));
+            let r: Vec<char> = ocr(&rp, rw as i32, rh as i32).map(join_lines).unwrap_or_default().chars().filter(|c| !c.is_whitespace()).collect();
+            let n = r.len() / 3;
+            if n > 0 && r.len() == n * 3 && r[..n] == r[n..n * 2] && r[n..n * 2] == r[n * 2..] && r[..n].iter().any(|c| ('가'..='힣').contains(c)) {
+                t = r[..n].iter().collect();
                 break;
             }
         }
+        // 세 번 같게 읽혔으면 두 번째 후보로 남긴다(앞에 "※"). 어느 쪽이 맞는지는 화면 쪽(history.ts)이 아는 이름 목록으로 고른다.
+        // 실기: 화면 전체 읽기는 "안탈"을 "아다"로, 세 번 붙여 읽기는 "펠리카"를 "필리카"로 읽은 적이 있어 한쪽만 믿을 수 없다
         if t.chars().any(|c| ('가'..='힣').contains(&c)) {
-            lines.push(Line { t, x: cx - 0.02, y: d.y, w: 0.04, h: d.h });
+            let empty = !lines.iter().any(|l| in_cell(l) && l.t.chars().any(|c| ('가'..='힣').contains(&c)));
+            lines.push(Line { t: if empty { t } else { format!("※{t}") }, x: cx - 0.02, y: d.y, w: 0.04, h: d.h });
         }
     }
 }

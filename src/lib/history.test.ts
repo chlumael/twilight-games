@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import type { PackBanner } from "./banners";
-import { fixKnownName, importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, parseRecordTime } from "./history";
+import { chooseName, fixKnownName, importHistory, mergePages, missingPages, parseArknightsHistory, parseEndfieldHistory, parseGenshinHistory, parseRecordTime } from "./history";
 import { emptyRecords, recordDetected, recordSession, topHistory } from "./ledger";
 import { parseFrameText } from "./recognize";
 
@@ -74,6 +74,38 @@ describe("엔드필드 공식 기록 읽기", () => {
     expect([ker?.name, ker?.rarity]).toEqual(["케르", 6]);
   });
 
+  it("같은 쪽·같은 줄 자리는 한 줄: 여러 번 읽어 많이 나온 것 (PC 실기 2026-11-28: '판'을 한 번 '아다'로 읽어 줄이 섞임)", () => {
+    const row = (name: string, slot: number) => ({ banner: "B", name, time: "2026-11-25T14:23:43.000Z", emergency: false, slot });
+    const good = { game: "endfield" as const, page: 11, rows: [row("판", 41), row("에스텔라", 48), row("안탈", 55)] };
+    const bad = { game: "endfield" as const, page: 11, rows: [row("아다", 42), row("에스텔라", 48), row("안탈", 55)] };
+    let store = mergePages({}, good);
+    store = mergePages(store, bad);
+    store = mergePages(store, good);
+    const rows = Object.values(store);
+    expect(rows).toHaveLength(3);
+    expect(rows.map((r) => r.name).sort()).toEqual(["안탈", "에스텔라", "판"]);
+    expect(missingPages(store)).toEqual([]);
+  });
+
+  it("두 후보 중 아는 이름 고르기 (PC 실기 2026-11-28)", () => {
+    const known = ["안탈", "펠리카", "판", "케르", "에스텔라"];
+    const r = (name: string, altName?: string, rarity?: number) => ({ banner: "B", name, time: "t", emergency: false, altName, rarity });
+    expect(chooseName(r("아다", "안탈"), known, ["케르"])).toBe("안탈");
+    expect(chooseName(r("펠리카", "필리카"), known, ["케르"])).toBe("펠리카");
+    expect(chooseName(r("", "판"), known, ["케르"])).toBe("판");
+    expect(chooseName(r("케로", undefined, 6), known, ["케르"])).toBe("케르");
+    expect(chooseName(r("케로"), known, ["케르"])).toBe("케로"); // (6★) 없이 6성 이름으로는 안 바꿈
+  });
+
+  it("PC 실기 11쪽(2026-11-28): 두 방법 모두 '안탈'을 '아다'로 읽어도 자모가 가까운 아는 이름으로, 한 글자 '판'", async () => {
+    const { normalizeFrame } = await import("./recognize");
+    const known = ["판", "에스텔라", "안탈", "아케쿠리", "용사", "카뮤", "펠리카", "케르", "로시", "리노", "망각"];
+    const p = parseEndfieldHistory(normalizeFrame(parseFrameText(readFileSync(new URL("./fixtures/endfield-history-pc-11.txt", import.meta.url), "utf8"))))!;
+    expect(p.rows.map((r) => chooseName(r, known, ["케르"]))).toEqual(["판", "에스텔라", "안탈", "에스텔라", "아케쿠리"]);
+    expect(fixKnownName("아다", known)).toBe("안탈");
+    expect(fixKnownName("가나", known)).toBe("가나"); // 가까운 아는 이름이 없으면 그대로
+  });
+
   it("한 글자 틀린 이름 바로잡기 (PC 실기 2026-11-28: 케로 → 케르)", () => {
     const known = ["케르", "카치르", "에스텔라", "로시", "리노"];
     expect(fixKnownName("케로", known)).toBe("케르");
@@ -95,7 +127,8 @@ describe("엔드필드 공식 기록 읽기", () => {
     let store = mergePages({}, p);
     store = mergePages(store, p);
     expect(Object.keys(store)).toHaveLength(5);
-    const twin = { ...p, rows: [p.rows[1], p.rows[1]] };
+    // 같은 시각·같은 이름이라도 화면의 줄 자리가 다르면 두 줄
+    const twin = { ...p, rows: [{ ...p.rows[1], slot: 48 }, { ...p.rows[1], slot: 55 }] };
     expect(Object.keys(mergePages({}, twin))).toHaveLength(2);
   });
 
